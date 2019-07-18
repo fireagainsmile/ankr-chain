@@ -13,8 +13,7 @@ RUN chmod 600 /root/.ssh/id_rsa
 WORKDIR /go/src/github.com/tendermint/tendermint
 COPY . .
 
-RUN dep ensure -v --vendor-only \
-    && make build
+RUN make build
 
 # Build image
 FROM alpine:3.7 AS public
