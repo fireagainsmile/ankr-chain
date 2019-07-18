@@ -4,6 +4,8 @@ BUILD_FLAGS = -ldflags "-X github.com/Ankr-network/ankr-chain/version.GitCommit=
 
 export GO111MODULE=on
 
+export GIT_TERMINAL_PROMPT=1
+
 all: build install
 
 build:
