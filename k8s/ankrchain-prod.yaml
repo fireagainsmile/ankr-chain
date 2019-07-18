@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tendermint-1
+spec:
+  selector:
+    matchLabels:
+      app: dccn-tendermint
+      id: tendermint-1
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: tendermint-1
+  template:
+    metadata:
+      labels:
+        app: dccn-tendermint
+        id: tendermint-1
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      volumes:
+        - name: tendermint-pvc-1
+          persistentVolumeClaim:
+            claimName: tendermint-pvc-1
+      containers:
+        - name: tendermint
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+          imagePullPolicy: Always
+          ports:
+            - name: p2p-1
+              containerPort: 26656
+            - name: rpc
+              containerPort: 26657
+            - name: abci
+              containerPort: 26658
+          volumeMounts:
+            - name: tendermint-pvc-1
+              mountPath: /tendermint/data
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tendermint-2
+spec:
+  selector:
+    matchLabels:
+      app: dccn-tendermint
+      id: tendermint-2
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: tendermint-2
+  template:
+    metadata:
+      labels:
+        app: dccn-tendermint
+        id: tendermint-2
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      volumes:
+        - name: tendermint-pvc-2
+          persistentVolumeClaim:
+            claimName: tendermint-pvc-2
+      containers:
+        - name: tendermint
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+          imagePullPolicy: Always
+          ports:
+            - name: p2p-2
+              containerPort: 26656
+            - name: rpc
+              containerPort: 26657
+            - name: abci
+              containerPort: 26658
+          volumeMounts:
+            - name: tendermint-pvc-2
+              mountPath: /tendermint/data
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tendermint-3
+spec:
+  selector:
+    matchLabels:
+      app: dccn-tendermint
+      id: tendermint-3
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: tendermint-3
+  template:
+    metadata:
+      labels:
+        app: dccn-tendermint
+        id: tendermint-3
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      volumes:
+        - name: tendermint-pvc-3
+          persistentVolumeClaim:
+            claimName: tendermint-pvc-3
+      containers:
+        - name: tendermint
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+          imagePullPolicy: Always
+          ports:
+            - name: p2p-3
+              containerPort: 26656
+            - name: rpc
+              containerPort: 26657
+            - name: abci
+              containerPort: 26658
+          volumeMounts:
+            - name: tendermint-pvc-3
+              mountPath: /tendermint/data
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tendermint-4
+spec:
+  selector:
+    matchLabels:
+      app: dccn-tendermint
+      id: tendermint-4
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: tendermint-4
+  template:
+    metadata:
+      labels:
+        app: dccn-tendermint
+        id: tendermint-4
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      volumes:
+        - name: tendermint-pvc-4
+          persistentVolumeClaim:
+            claimName: tendermint-pvc-4
+      containers:
+        - name: tendermint
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+          imagePullPolicy: Always
+          ports:
+            - name: p2p-4
+              containerPort: 26656
+            - name: rpc
+              containerPort: 26657
+            - name: abci
+              containerPort: 26658
+          volumeMounts:
+            - name: tendermint-pvc-4
+              mountPath: /tendermint/data

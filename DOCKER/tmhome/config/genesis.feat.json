@@ -1,0 +1,58 @@
+{
+  "genesis_time": "2019-02-14T11:04:07.552849Z",
+  "chain_id": "Ankr-dev-chain",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age": "100000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    }
+  },
+  "validators": [
+    {
+      "address": "0C3FD0B27551FE09283ABF75D3889B32E5FA516DE35314",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "6z3CgqvOP1vt+9PPIrtf9Z1oQ4BKz9E5Bzqq35cM/9Y="
+      },
+      "power": "10",
+      "name": "1"
+    },
+    {
+      "address": "6B7AADDA0306883A82AA434BD9D7DA8721C03B9B304796",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "Bqbz6J3jIkw86Ltuh2Bhzp/9sOtjYiJsaNlcK+VIDS8="
+      },
+      "power": "10",
+      "name": "2"
+    },
+    {
+      "address": "4B517D24BA10E2CC23C1EC68067EE34BB268FDA48F25EB",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "znAjkC8p4KhIbWuiu65mpZVB+0XQxwOLmD+9BXkV7P4="
+      },
+      "power": "10",
+      "name": "3"
+    },
+    {
+      "address": "AE03DBD3F4A16E69B153C2038913B0A863FBB07490054D",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "oqQ4cfKrjwxHLaf/wrrSHGBUKJKcHqOPs1LrF88Vzhw="
+      },
+      "power": "10",
+      "name": "4"
+    }
+  ],
+  "app_hash": ""
+}

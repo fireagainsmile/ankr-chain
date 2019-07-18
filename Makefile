@@ -1,4 +1,5 @@
 BUILD_TAGS?='ankrchain'
+OUTPUT?=build/ankrchain
 BUILD_FLAGS = -ldflags "-X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
 export GO111MODULE=on
