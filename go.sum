@@ -1,6 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
-github.com/Ankr-network/tendermint v0.31.5-0.20190718054415-49a6b96977e9 h1:pJSREGEs4GXCFZTCIVeaorvuwI6u47u0Tcf5OUwqijs=
-github.com/Ankr-network/tendermint v0.31.5-0.20190718054415-49a6b96977e9/go.mod h1:wKbEs9JATCfkmQcX8GWeIYOLOlrVzwma4NORJaYOh5U=
+github.com/Ankr-network/tendermint v0.31.5-0.20190719093344-1f8077fcd482 h1:UYDqKOJtX7A5cjlAnS9h3SYGeCfDRy399SSWUUQoLtw=
+github.com/Ankr-network/tendermint v0.31.5-0.20190719093344-1f8077fcd482/go.mod h1:wKbEs9JATCfkmQcX8GWeIYOLOlrVzwma4NORJaYOh5U=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=

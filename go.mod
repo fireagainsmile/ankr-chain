@@ -2,7 +2,7 @@ module github.com/Ankr-network/ankr-chain
 
 go 1.12
 
-replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-0.20190718054415-49a6b96977e9
+replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-0.20190719093344-1f8077fcd482
 
 require (
 	github.com/btcsuite/btcd v0.0.0-20190629003639-c26ffa870fd8 // indirect
