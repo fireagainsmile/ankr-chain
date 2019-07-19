@@ -63,7 +63,7 @@ jobs:
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_DEV
             fi
 
-            docker build --label=ankrchain --target=public --build-arg BRANCH_NAME=${BRANCH_NAME} --build-arg PRIV_PATH=${PRIV_PATH} --build-arg BRANCH_NAME=${BRANCH_NAME} -t dccn-tendermint:$BRANCH_NAME . -f DOCKER/Dockerfile
+            docker build --label=ankrchain --target=public --build-arg BRANCH_NAME=${BRANCH_NAME} --build-arg PRIV_PATH=${PRIV_PATH} --build-arg BRANCH_NAME=${BRANCH_NAME} -t ankr-chain:$BRANCH_NAME . -f DOCKER/Dockerfile
             for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
               docker tag ankr-chain:$BRANCH_NAME $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:$TAG
               docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:$TAG
@@ -95,7 +95,7 @@ jobs:
               sed -i~ -E "s/zone: .*/zone: $AWS_ZONE/" k8s/create-pvc.yaml
             fi
 
-            # upgrade tendermint in hub side
+            # upgrade ankrchain in hub side
             kops export kubecfg --name ${K8S_CLUSTER}.k8s.ankr.network --state s3://kops.${K8S_CLUSTER}.config
             kubectl apply -f k8s/create-pvc.yaml
             kubectl apply -f k8s/ankrchain-svc.yaml
@@ -104,7 +104,7 @@ jobs:
               kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:$BRANCH_NAME$DATE \
                 -f k8s/ankrchain-prod.yaml --local -o yaml > k8s/ankrchain-patched.yaml
             else
-              kubectl set image tendermint=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$BRANCH_NAME$DATE \
+              kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$BRANCH_NAME$DATE \
                 -f k8s/ankrchain.yaml --local -o yaml > k8s/ankrchain-patched.yaml
             fi
             # add page break line before new deployment, not compatible with bsd style command line tool, eg: macOS
