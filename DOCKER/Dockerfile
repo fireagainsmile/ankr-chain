@@ -1,5 +1,5 @@
 # Compile
-FROM golang:1.11-alpine AS compiler
+FROM golang:1.12-alpine AS compiler
 ARG PRIV_PATH
 
 RUN apk add --no-cache git make dep openssh-client
@@ -10,26 +10,22 @@ RUN chmod go-w /root
 RUN chmod 700 /root/.ssh
 RUN chmod 600 /root/.ssh/id_rsa
 
-WORKDIR /go/src/github.com/tendermint/tendermint
+WORKDIR /go/src/github.com/Ankr-network/ankr-chain
 COPY . .
 
 RUN make build
 
-# Build image
-FROM alpine:3.7 AS public
-MAINTAINER Greg Szabo <greg@tendermint.com>
-
-# Tendermint will be looking for the genesis file in /tendermint/config/genesis.json
+# Ankrchain will be looking for the genesis file in /ankrchain/config/genesis.json
 # (unless you change `genesis_file` in config.toml). You can put your config.toml and
-# private validator file into /tendermint/config.
+# private validator file into /ankrchain/config.
 #
-# The /tendermint/data dir is used by tendermint to store state.
-ENV TMHOME /tendermint
+# The /ankrchain/data dir is used by ankrchain to store state.
+ENV TMHOME /ankrchain
 
 # OS environment setup
 # Set user right away for determinism, create directory for persistence and give our user ownership
 # jq and curl used for extracting `pub_key` from private validator while
-# deploying tendermint with Kubernetes. It is nice to have bash so the users
+# deploying ankrchain with Kubernetes. It is nice to have bash so the users
 # could execute bash commands.
 RUN apk update && \
     apk upgrade && \
