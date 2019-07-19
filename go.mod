@@ -5,7 +5,7 @@ go 1.12
 replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-0.20190718054415-49a6b96977e9
 
 require (
-	github.com/Ankr-network/ankr-chain v0.0.0-20190718060017-7d11b05e4fb4
+	github.com/Ankr-network/ankr-chain v0.0.0-20190719091948-3470f568bdb5
 	github.com/btcsuite/btcd v0.0.0-20190629003639-c26ffa870fd8 // indirect
 	github.com/go-kit/kit v0.9.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
