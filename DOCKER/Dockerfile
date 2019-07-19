@@ -35,7 +35,7 @@ RUN apk update && \
 
 ARG BRANCH_NAME
 ENV BRANCH_NAME=${BRANCH_NAME}
-COPY --from=compiler /go/src/github.com/tendermint/tendermint/build/tendermint /usr/bin/tendermint
+COPY --from=compiler /go/src/github.com/Ankr-network/ankr-chain/build/ankrchain /usr/bin/ankrchain
 COPY DOCKER/tmhome/config/config."${BRANCH_NAME}".toml "$TMHOME"/config/config.toml
 COPY DOCKER/tmhome/config/genesis."${BRANCH_NAME}".json "$TMHOME"/config/genesis.json
 RUN mkdir "$TMHOME"/data \
