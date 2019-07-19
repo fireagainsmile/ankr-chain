@@ -10,7 +10,7 @@ RUN chmod go-w /root
 RUN chmod 700 /root/.ssh
 RUN chmod 600 /root/.ssh/id_rsa
 
-WORKDIR /go/src/github.com/Ankr-network/ankr-chain
+WORKDIR /ankr-chain
 COPY . .
 
 RUN make build
