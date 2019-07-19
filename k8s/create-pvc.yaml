@@ -12,7 +12,7 @@ reclaimPolicy: Delete
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: tendermint-pvc-1
+  name: ankrchain-pvc-1
   labels:
     type: amazonEBS
 spec:
@@ -26,7 +26,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: tendermint-pvc-2
+  name: ankrchain-pvc-2
   labels:
     type: amazonEBS
 spec:
@@ -40,7 +40,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: tendermint-pvc-3
+  name: ankrchain-pvc-3
   labels:
     type: amazonEBS
 spec:
@@ -54,7 +54,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: tendermint-pvc-4
+  name: ankrchain-pvc-4
   labels:
     type: amazonEBS
 spec:

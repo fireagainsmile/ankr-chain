@@ -148,7 +148,7 @@ spec:
       volumes:
         - name: ankrchain-pvc-4
           persistentVolumeClaim:
-            claimName: tendermint-pvc-4
+            claimName: ankrchain-pvc-4
       containers:
         - name: ankrchain
           image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat

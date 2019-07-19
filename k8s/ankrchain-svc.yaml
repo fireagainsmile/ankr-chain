@@ -5,13 +5,13 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
-  name: dccn-tendermint
+  name: ankr-chain
   labels:
-    app: dccn-tendermint
+    app: ankr-chain
 spec:
   externalTrafficPolicy: Local
   selector:
-    app: dccn-tendermint
+    app: ankr-chain
   type: LoadBalancer
   ports:
   - name: p2p-1
@@ -40,12 +40,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tendermint-1
+  name: ankrchain-1
   labels:
-    app: tendermint-1
+    app: ankrchain-1
 spec:
   selector:
-    id: tendermint-1
+    id: ankrchain-1
   ports:
   - name: p2p-1
     port: 26656
@@ -59,12 +59,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tendermint-2
+  name: ankrchain-2
   labels:
-    app: tendermint-2
+    app: ankrchain-2
 spec:
   selector:
-    id: tendermint-2
+    id: ankrchain-2
   ports:
   - name: p2p-2
     port: 26656
@@ -78,12 +78,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tendermint-3
+  name: ankrchain-3
   labels:
-    app: tendermint-3
+    app: ankrchain-3
 spec:
   selector:
-    id: tendermint-3
+    id: ankrchain-3
   ports:
   - name: p2p-3
     port: 26656
@@ -97,12 +97,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tendermint-4
+  name: ankrchain-4
   labels:
-    app: tendermint-4
+    app: ankrchain-4
 spec:
   selector:
-    id: tendermint-4
+    id: ankrchain-4
   ports:
   - name: p2p-4
     port: 26656

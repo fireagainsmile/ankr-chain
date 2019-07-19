@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: tendermint-1
+  name: ankrchain-1
 spec:
   selector:
     matchLabels:
-      app: dccn-tendermint
-      id: tendermint-1
+      app: ankr-chain
+      id: ankrchain-1
   replicas: 1
   updateStrategy:
     type: RollingUpdate
-  serviceName: tendermint-1
+  serviceName: ankrchain-1
   template:
     metadata:
       labels:
-        app: dccn-tendermint
-        id: tendermint-1
+        app: ankr-chain
+        id: ankrchain-1
     spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: tendermint-pvc-1
+        - name: ankrchain-pvc-1
           persistentVolumeClaim:
-            claimName: tendermint-pvc-1
+            claimName: ankrchain-pvc-1
       containers:
-        - name: tendermint
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+        - name: ankrchain
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:feat
           imagePullPolicy: Always
           ports:
             - name: p2p-1
@@ -35,38 +35,38 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: tendermint-pvc-1
-              mountPath: /tendermint/data
+            - name: ankrchain-pvc-1
+              mountPath: /ankrchain/data
 
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: tendermint-2
+  name: ankrchain-2
 spec:
   selector:
     matchLabels:
-      app: dccn-tendermint
-      id: tendermint-2
+      app: ankr-chain
+      id: ankrchain-2
   replicas: 1
   updateStrategy:
     type: RollingUpdate
-  serviceName: tendermint-2
+  serviceName: ankrchain-2
   template:
     metadata:
       labels:
-        app: dccn-tendermint
-        id: tendermint-2
+        app: ankr-chain
+        id: ankrchain-2
     spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: tendermint-pvc-2
+        - name: ankrchain-pvc-2
           persistentVolumeClaim:
-            claimName: tendermint-pvc-2
+            claimName: ankrchain-pvc-2
       containers:
-        - name: tendermint
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+        - name: ankrchain
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:feat
           imagePullPolicy: Always
           ports:
             - name: p2p-2
@@ -76,38 +76,38 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: tendermint-pvc-2
-              mountPath: /tendermint/data
+            - name: ankrchain-pvc-2
+              mountPath: /ankrchain/data
 
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: tendermint-3
+  name: ankrchain-3
 spec:
   selector:
     matchLabels:
-      app: dccn-tendermint
-      id: tendermint-3
+      app: ankr-chain
+      id: ankrchain-3
   replicas: 1
   updateStrategy:
     type: RollingUpdate
-  serviceName: tendermint-3
+  serviceName: ankrchain-3
   template:
     metadata:
       labels:
-        app: dccn-tendermint
-        id: tendermint-3
+        app: ankr-chain
+        id: ankrchain-3
     spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: tendermint-pvc-3
+        - name: ankrchain-pvc-3
           persistentVolumeClaim:
-            claimName: tendermint-pvc-3
+            claimName: ankrchain-pvc-3
       containers:
-        - name: tendermint
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+        - name: ankrchain
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:feat
           imagePullPolicy: Always
           ports:
             - name: p2p-3
@@ -117,38 +117,38 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: tendermint-pvc-3
-              mountPath: /tendermint/data
+            - name: ankrchain-pvc-3
+              mountPath: /ankrchain/data
 
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: tendermint-4
+  name: ankrchain-4
 spec:
   selector:
     matchLabels:
-      app: dccn-tendermint
-      id: tendermint-4
+      app: ankr-chain
+      id: ankrchain-4
   replicas: 1
   updateStrategy:
     type: RollingUpdate
-  serviceName: tendermint-4
+  serviceName: ankrchain-4
   template:
     metadata:
       labels:
-        app: dccn-tendermint
-        id: tendermint-4
+        app: ankr-chain
+        id: ankrchain-4
     spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: tendermint-pvc-4
+        - name: ankrchain-pvc-4
           persistentVolumeClaim:
-            claimName: tendermint-pvc-4
+            claimName: ankrchain-pvc-4
       containers:
-        - name: tendermint
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-tendermint:feat
+        - name: ankrchain
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:feat
           imagePullPolicy: Always
           ports:
             - name: p2p-4
@@ -158,5 +158,5 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: tendermint-pvc-4
-              mountPath: /tendermint/data
+            - name: ankrchain-pvc-4
+              mountPath: /ankrchain/data
