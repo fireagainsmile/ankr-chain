@@ -1,4 +1,4 @@
-module ankrchain
+module github.com/Ankr-network/ankr-chain
 
 go 1.12
 
