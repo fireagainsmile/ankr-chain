@@ -15,6 +15,9 @@ COPY . .
 
 RUN make build
 
+# Build image
+FROM alpine:3.7 AS public
+
 # Ankrchain will be looking for the genesis file in /ankrchain/config/genesis.json
 # (unless you change `genesis_file` in config.toml). You can put your config.toml and
 # private validator file into /ankrchain/config.
