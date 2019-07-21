@@ -1,4 +1,4 @@
-package historystorage
+package historystore
 
 
 import (

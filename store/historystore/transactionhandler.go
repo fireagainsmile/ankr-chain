@@ -1,4 +1,4 @@
-package historystorage
+package historystore
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/consensus"
-	"github.com/Ankr-network/ankr-chain/historystorage/types"
+	"github.com/Ankr-network/ankr-chain/store/historystore/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/types/time"

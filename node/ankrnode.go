@@ -6,7 +6,7 @@ import (
 
 	ankrconfig "github.com/Ankr-network/ankr-chain/config"
 	"github.com/Ankr-network/ankr-chain/consensus"
-	"github.com/Ankr-network/ankr-chain/historystorage"
+	"github.com/Ankr-network/ankr-chain/store/historystore"
 	tmcorelog "github.com/tendermint/tendermint/libs/log"
 	tmcorenode "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -63,7 +63,7 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 	historyDBLogger := logger.With("module", "historydb")
 	historyDBLogger.Info("historydb parameter", "dbType", config.HistoryDB.Type, "dbHost", config.HistoryDB.Host, "dbName", config.HistoryDB.Name)
 	if config.HistoryDB.Type != "" && config.HistoryDB.Host != "" && config.HistoryDB.Name != "" {
-		historyDBService := historystorage.NewHistoryStorageService(config.HistoryDB.Type, config.HistoryDB.Host, config.HistoryDB.Name, tmNode.EventBus(), historyDBLogger)
+		historyDBService := historystore.NewHistoryStorageService(config.HistoryDB.Type, config.HistoryDB.Host, config.HistoryDB.Name, tmNode.EventBus(), historyDBLogger)
 		historyDBService.Start()
 	}
 

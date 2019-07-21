@@ -1,9 +1,9 @@
-package historystorage
+package historystore
 
 import (
-	"github.com/Ankr-network/ankr-chain/historystorage/db/mongodb"
-	"github.com/Ankr-network/ankr-chain/historystorage/db/mysql"
-	"github.com/Ankr-network/ankr-chain/historystorage/types"
+	"github.com/Ankr-network/ankr-chain/store/historystore/db/mongodb"
+	"github.com/Ankr-network/ankr-chain/store/historystore/db/mysql"
+	"github.com/Ankr-network/ankr-chain/store/historystore/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 

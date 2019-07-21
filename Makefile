@@ -2,6 +2,8 @@ BUILD_TAGS?='ankrchain'
 OUTPUT?=build/ankrchain
 BUILD_FLAGS = -ldflags "-X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
+OUTPUTTOOLDIR?=build/tool
+
 export GO111MODULE=on
 
 all: build install
@@ -11,6 +13,10 @@ build:
 
 install:
 	CGO_ENABLED=0 go install  $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./main.go
+
+tools:
+    go build  -o $OUTPUTTOOLDIR/base64show  ./tool/base64show.go
+    go build  -o $OUTPUTTOOLDIR/keygen      ./tool/keygen.go
 
 fmt:
 	@go fmt ./...

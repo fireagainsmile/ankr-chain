@@ -8,7 +8,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/Ankr-network/ankr-chain/historystorage/types"
+	"github.com/Ankr-network/ankr-chain/store/historystore/types"
 )
 
 var once sync.Once
