@@ -129,7 +129,7 @@ jobs:
             ANKRCHAIN_ELB=$(kubectl get svc --no-headers=true ankr-chain|awk '{print $4}'|cut -d'-' -f1)
             ANKRCHAIN_ACM_ARN=$(aws acm list-certificates --region ${ACM_REGION} --query CertificateSummaryList[].[CertificateArn,DomainName] --output text | grep ${ANKRCHAIN_DNS} | cut -f1)
             ANKRCHAIN_ELB_ARN=$(aws elbv2 describe-load-balancers --region $ACM_REGION --query LoadBalancers[].[LoadBalancerName,LoadBalancerArn] --output text|grep $ANKRCHAIN_ELB|cut -f2)
-            ANKRCHAIN_TLS_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $TENDERMINT_ELB_ARN --region ${ACM_REGION} --query Listeners[].[ListenerArn,Port] --output text|awk '{if($2=='443'){print $1}}')
+            ANKRCHAIN_TLS_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $ANKRCHAIN_ELB_ARN --region ${ACM_REGION} --query Listeners[].[ListenerArn,Port] --output text|awk '{if($2=='443'){print $1}}')
             aws elbv2 modify-listener --region $ACM_REGION --listener-arn $ANKRCHAIN_TLS_ARN --protocol TLS --ssl-policy ELBSecurityPolicy-2016-08 --certificates CertificateArn=$ANKRCHAIN_ACM_ARN
             # set route53
             ELB_HOST_ZONE_ID=$(aws elbv2 describe-load-balancers --region $ACM_REGION --query LoadBalancers[].[CanonicalHostedZoneId,LoadBalancerArn] --output text | grep ${ANKRCHAIN_ELB} | cut -f1)
