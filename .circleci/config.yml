@@ -45,21 +45,21 @@ jobs:
               CHARTMUSEUM_URL="http://chart.dccn.ankr.com:8080"
               AWS_ZONE=us-west-2a
               ACM_REGION="us-west-2"
-              TENDERMINT_DNS="chain.dccn.ankr.com"
+              ANKRCHAIN_DNS="chain.dccn.ankr.com"
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_STAGE
             elif [[ ($BRANCH_NAME == "develop") ]]; then
               BRANCH_NAME="dev"
               K8S_CLUSTER="stage.hub"
               CHARTMUSEUM_URL="http://chart-stage.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
-              TENDERMINT_DNS="chain-stage.dccn.ankr.com"
+              ANKRCHAIN_DNS="chain-stage.dccn.ankr.com"
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_STAGE
             else
               BRANCH_NAME="feat"
               K8S_CLUSTER="dev.hub"
               CHARTMUSEUM_URL="http://chart-dev.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
-              TENDERMINT_DNS="chain-dev.dccn.ankr.com"
+              ANKRCHAIN_DNS="chain-dev.dccn.ankr.com"
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_DEV
             fi
 
