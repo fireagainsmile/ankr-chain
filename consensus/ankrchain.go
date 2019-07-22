@@ -1191,7 +1191,8 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte("Send")},
         }
-        return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
+
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed:MIN_TOKEN_SEND, Tags: tags}
 }
 
 
