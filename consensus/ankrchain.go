@@ -1192,7 +1192,8 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 		{Key: []byte("app.type"), Value: []byte("Send")},
         }
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed:MIN_TOKEN_SEND, Tags: tags}
+	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed: gasUsed, Tags: tags}
 }
 
 
