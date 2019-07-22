@@ -1230,7 +1230,7 @@ func (app *AnkrChainApplication) execSetStakeTx(tx []byte) types.ResponseDeliver
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("SetStake")},
 	}
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK,  GasUsed: 0, Tags: tags}
 }
 
 func (app *AnkrChainApplication) execSetCertTx(tx []byte) types.ResponseDeliverTx {
@@ -1301,7 +1301,7 @@ func (app *AnkrChainApplication) execSetCertTx(tx []byte) types.ResponseDeliverT
 	app.app.Set(prefixCertKey([]byte(dcS)), []byte(pemB64S))
         app.app.IncSize()
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK,  GasUsed: 0}
 }
 
 /* will add signature verification when wallet code is ready */
@@ -1389,7 +1389,7 @@ func (app *AnkrChainApplication) execSetMeteringTx(tx []byte) types.ResponseDeli
                 {Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
                 {Key: []byte("app.type"), Value: []byte("SetMetering")},
         }
-        return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
+        return types.ResponseDeliverTx{Code: code.CodeTypeOK,  GasUsed: 0, Tags: tags}
 }
 
 func (app *AnkrChainApplication) execRemoveCertTx(tx []byte) types.ResponseDeliverTx {
@@ -1460,7 +1460,7 @@ func (app *AnkrChainApplication) execRemoveCertTx(tx []byte) types.ResponseDeliv
 	app.app.Delete(prefixCertKey([]byte(dcS)))
 	app.app.IncSize()
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed: 0}
 }
 
 func (app *AnkrChainApplication) execSetOpTx(tx []byte) types.ResponseDeliverTx {
@@ -1538,7 +1538,7 @@ func (app *AnkrChainApplication) execSetOpTx(tx []byte) types.ResponseDeliverTx 
 	app.app.Set([]byte(ankrtypes.SET_OP_NONCE), []byte(nonceS))
     app.app.IncSize()
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: 1}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: 1, GasUsed: 0}
 }
 /* will add signature verification when wallet code is ready */
 func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliverTx {
@@ -1649,7 +1649,7 @@ func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliv
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("SetBalance")},
 	}
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK,  GasUsed: 0, Tags: tags}
 }
 
 func (app *AnkrChainApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
@@ -1788,7 +1788,7 @@ func (app *AnkrChainApplication) updateValidator(v types.ValidatorUpdate) types.
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("UpdateValidator")},
 	}
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed: 0, Tags: tags}
 }
 
 func deserilizePubKey(pub_key_b64 string) (ed25519.PubKeyEd25519, error) {
