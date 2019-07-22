@@ -20,9 +20,9 @@ spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: ankrchain-pvc-1
+        - name: tendermint-pvc-1
           persistentVolumeClaim:
-            claimName: ankrchain-pvc-1
+            claimName: tendermint-pvc-1
       containers:
         - name: ankrchain
           image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
@@ -36,7 +36,7 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: ankrchain-pvc-1
+            - name: tendermint-pvc-1
               mountPath: /ankrchain/data
 
 ---
@@ -62,9 +62,9 @@ spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: ankrchain-pvc-2
+        - name: tendermint-pvc-2
           persistentVolumeClaim:
-            claimName: ankrchain-pvc-2
+            claimName: tendermint-pvc-2
       containers:
         - name: ankrchain
           image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
@@ -78,7 +78,7 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: ankrchain-pvc-2
+            - name: tendermint-pvc-2
               mountPath: /ankrchain/data
 
 ---
@@ -104,9 +104,9 @@ spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: ankrchain-pvc-3
+        - name: tendermint-pvc-3
           persistentVolumeClaim:
-            claimName: ankrchain-pvc-3
+            claimName: tendermint-pvc-3
       containers:
         - name: ankrchain
           image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
@@ -120,7 +120,7 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: ankrchain-pvc-3
+            - name: tendermint-pvc-3
               mountPath: /ankrchain/data
 
 ---
@@ -146,9 +146,9 @@ spec:
       imagePullSecrets:
         - name: aws-ecr
       volumes:
-        - name: ankrchain-pvc-4
+        - name: tendermint-pvc-4
           persistentVolumeClaim:
-            claimName: ankrchain-pvc-4
+            claimName: tendermint-pvc-4
       containers:
         - name: ankrchain
           image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
@@ -166,5 +166,5 @@ spec:
             - name: abci
               containerPort: 26658
           volumeMounts:
-            - name: ankrchain-pvc-4
+            - name: tendermint-pvc-4
               mountPath: /ankrchain/data
