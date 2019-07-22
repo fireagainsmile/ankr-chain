@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/Ankr-network/ankr-chain/historystorage/types"
+	"github.com/Ankr-network/ankr-chain/store/historystore/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 

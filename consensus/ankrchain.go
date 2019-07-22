@@ -16,10 +16,11 @@ import (
 	"time"
 
 	"github.com/Ankr-network/ankr-chain/consensus/code"
+    "github.com/Ankr-network/ankr-chain/store/appstore"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
 	tmCoreTypes "github.com/tendermint/tendermint/types"
 
@@ -27,30 +28,6 @@ import (
 )
 
 const (
-	KeyAddressLen = 46
-	ValidatorSetChangePrefix string = "val:"
-        AccountBlancePrefix string = "bal:"
-        AccountStakePrefix string = "stk"
-	CertPrefix string = "crt:"
-	MeteringPrefix string = "mtr:"
-	AllAccountsPrefix string = "all_accounts"
-	AllCrtsPrefix string = "all_crts"
-
-	SetMeteringPrefix string = "set_mtr="
-        TrxSendPrefix string = "trx_send="
-        SetBalancePrefix string = "set_bal="
-        SetOpPrefix string = "set_op="
-        SetStakePrefix string = "set_stk="
-        SetCertPrefix string = "set_crt="
-        RemoveCertPrefix string = "rmv_crt="
-
-	SET_CRT_NONCE string = "set_crt_nonce"
-	RMV_CRT_NONCE string = "rmv_crt_nonce"
-	SET_OP_NONCE string = "admin_nonce"
-	SET_VAL_NONCE string = "val_nonce"
-	ADMIN_OP_VAL_PUBKEY_NAME string = "admin_op_val_pubkey"
-	ADMIN_OP_FUND_PUBKEY_NAME string = "admin_op_fund_pubkey"
-	ADMIN_OP_METERING_PUBKEY_NAME string = "admin_op_metering_pubkey"
 	MIN_TOKEN_SEND = "5000000000000000000" // 5 tokens
 /*
 test account:
@@ -92,19 +69,19 @@ const ADMIN_OP_METERING_PUBKEY = "cOKct2+weTftBpTvhvFKqzg9tBkN7gG/gtFVuoE53e0="
 const ADMIN_PUBKEY = "j90knB4tx3d6xi9KefyCl2FwS/hd/jpEj+cbHdzFcqM="
 
 func prefixCertKey(key []byte) []byte {
-        return append([]byte(CertPrefix), key...)
+        return append([]byte(ankrtypes.CertPrefix), key...)
 }
 
 func prefixBalanceKey(key []byte) []byte {
-        return append([]byte(AccountBlancePrefix), key...)
+        return append([]byte(ankrtypes.AccountBlancePrefix), key...)
 }
 
 func prefixStakeKey(key []byte) []byte {
-        return append([]byte(AccountStakePrefix), key...)
+        return append([]byte(ankrtypes.AccountStakePrefix), key...)
 }
 
 func prefixSetMeteringKey(key []byte) []byte {
-        return append([]byte(MeteringPrefix), key...)
+        return append([]byte(ankrtypes.MeteringPrefix), key...)
 }
 
 //-----------------------------------------
@@ -112,7 +89,7 @@ func prefixSetMeteringKey(key []byte) []byte {
 var _ types.Application = (*AnkrChainApplication)(nil)
 
 type AnkrChainApplication struct {
-	app *KVStoreApplication
+	app appstore.AppStore
 
 	// validator set
 	ValUpdates []types.ValidatorUpdate
@@ -121,21 +98,16 @@ type AnkrChainApplication struct {
 }
 
 func NewAnkrChainApplication(dbDir string) *AnkrChainApplication {
-	name := "kvstore"
-	db, err := dbm.NewGoLevelDB(name, dbDir)
-	if err != nil {
-		panic(err)
-	}
+	appStore := appstore.NewAppStore(dbDir)
 
-	state := loadState(db)
 	value := []byte("")
-	value = state.db.Get([]byte(AccountStakePrefix))
+	value = appStore.Get([]byte(ankrtypes.AccountStakePrefix))
 	if value == nil || string(value) == "" {
-		state.db.Set(prefixStakeKey([]byte("")), []byte("0:1"))
+		appStore.Set(prefixStakeKey([]byte("")), []byte("0:1"))
 	}
 
 	return &AnkrChainApplication{
-		app:    &KVStoreApplication{state: state},
+		app:    appStore,
 		logger: log.NewNopLogger(),
 	}
 }
@@ -146,8 +118,8 @@ func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
 	res := app.app.Info(req)
-	res.LastBlockHeight = app.app.state.Height
-	res.LastBlockAppHash = app.app.state.AppHash
+	res.LastBlockHeight = app.app.Height()
+	res.LastBlockAppHash = app.app.APPHash()
 	return res
 }
 
@@ -206,33 +178,9 @@ func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
                         Log:  fmt.Sprintf("Unexpected command. Got %v", tx)}
 }
 
-func (app *AnkrChainApplication) getTotalValidatorPowers() int64 {
-	var totalValPowers int64 = 0
-	it := app.app.state.db.Iterator(nil, nil)
-	if it != nil && it.Valid(){
-		it.Next()
-		for it.Valid() {
-			if isValidatorTx(it.Key()) {
-				validator := new(types.ValidatorUpdate)
-				err := types.ReadMessage(bytes.NewBuffer(it.Value()), validator)
-				if err != nil {
-					panic(err)
-				}
-
-				totalValPowers += validator.Power
-				fmt.Printf("validator = %v\n", validator)
-			}
-			it.Next()
-		}
-	}
-	it.Close()
-
-	return  totalValPowers
-}
-
 func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	if isSetCertTx(tx) {
-	    tx = tx[len(SetCertPrefix):]
+	    tx = tx[len(ankrtypes.SetCertPrefix):]
             trxSetCertSlices := strings.SplitN(string(tx), ":", 4)
             if len(trxSetCertSlices) != 4 {
                 return types.ResponseCheckTx{
@@ -251,7 +199,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
                         Log:  fmt.Sprintf("Unexpected cert nonce. Got %v, %v", nonceS, err_nonce)}
             }
 
-            nonceOldByte := app.app.state.db.Get([]byte(SET_CRT_NONCE))
+            nonceOldByte := app.app.Get([]byte(ankrtypes.SET_CRT_NONCE))
             nonceOld, err_nonce := strconv.ParseInt(string(nonceOldByte), 10, 64)
             if err_nonce != nil {
                 if len(string(nonceOldByte)) == 0 {
@@ -270,7 +218,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
             }
 
 	    var admin_pubkey_str string = ""
-	    admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_METERING_PUBKEY_NAME))
+	    admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	    if len(admin_pubkey) == 0 {
 		    fmt.Println("use default ADMIN_OP_METERING_PUBKEY_NAME")
 		    admin_pubkey_str = ADMIN_OP_METERING_PUBKEY
@@ -297,7 +245,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
         }
 
 	if isRemoveCertTx(tx) {
-            tx = tx[len(RemoveCertPrefix):]
+            tx = tx[len(ankrtypes.RemoveCertPrefix):]
             trxSetCertSlices := strings.SplitN(string(tx), ":", 3)
             if len(trxSetCertSlices) != 3 {
                 return types.ResponseCheckTx{
@@ -315,7 +263,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
                         Log:  fmt.Sprintf("Unexpected nonce6. Got %v", nonceS)}
             }
 
-            nonceOldByte := app.app.state.db.Get([]byte(RMV_CRT_NONCE))
+            nonceOldByte := app.app.Get([]byte(ankrtypes.RMV_CRT_NONCE))
             nonceOld, err_nonce := strconv.ParseInt(string(nonceOldByte), 10, 64)
             if err_nonce != nil {
                 if len(string(nonceOldByte)) == 0 {
@@ -334,7 +282,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
             }
 
 	    var admin_pubkey_str string = ""
-	    admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_METERING_PUBKEY_NAME))
+	    admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	    if len(admin_pubkey) == 0 {
 		    fmt.Println("use default ADMIN_OP_METERING_PUBKEY_NAME")
 		    admin_pubkey_str = ADMIN_OP_METERING_PUBKEY
@@ -361,7 +309,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	}
 
 	if isSetMeteringTx(tx) {
-		tx = tx[len(SetMeteringPrefix):]
+		tx = tx[len(ankrtypes.SetMeteringPrefix):]
 		trxSetMeteringSlices := strings.SplitN(string(tx), ":", 6)
                 if len(trxSetMeteringSlices) != 6 {
 		    return types.ResponseCheckTx{
@@ -385,7 +333,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
                 /* verify nonce */
                 var nonceOld int64 = 0
-                meteringRec := app.app.state.db.Get(prefixSetMeteringKey([]byte(dcS + ":" + nsS)))
+                meteringRec := app.app.Get(prefixSetMeteringKey([]byte(dcS + ":" + nsS)))
                 if meteringRec == nil || string(meteringRec) == "" {
                     nonceOld = 0
                 } else {
@@ -410,7 +358,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
                         Log:  fmt.Sprintf("nonce should be one more than last nonce. Got %v", nonceS)}
                 }
 
-		pemB64Byte := app.app.state.db.Get(prefixCertKey([]byte(dcS)))
+		pemB64Byte := app.app.Get(prefixCertKey([]byte(dcS)))
                 if len(pemB64Byte) == 0 {
                     return types.ResponseCheckTx{
                         Code: code.CodeTypeEncodingError,
@@ -437,7 +385,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 	if isValidatorTx(tx) {
 		//val:public_key:power:nonce:admin_pub:sig
-		tx = tx[len(ValidatorSetChangePrefix):]
+		tx = tx[len(ankrtypes.ValidatorSetChangePrefix):]
 		pubKeyAndPower := strings.Split(string(tx), ":")
                 if len(pubKeyAndPower) != 5 {
 		    return types.ResponseCheckTx{
@@ -452,7 +400,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 
 	        var admin_pubkey_str string = ""
-	        admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_VAL_PUBKEY_NAME))
+	        admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME))
 	        if len(admin_pubkey) == 0 {
 		    fmt.Println("use default ADMIN_OP_VAL_PUBKEY_NAME")
 		    admin_pubkey_str = ADMIN_OP_VAL_PUBKEY
@@ -479,7 +427,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 			}
 		}
 
-		curValidatorCount := app.getTotalValidatorPowers()
+		curValidatorCount := app.app.TotalValidatorPowers(isValidatorTx)
 		if (curValidatorCount + int64(powerInt)) > tmCoreTypes.MaxTotalVotingPower {
 			return types.ResponseCheckTx{
 				Code: code.CodeTypeEncodingError,
@@ -511,7 +459,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 		}
 
 		var inNonceInt int64 = 0
-		inNonce := app.app.state.db.Get(([]byte(SET_VAL_NONCE)))
+		inNonce := app.app.Get(([]byte(ankrtypes.SET_VAL_NONCE)))
 		if len(inNonce) == 0 {
 			inNonceInt = 0
 		} else {
@@ -548,7 +496,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	}
 
 	if isTrxSendTx(tx) {
-		tx = tx[len(TrxSendPrefix):]
+		tx = tx[len(ankrtypes.TrxSendPrefix):]
 		trxSendSlices := strings.Split(string(tx), ":")
 		if len(trxSendSlices) < 6 {
 		    return types.ResponseCheckTx{
@@ -561,13 +509,13 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 		amountS := trxSendSlices[2]
 		nonceS := trxSendSlices[3]
 
-		if len(fromS) != KeyAddressLen {
+		if len(fromS) != ankrtypes.KeyAddressLen {
 			return types.ResponseCheckTx{
 				Code: code.CodeTypeEncodingError,
 				Log:  fmt.Sprintf("Unexpected from address. Got %v", fromS)}
 		}
 
-		if len(toS) != KeyAddressLen {
+		if len(toS) != ankrtypes.KeyAddressLen {
 			return types.ResponseCheckTx{
 				Code: code.CodeTypeEncodingError,
 				Log:  fmt.Sprintf("Unexpected to address. Got %v", toS)}
@@ -602,7 +550,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 		}
 
 
-		fromBalanceNonce := app.app.state.db.Get(prefixBalanceKey([]byte(fromS)))
+		fromBalanceNonce := app.app.Get(prefixBalanceKey([]byte(fromS)))
 		balanceNonceSlices := strings.Split(string(fromBalanceNonce), ":")
 		var fromBalance string
 		var fromNonce string
@@ -640,7 +588,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 		// check stake here. If from balance is less than stake, let it fail.
 		cstake, _ := new(big.Int).SetString("0", 10)
-		value := app.app.state.db.Get([]byte(AccountStakePrefix))
+		value := app.app.Get([]byte(ankrtypes.AccountStakePrefix))
 		if value == nil || string(value) == "" {
 			// do nothing for now
 		} else {
@@ -686,7 +634,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	}
 
 	if isSetOpTx(tx) {
-                tx = tx[len(SetOpPrefix):]
+                tx = tx[len(ankrtypes.SetOpPrefix):]
 		trxSetOpSlices := strings.Split(string(tx), ":")
 		if len(trxSetOpSlices) != 5{
 		    return types.ResponseCheckTx{
@@ -706,8 +654,8 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 				Log:  fmt.Sprintf("Unexpected pubkey. Got %v", adminPubS)}
 		}
 
-		if keynameS != ADMIN_OP_VAL_PUBKEY_NAME && keynameS != ADMIN_OP_FUND_PUBKEY_NAME &&
-				  keynameS != ADMIN_OP_METERING_PUBKEY_NAME {
+		if keynameS != ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME && keynameS != ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME &&
+				  keynameS != ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME {
 			return types.ResponseCheckTx{
 				Code: code.CodeTypeEncodingError,
 				Log:  fmt.Sprintf("Unexpected keyname. Got %v", keynameS)}
@@ -738,7 +686,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 			}
 
 		var inNonce string = "0"
-		inNonceByte := app.app.state.db.Get([]byte(SET_OP_NONCE))
+		inNonceByte := app.app.Get([]byte(ankrtypes.SET_OP_NONCE))
 		if len(inNonceByte) != 0 {
 			inNonce = string(inNonceByte)
 		}
@@ -761,7 +709,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	}
 
 	if isSetBalanceTx(tx) {
-		tx = tx[len(SetBalancePrefix):]
+		tx = tx[len(ankrtypes.SetBalancePrefix):]
 		trxSetBalanceSlices := strings.Split(string(tx), ":")
 		if len(trxSetBalanceSlices) != 5{
 		    return types.ResponseCheckTx{
@@ -777,7 +725,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 
 	        var admin_pubkey_str string = ""
-	        admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_FUND_PUBKEY_NAME))
+	        admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME))
 	        if len(admin_pubkey) == 0 {
 		    fmt.Println("use default ADMIN_OP_FUND_PUBKEY_NAME")
 		    admin_pubkey_str = ADMIN_OP_FUND_PUBKEY
@@ -791,7 +739,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 				Log:  fmt.Sprintf("Unexpected pubkey. Got %v", adminPubS)}
 		}
 
-		if len(addressS) != KeyAddressLen {
+		if len(addressS) != ankrtypes.KeyAddressLen {
 			return types.ResponseCheckTx{
 				Code: code.CodeTypeEncodingError,
 				Log:  fmt.Sprintf("Unexpected address. Got %v", addressS)}
@@ -835,7 +783,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 				Log:  fmt.Sprintf("Bad signature. Got %v", sigS)}
 			}
 
-		inBalanceAndNonce := app.app.state.db.Get(prefixBalanceKey([]byte(addressS)))
+		inBalanceAndNonce := app.app.Get(prefixBalanceKey([]byte(addressS)))
 		balanceNonceSlices := strings.Split(string(inBalanceAndNonce), ":")
 		var inBalance string
 		var inNonce string
@@ -868,7 +816,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	}
 
 	if isSetStakeTx(tx) {
-		tx = tx[len(SetStakePrefix):]
+		tx = tx[len(ankrtypes.SetStakePrefix):]
 		trxSetStakeSlices := strings.Split(string(tx), ":")
 		if len(trxSetStakeSlices) != 4 {
 			return types.ResponseCheckTx{
@@ -930,11 +878,11 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 		1 token = 1,000,000,000,000,000,000 
 			which is 1e18 wei, as ETH.
 	*/
-	app.app.state.db.Set(prefixBalanceKey([]byte(INIT_ADDRESS)),
+	app.app.Set(prefixBalanceKey([]byte(INIT_ADDRESS)),
 			[]byte("10000000000000000000000000000:1")) // 10000000000,000,000,000,000,000,000, 10 billion tokens
 
-	app.app.state.db.Set([]byte(SET_VAL_NONCE), []byte("0"))
-	app.app.state.db.Set(prefixStakeKey([]byte("")), []byte("0:1"))
+	app.app.Set([]byte(ankrtypes.SET_VAL_NONCE), []byte("0"))
+	app.app.Set(prefixStakeKey([]byte("")), []byte("0:1"))
 	return types.ResponseInitChain{}
 }
 
@@ -950,67 +898,49 @@ func (app *AnkrChainApplication) EndBlock(req types.RequestEndBlock) types.Respo
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
-//---------------------------------------------
-// update validators
-
-func (app *AnkrChainApplication) Validators() (validators []types.ValidatorUpdate) {
-	itr := app.app.state.db.Iterator(nil, nil)
-	for ; itr.Valid(); itr.Next() {
-		if isValidatorTx(itr.Key()) {
-			validator := new(types.ValidatorUpdate)
-			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
-			if err != nil {
-				panic(err)
-			}
-			validators = append(validators, *validator)
-		}
-	}
-	return
-}
-
 func MakeValSetChangeTx(pubkey types.PubKey, power int64) []byte {
 	return []byte(fmt.Sprintf("val:%X/%d", pubkey.Data, power))
 }
 
 func isValidatorTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), ValidatorSetChangePrefix)
+	return strings.HasPrefix(string(tx), ankrtypes.ValidatorSetChangePrefix)
 }
 
 func isTrxSendTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), TrxSendPrefix)
+	return strings.HasPrefix(string(tx), ankrtypes.TrxSendPrefix)
 }
 
 func isSetMeteringTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), SetMeteringPrefix)
+	return strings.HasPrefix(string(tx), ankrtypes.SetMeteringPrefix)
 }
 
 func isSetCertTx(tx []byte) bool {
-        return strings.HasPrefix(string(tx), SetCertPrefix)
+        return strings.HasPrefix(string(tx), ankrtypes.SetCertPrefix)
 }
 
 func isRemoveCertTx(tx []byte) bool {
-        return strings.HasPrefix(string(tx), RemoveCertPrefix)
+        return strings.HasPrefix(string(tx), ankrtypes.RemoveCertPrefix)
 }
 
 /* for super-user*/
 func isSetBalanceTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), SetBalancePrefix)
+	return strings.HasPrefix(string(tx), ankrtypes.SetBalancePrefix)
 }
 
 func isSetOpTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), SetOpPrefix)
+	return strings.HasPrefix(string(tx), ankrtypes.SetOpPrefix)
 }
 
 /* for super-user*/
 func isSetStakeTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), SetStakePrefix)
+	return strings.HasPrefix(string(tx), ankrtypes.SetStakePrefix)
 }
 
 // format is "trx_send=from:to:amount:nonce:pubkey:sig"
 // nonce should be stored in from account.
 // will add signature verification when wallet code is ready 
 func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverTx {
-	tx = tx[len(TrxSendPrefix):]
+	tx = tx[len(ankrtypes.TrxSendPrefix):]
 	trxSendSlices := strings.Split(string(tx), ":")
 	if len(trxSendSlices) < 6 {
 		return types.ResponseDeliverTx{
@@ -1026,13 +956,13 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 	sigS := trxSendSlices[5]
 	//fmt.Println(fromS, toS, amountS, nonceS, pubkeyS,  sigS)
 
-	if len(fromS) != KeyAddressLen {
+	if len(fromS) != ankrtypes.KeyAddressLen {
 		return types.ResponseDeliverTx{
 			Code: code.CodeTypeEncodingError,
 			Log:  fmt.Sprintf("Unexpected from address. Got %v", fromS)}
 	}
 
-	if len(toS) != KeyAddressLen {
+	if len(toS) != ankrtypes.KeyAddressLen {
 		return types.ResponseDeliverTx{
 			Code: code.CodeTypeEncodingError,
 			Log:  fmt.Sprintf("Unexpected to address. Got %v", toS)}
@@ -1110,7 +1040,7 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 			Log:  fmt.Sprintf("Bad signature. Got %v", sigS)}
 	}
 
-	fromBalanceNonce := app.app.state.db.Get(prefixBalanceKey([]byte(fromS)))
+	fromBalanceNonce := app.app.Get(prefixBalanceKey([]byte(fromS)))
 	balanceNonceSlices := strings.Split(string(fromBalanceNonce), ":")
 	var fromBalance string
 	var fromNonce string
@@ -1161,7 +1091,7 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 	}
 
 	fundRealBalance, _ := new(big.Int).SetString("0", 10)
-	fundBalanceNonce := app.app.state.db.Get(prefixBalanceKey([]byte(GAS_ADDRESS)))
+	fundBalanceNonce := app.app.Get(prefixBalanceKey([]byte(GAS_ADDRESS)))
 	var fundBalance string
 	var fundNonce string = "1"
 	if  fundBalanceNonce != nil {
@@ -1201,7 +1131,7 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 	}
 
 	toRealBalance, _ := new(big.Int).SetString("0", 10)
-	toBalanceNonce := app.app.state.db.Get(prefixBalanceKey([]byte(toS)))
+	toBalanceNonce := app.app.Get(prefixBalanceKey([]byte(toS)))
 	var toBalance string
 	var toNonce string = "1"
 	if  toBalanceNonce != nil {
@@ -1249,10 +1179,10 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 	toRealBalance.Add(toRealBalance, amountSend.Sub(amountSend, gas))
 	fundRealBalance.Add(fundRealBalance, gas)
 
-	app.app.state.db.Set(prefixBalanceKey([]byte(fromS)), []byte(fromBalanceInt.String()+":"+nonceS))
-	app.app.state.db.Set(prefixBalanceKey([]byte(toS)), []byte(toRealBalance.String()+":"+toNonce)) // use original nonce
-	app.app.state.db.Set(prefixBalanceKey([]byte(GAS_ADDRESS)), []byte(fundRealBalance.String()+":"+fundNonce)) // use original nonce
-	app.app.state.Size += 1
+	app.app.Set(prefixBalanceKey([]byte(fromS)), []byte(fromBalanceInt.String()+":"+nonceS))
+	app.app.Set(prefixBalanceKey([]byte(toS)), []byte(toRealBalance.String()+":"+toNonce)) // use original nonce
+	app.app.Set(prefixBalanceKey([]byte(GAS_ADDRESS)), []byte(fundRealBalance.String()+":"+fundNonce)) // use original nonce
+	app.app.IncSize()
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
@@ -1261,13 +1191,15 @@ func (app *AnkrChainApplication) execTrxSendTx(tx []byte) types.ResponseDeliverT
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte("Send")},
         }
-        return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
+
+	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed: gasUsed, Tags: tags}
 }
 
 
 /* this function is disabled for now */
 func (app *AnkrChainApplication) execSetStakeTx(tx []byte) types.ResponseDeliverTx {
-        tx = tx[len(SetStakePrefix):]
+        tx = tx[len(ankrtypes.SetStakePrefix):]
 	trxSetStakeSlices := strings.Split(string(tx), ":")
 	if len(trxSetStakeSlices) != 4 {
 		return types.ResponseDeliverTx{
@@ -1302,7 +1234,7 @@ func (app *AnkrChainApplication) execSetStakeTx(tx []byte) types.ResponseDeliver
 }
 
 func (app *AnkrChainApplication) execSetCertTx(tx []byte) types.ResponseDeliverTx {
-        tx = tx[len(SetCertPrefix):]
+        tx = tx[len(ankrtypes.SetCertPrefix):]
         trxSetCertSlices := strings.SplitN(string(tx), ":", 4)
         if len(trxSetCertSlices) != 4 {
                 return types.ResponseDeliverTx{
@@ -1321,7 +1253,7 @@ func (app *AnkrChainApplication) execSetCertTx(tx []byte) types.ResponseDeliverT
                         Log:  fmt.Sprintf("Unexpected cert nonce. Got %v, %v", nonceS, err_nonce)}
         }
 
-	nonceOldByte := app.app.state.db.Get([]byte(SET_CRT_NONCE))
+	nonceOldByte := app.app.Get([]byte(ankrtypes.SET_CRT_NONCE))
 	nonceOld, err_nonce := strconv.ParseInt(string(nonceOldByte), 10, 64)
         if err_nonce != nil {
 		if len(string(nonceOldByte)) == 0 {
@@ -1340,7 +1272,7 @@ func (app *AnkrChainApplication) execSetCertTx(tx []byte) types.ResponseDeliverT
         }
 
 	var admin_pubkey_str string = ""
-	admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_METERING_PUBKEY_NAME))
+	admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(admin_pubkey) == 0 {
 		fmt.Println("use default ADMIN_OP_METERING_PUBKEY_NAME")
 		admin_pubkey_str = ADMIN_OP_METERING_PUBKEY
@@ -1365,16 +1297,16 @@ func (app *AnkrChainApplication) execSetCertTx(tx []byte) types.ResponseDeliverT
                         Log:  fmt.Sprintf("Bad signature. Got %v", sigS)}
         }
 
-	app.app.state.db.Set(([]byte(SET_CRT_NONCE)) ,[]byte(nonceS))
-	app.app.state.db.Set(prefixCertKey([]byte(dcS)), []byte(pemB64S))
-        app.app.state.Size += 1
+	app.app.Set(([]byte(ankrtypes.SET_CRT_NONCE)) ,[]byte(nonceS))
+	app.app.Set(prefixCertKey([]byte(dcS)), []byte(pemB64S))
+        app.app.IncSize()
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
 }
 
 /* will add signature verification when wallet code is ready */
 func (app *AnkrChainApplication) execSetMeteringTx(tx []byte) types.ResponseDeliverTx {
-	tx = tx[len(SetMeteringPrefix):]
+	tx = tx[len(ankrtypes.SetMeteringPrefix):]
         trxSetMeteringSlices := strings.SplitN(string(tx), ":", 6)
         if len(trxSetMeteringSlices) != 6 {
                 return types.ResponseDeliverTx{
@@ -1397,7 +1329,7 @@ func (app *AnkrChainApplication) execSetMeteringTx(tx []byte) types.ResponseDeli
 
         /* verify nonce */
         var nonceOld int64 = 0
-        meteringRec := app.app.state.db.Get(prefixSetMeteringKey([]byte(dcS + ":" + nsS)))
+        meteringRec := app.app.Get(prefixSetMeteringKey([]byte(dcS + ":" + nsS)))
         if meteringRec == nil || string(meteringRec) == "" {
                 nonceOld = 0
         } else {
@@ -1423,7 +1355,7 @@ func (app *AnkrChainApplication) execSetMeteringTx(tx []byte) types.ResponseDeli
         }
 
         /* verify sig */
-	pemB64Byte := app.app.state.db.Get(prefixCertKey([]byte(dcS)))
+	pemB64Byte := app.app.Get(prefixCertKey([]byte(dcS)))
 	if len(pemB64Byte) == 0 {
                 return types.ResponseDeliverTx{
                         Code: code.CodeTypeEncodingError,
@@ -1445,11 +1377,11 @@ func (app *AnkrChainApplication) execSetMeteringTx(tx []byte) types.ResponseDeli
                         Log:  fmt.Sprintf("metering signature wrong. Got %v,%v", sigxS, sigyS)}
         }
 
-        app.app.state.db.Set(prefixSetMeteringKey([]byte(dcS + ":" + nsS)),
+        app.app.Set(prefixSetMeteringKey([]byte(dcS + ":" + nsS)),
                 []byte(valueS + ":" + sigxS + ":" + sigyS + ":" + nonceS))
         //fmt.Println(string((prefixSetMeteringKey([]byte(dcS + ":" + nsS)))))
         //fmt.Println(string([]byte(valueS + ":" + sigxS + ":" + sigyS + ":" + sigaS + ":" + sigbS + ":" + nonceS)))
-        app.app.state.Size += 1
+        app.app.IncSize()
 
         tvalue := time.Now().UnixNano()
         tags := []cmn.KVPair{
@@ -1461,7 +1393,7 @@ func (app *AnkrChainApplication) execSetMeteringTx(tx []byte) types.ResponseDeli
 }
 
 func (app *AnkrChainApplication) execRemoveCertTx(tx []byte) types.ResponseDeliverTx {
-	tx = tx[len(RemoveCertPrefix):]
+	tx = tx[len(ankrtypes.RemoveCertPrefix):]
         trxSetCertSlices := strings.SplitN(string(tx), ":", 3)
         if len(trxSetCertSlices) != 3 {
                 return types.ResponseDeliverTx{
@@ -1479,7 +1411,7 @@ func (app *AnkrChainApplication) execRemoveCertTx(tx []byte) types.ResponseDeliv
                         Log:  fmt.Sprintf("Unexpected nonce6. Got %v", nonceS)}
         }
 
-        nonceOldByte := app.app.state.db.Get([]byte(RMV_CRT_NONCE))
+        nonceOldByte := app.app.Get([]byte(ankrtypes.RMV_CRT_NONCE))
         nonceOld, err_nonce := strconv.ParseInt(string(nonceOldByte), 10, 64)
         if err_nonce != nil {
                 if len(string(nonceOldByte)) == 0 {
@@ -1499,7 +1431,7 @@ func (app *AnkrChainApplication) execRemoveCertTx(tx []byte) types.ResponseDeliv
 
         // verify sig	
 	var admin_pubkey_str string = ""
-	admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_METERING_PUBKEY_NAME))
+	admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(admin_pubkey) == 0 {
 		fmt.Println("use default ADMIN_OP_METERING_PUBKEY_NAME")
 		admin_pubkey_str = ADMIN_OP_METERING_PUBKEY
@@ -1524,15 +1456,15 @@ func (app *AnkrChainApplication) execRemoveCertTx(tx []byte) types.ResponseDeliv
                         Log:  fmt.Sprintf("Bad signature. Got %v", sigS)}
         }
 
-	app.app.state.db.Set(([]byte(RMV_CRT_NONCE)), []byte(nonceS))
-        app.app.state.db.Delete(prefixCertKey([]byte(dcS)))
-        app.app.state.Size += 1
+	app.app.Set(([]byte(ankrtypes.RMV_CRT_NONCE)), []byte(nonceS))
+	app.app.Delete(prefixCertKey([]byte(dcS)))
+	app.app.IncSize()
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
 }
 
 func (app *AnkrChainApplication) execSetOpTx(tx []byte) types.ResponseDeliverTx {
-        tx = tx[len(SetOpPrefix):]
+        tx = tx[len(ankrtypes.SetOpPrefix):]
 	trxSetOpSlices := strings.Split(string(tx), ":")
 	if len(trxSetOpSlices) != 5{
 	    return types.ResponseDeliverTx{
@@ -1552,8 +1484,8 @@ func (app *AnkrChainApplication) execSetOpTx(tx []byte) types.ResponseDeliverTx 
 			Log:  fmt.Sprintf("Unexpected pubkey. Got %v", adminPubS)}
 	}
 
-	if keynameS != ADMIN_OP_VAL_PUBKEY_NAME && keynameS != ADMIN_OP_FUND_PUBKEY_NAME && 
-			  keynameS != ADMIN_OP_METERING_PUBKEY_NAME {
+	if keynameS != ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME && keynameS != ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME &&
+			  keynameS != ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME {
 		return types.ResponseDeliverTx{
 			Code: code.CodeTypeEncodingError,
 			Log:  fmt.Sprintf("Unexpected keyname. Got %v", keynameS)}
@@ -1584,7 +1516,7 @@ func (app *AnkrChainApplication) execSetOpTx(tx []byte) types.ResponseDeliverTx 
 	}
 
 	var inNonce string = "0"
-	inNonceByte := app.app.state.db.Get([]byte(SET_OP_NONCE))
+	inNonceByte := app.app.Get([]byte(ankrtypes.SET_OP_NONCE))
 	if len(inNonceByte) != 0 {
 		inNonce = string(inNonceByte)
 	}
@@ -1602,15 +1534,15 @@ func (app *AnkrChainApplication) execSetOpTx(tx []byte) types.ResponseDeliverTx 
 			Log:  fmt.Sprintf("nonce should be one more than last nonce. Got %v", nonceS)}
 	}
 
-	app.app.state.db.Set([]byte(keynameS), []byte(valueS))
-	app.app.state.db.Set([]byte(SET_OP_NONCE), []byte(nonceS))
-        app.app.state.Size += 1
+	app.app.Set([]byte(keynameS), []byte(valueS))
+	app.app.Set([]byte(ankrtypes.SET_OP_NONCE), []byte(nonceS))
+    app.app.IncSize()
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: 1}
 }
 /* will add signature verification when wallet code is ready */
 func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliverTx {
-	tx = tx[len(SetBalancePrefix):]
+	tx = tx[len(ankrtypes.SetBalancePrefix):]
 	trxSetBalanceSlices := strings.Split(string(tx), ":")
 	if len(trxSetBalanceSlices) != 5 {
 		return types.ResponseDeliverTx{
@@ -1624,7 +1556,7 @@ func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliv
 	sigS := trxSetBalanceSlices[4]
 
 	var admin_pubkey_str string = ""
-	admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_FUND_PUBKEY_NAME))
+	admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME))
 	if len(admin_pubkey) == 0 {
 		fmt.Println("use default ADMIN_OP_FUND_PUBKEY_NAME")
 		admin_pubkey_str = ADMIN_OP_FUND_PUBKEY
@@ -1638,7 +1570,7 @@ func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliv
 			Log:  fmt.Sprintf("Unexpected pubkey. Got %v", adminPubS)}
 	}
 
-	if len(addressS) != KeyAddressLen {
+	if len(addressS) != ankrtypes.KeyAddressLen {
 		return types.ResponseDeliverTx{
 			Code: code.CodeTypeEncodingError,
 			Log:  fmt.Sprintf("Unexpected address. Got %v", addressS)}
@@ -1682,7 +1614,7 @@ func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliv
                         Log:  fmt.Sprintf("Bad signature. Got %v", sigS)}
         }
 
-        inBalanceAndNonce := app.app.state.db.Get(prefixBalanceKey([]byte(addressS)))
+        inBalanceAndNonce := app.app.Get(prefixBalanceKey([]byte(addressS)))
         balanceNonceSlices := strings.Split(string(inBalanceAndNonce), ":")
         var inBalance string
         var inNonce string
@@ -1711,8 +1643,8 @@ func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliv
                         Log:  fmt.Sprintf("nonce should be one more than last nonce. Got %v", nonceS)}
         }
 
-	app.app.state.db.Set(prefixBalanceKey([]byte(addressS)), []byte(amountS + ":" + nonceS))
-	app.app.state.Size += 1
+	app.app.Set(prefixBalanceKey([]byte(addressS)), []byte(amountS + ":" + nonceS))
+	app.app.IncSize()
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("SetBalance")},
@@ -1721,7 +1653,7 @@ func (app *AnkrChainApplication) execSetBalanceTx(tx []byte) types.ResponseDeliv
 }
 
 func (app *AnkrChainApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
-	tx = tx[len(ValidatorSetChangePrefix):]
+	tx = tx[len(ankrtypes.ValidatorSetChangePrefix):]
 
 	//get the pubkey and power
 	pubKeyAndPower := strings.Split(string(tx), ":")
@@ -1736,7 +1668,7 @@ func (app *AnkrChainApplication) execValidatorTx(tx []byte) types.ResponseDelive
         sigS := pubKeyAndPower[4]
 
 	var admin_pubkey_str string = ""
-	admin_pubkey := app.app.state.db.Get([]byte(ADMIN_OP_VAL_PUBKEY_NAME))
+	admin_pubkey := app.app.Get([]byte(ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME))
 	if len(admin_pubkey) == 0 {
 		fmt.Println("use default ADMIN_OP_VAL_PUBKEY_NAME")
 		admin_pubkey_str = ADMIN_OP_VAL_PUBKEY
@@ -1788,7 +1720,7 @@ func (app *AnkrChainApplication) execValidatorTx(tx []byte) types.ResponseDelive
         }
 
 	var inNonceInt int64 = 0
-	inNonce := app.app.state.db.Get(([]byte(SET_VAL_NONCE)))
+	inNonce := app.app.Get(([]byte(ankrtypes.SET_VAL_NONCE)))
 	if len(inNonce) == 0 {
 		inNonceInt = 0
 	} else {
@@ -1824,7 +1756,7 @@ func (app *AnkrChainApplication) execValidatorTx(tx []byte) types.ResponseDelive
 	}
 
 	// update
-	app.app.state.db.Set([]byte(SET_VAL_NONCE), []byte(nonceS))
+	app.app.Set([]byte(ankrtypes.SET_VAL_NONCE), []byte(nonceS))
 	return app.updateValidator(types.Ed25519ValidatorUpdate(pubkey, int64(power)))
 }
 
@@ -1833,12 +1765,12 @@ func (app *AnkrChainApplication) updateValidator(v types.ValidatorUpdate) types.
 	key := []byte("val:" + string(v.PubKey.Data))
 	if v.Power == 0 {
 		// remove validator
-		if !app.app.state.db.Has(key) {
+		if !app.app.Has(key) {
 			return types.ResponseDeliverTx{
 				Code: code.CodeTypeUnauthorized,
 				Log:  fmt.Sprintf("Cannot remove non-existent validator %X", key)}
 		}
-		app.app.state.db.Delete(key)
+		app.app.Delete(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
@@ -1847,7 +1779,7 @@ func (app *AnkrChainApplication) updateValidator(v types.ValidatorUpdate) types.
 				Code: code.CodeTypeEncodingError,
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
-		app.app.state.db.Set(key, value.Bytes())
+		app.app.Set(key, value.Bytes())
 	}
 
 	// we only update the changes array if we successfully updated the tree

@@ -16,6 +16,8 @@ func main() {
 	rootCmd.Short = "ankr chain for distributed cloud compute network"
 	commands.AddTendermintCoreCommands(rootCmd)
 
+	rootCmd.AddCommand(commands.InitFilesCmd)
+
 	nodeFunc := ankrnode.NewAnkrNode
 
 	// Create & start node

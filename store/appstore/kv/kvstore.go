@@ -1,4 +1,4 @@
-package ankrchain
+package kv
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"math/big"
 
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -65,9 +66,21 @@ type KVStoreApplication struct {
 	state State
 }
 
-func NewKVStoreApplication() *KVStoreApplication {
-	state := loadState(dbm.NewMemDB())
-	return &KVStoreApplication{state: state}
+func NewKVStoreApplication(dbDir string) *KVStoreApplication {
+	kvStore := new(KVStoreApplication)
+	kvStore.init(dbDir)
+
+	return kvStore
+}
+
+func (app *KVStoreApplication) init(dbDir string) {
+	name := "kvstore"
+	db, err := dbm.NewGoLevelDB(name, dbDir)
+	if err != nil {
+		panic(err)
+	}
+
+	app.state= loadState(db)
 }
 
 func (app *KVStoreApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
@@ -128,50 +141,50 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 	} else {
 		resQuery.Key = reqQuery.Data
 		value := []byte("")
-		if string(reqQuery.Data[:3]) == AccountBlancePrefix[:3] {
+		if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
 		    isBalance = true
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == AccountStakePrefix[:3]{
+		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == ankrtypes.AccountStakePrefix[:3]{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == MeteringPrefix[:3]{
+		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == ankrtypes.MeteringPrefix[:3]{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == CertPrefix[:3]{
+		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == ankrtypes.CertPrefix[:3]{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 13 && string(reqQuery.Data[:13]) == SET_CRT_NONCE{
+		} else if len(reqQuery.Data) >= 13 && string(reqQuery.Data[:13]) == ankrtypes.SET_CRT_NONCE{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 11 && string(reqQuery.Data[:11]) == SET_OP_NONCE{
+		} else if len(reqQuery.Data) >= 11 && string(reqQuery.Data[:11]) == ankrtypes.SET_OP_NONCE{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 9 && string(reqQuery.Data[:9]) == SET_VAL_NONCE{
+		} else if len(reqQuery.Data) >= 9 && string(reqQuery.Data[:9]) == ankrtypes.SET_VAL_NONCE{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 13 && string(reqQuery.Data[:13]) == RMV_CRT_NONCE{
+		} else if len(reqQuery.Data) >= 13 && string(reqQuery.Data[:13]) == ankrtypes.RMV_CRT_NONCE{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 19 && string(reqQuery.Data[:19]) == ADMIN_OP_VAL_PUBKEY_NAME{
+		} else if len(reqQuery.Data) >= 19 && string(reqQuery.Data[:19]) == ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 20 && string(reqQuery.Data[:20]) == ADMIN_OP_FUND_PUBKEY_NAME{
+		} else if len(reqQuery.Data) >= 20 && string(reqQuery.Data[:20]) == ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 24 && string(reqQuery.Data[:24]) == ADMIN_OP_METERING_PUBKEY_NAME{
+		} else if len(reqQuery.Data) >= 24 && string(reqQuery.Data[:24]) == ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= len(AllAccountsPrefix) &&
-					string(reqQuery.Data[:len(AllAccountsPrefix)]) == AllAccountsPrefix {
+		} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) &&
+					string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
                     itr := app.state.db.Iterator(nil, nil)
                     for ; itr.Valid(); itr.Next() {
-			if len(itr.Key()) >= len(AccountBlancePrefix) &&
-					string(itr.Key()[0:len(AccountBlancePrefix)]) == AccountBlancePrefix {
+			if len(itr.Key()) >= len(ankrtypes.AccountBlancePrefix) &&
+					string(itr.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
 			    valueItem := []byte("")
 			    valueItem = app.state.db.Get(itr.Key())
 			    if len(valueItem) != 0 {
-				    value = []byte(string(value) + string(itr.Key()[len(AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
+				    value = []byte(string(value) + string(itr.Key()[len(ankrtypes.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
 		            }
                         }
                     }
-		} else if len(reqQuery.Data) >= len(AllCrtsPrefix) && string(reqQuery.Data[:len(AllCrtsPrefix)]) == AllCrtsPrefix {
+		} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
                     itr := app.state.db.Iterator(nil, nil)
                     for ; itr.Valid(); itr.Next() {
-			if len(itr.Key()) >= len(CertPrefix) && string(itr.Key()[0:len(CertPrefix)]) == CertPrefix {
+			if len(itr.Key()) >= len(ankrtypes.CertPrefix) && string(itr.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
 			    valueItem := []byte("")
 			    valueItem = app.state.db.Get(itr.Key())
 			    if len(valueItem) != 0 {
-				    value = []byte(string(value) + string(itr.Key()[len(CertPrefix):]) + ";")
+				    value = []byte(string(value) + string(itr.Key()[len(ankrtypes.CertPrefix):]) + ";")
 		            }
                         }
                     }
@@ -216,4 +229,75 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 		}
 		return
 	}
+}
+
+func (app *KVStoreApplication) Get(key []byte) []byte {
+	return app.state.db.Get(key)
+}
+
+func (app *KVStoreApplication) Set(key []byte, val []byte) {
+	app.state.db.Set(key, val)
+}
+
+func (app *KVStoreApplication) Delete(key []byte) {
+	app.state.db.Delete(key)
+}
+
+func (app *KVStoreApplication) Has(key []byte) bool {
+	return app.state.db.Has(key)
+}
+
+func (app *KVStoreApplication) Validators(judgeValidatorTx ankrtypes.JudgeValidatorTx) (validators []types.ValidatorUpdate) {
+	itr := app.state.db.Iterator(nil, nil)
+	for ; itr.Valid(); itr.Next() {
+		if judgeValidatorTx(itr.Key()) {
+			validator := new(types.ValidatorUpdate)
+			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
+			if err != nil {
+				panic(err)
+			}
+			validators = append(validators, *validator)
+		}
+	}
+	return
+}
+
+func (app *KVStoreApplication) TotalValidatorPowers(judgeValidatorTx ankrtypes.JudgeValidatorTx) int64 {
+	var totalValPowers int64 = 0
+	it := app.state.db.Iterator(nil, nil)
+	if it != nil && it.Valid(){
+		it.Next()
+		for it.Valid() {
+			if judgeValidatorTx(it.Key()) {
+				validator := new(types.ValidatorUpdate)
+				err := types.ReadMessage(bytes.NewBuffer(it.Value()), validator)
+				if err != nil {
+					panic(err)
+				}
+
+				totalValPowers += validator.Power
+				fmt.Printf("validator = %v\n", validator)
+			}
+			it.Next()
+		}
+	}
+	it.Close()
+
+	return  totalValPowers
+}
+
+func (app *KVStoreApplication) Size() int64 {
+	return app.state.Size
+}
+
+func (app *KVStoreApplication) IncSize() {
+	app.state.Size += 1
+}
+
+func (app *KVStoreApplication) Height() int64 {
+	return app.state.Height
+}
+
+func (app *KVStoreApplication) APPHash() []byte {
+	return app.state.AppHash
 }

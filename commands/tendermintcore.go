@@ -7,7 +7,6 @@ import (
 
 func AddTendermintCoreCommands(cmd *cobra.Command) {
 	cmd.AddCommand(
-		tmcorecommands.InitFilesCmd,
 		tmcorecommands.ResetAllCmd,
 		tmcorecommands.VersionCmd)
 }

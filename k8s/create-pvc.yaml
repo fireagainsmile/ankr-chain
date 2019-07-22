@@ -1,0 +1,66 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: standard
+provisioner: kubernetes.io/aws-ebs
+allowVolumeExpansion: true
+parameters:
+  type: gp2
+  zone: us-west-1a
+reclaimPolicy: Delete
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: tendermint-pvc-1
+  labels:
+    type: amazonEBS
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: standard
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: tendermint-pvc-2
+  labels:
+    type: amazonEBS
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: standard
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: tendermint-pvc-3
+  labels:
+    type: amazonEBS
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: standard
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: tendermint-pvc-4
+  labels:
+    type: amazonEBS
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: standard

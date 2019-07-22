@@ -36,12 +36,12 @@ func (ac *AnkrConfig) SetRoot(root string) *AnkrConfig {
 func (ac *AnkrConfig) TendermintCoreConfig() *tmcoreconfig.Config {
 	return &tmcoreconfig.Config  {
 		ac.BaseConfig,
-		tmcoreconfig.DefaultRPCConfig(),
-		tmcoreconfig.DefaultP2PConfig(),
-		tmcoreconfig.DefaultMempoolConfig(),
-		tmcoreconfig.DefaultConsensusConfig(),
-		tmcoreconfig.DefaultTxIndexConfig(),
-		tmcoreconfig.DefaultInstrumentationConfig(),
+		ac.RPC,
+		ac.P2P,
+		ac.Mempool,
+		ac.Consensus,
+		ac.TxIndex,
+		ac.Instrumentation,
 	}
 }
 
