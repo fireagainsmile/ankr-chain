@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: ankr-chain
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ankr-chain
+        id: ankr-chain
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      containers:
+        - name: ankr-chain
+          securityContext:
+            privileged: true
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-dev
+          imagePullPolicy: Always
+          command: ["sh", "-c", "ankrchain init && ankrchain node --moniker=`hostname`"]
+          ports:
+            - name: rpc
+              containerPort: 26657
+

@@ -107,6 +107,15 @@ jobs:
               kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$BRANCH_NAME$DATE \
                 -f k8s/ankrchain.yaml --local -o yaml > k8s/ankrchain-patched.yaml
             fi
+            if [[($BRANCH_NAME == "dev")]]; then
+                docker build --no-cache -f DOCKER/DockerfileTest --build-arg TENDERMINT_DNS=${TENDERMINT_DNS} -t tester.test:$BRANCH_NAME .
+                for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
+                  docker tag tester.test:$BRANCH_NAME $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:tester.test-hub-$TAG
+                  docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:tester.test-hub-$TAG
+                done
+                kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:tester.test-hub-$BRANCH_NAME$DATE \
+                  -f ankrchain-tester.yaml --local -o yaml > ankrchain-tester.yaml
+            fi
             # add page break line before new deployment, not compatible with bsd style command line tool, eg: macOS
             # add colon to separate with json in annotation
             sed -i '/apiVersion:/i---' k8s/ankrchain-patched.yaml
@@ -137,3 +146,50 @@ jobs:
             INPUT_JSON_STR="{\"ChangeBatch\":{\"Comment\":\"Update\",\"Changes\":[{\"Action\":\"UPSERT\",\"ResourceRecordSet\":{\"Name\":\"${ANKRCHAIN_DNS}\",\"Type\":\"A\",\"AliasTarget\":{\"HostedZoneId\":\"${ELB_HOST_ZONE_ID}\",\"DNSName\":\"${ANKRCHAIN_SVC}\",\"EvaluateTargetHealth\":true}}}]}}"
             aws route53 change-resource-record-sets --hosted-zone-id ${DNS_HOSTED_ZONE_ID} --cli-input-json ${INPUT_JSON_STR}
 
+            if [[ ($BRANCH_NAME == "dev") ]]; then
+              kubectl apply -f k8s/ankr-chain-tester.yaml
+              sleep 240
+              results=`kubectl get pods | grep dccn-ankr-chain-test | awk '{print $3}'`
+              for res in $results;do
+                if [ "Error" != $res ];then
+                  echo "test case successful"
+                else
+                  testResults=`kubectl get pods | grep dccn-ankr-chain-test | awk '{print $1}'`
+                  for testRes in $testResults;do
+                    echo "test case failure"
+                    kubectl logs $testRes
+                      break;
+                  done
+                fi
+                break
+              done
+              kubectl delete job dccn-ankr-chain-test
+            fi
+
+            wget https://github.com/digitalocean/doctl/releases/download/v1.23.1/doctl-1.23.1-linux-amd64.tar.gz
+            tar xf doctl-1.23.1-linux-amd64.tar.gz
+            sudo mv doctl /usr/local/bin
+            mkdir -p ~/.config/doctl/
+            aws s3 cp s3://ankr.digitalocean.kubeconfig/dok8sconfig ~/.config/doctl/config.yaml
+            chmod 0600 ~/.config/doctl/config.yaml
+            clustersNames="ankr-chain-stage-1 ankr-chain-stage-2 ankr-chain-prod-3 ankr-chain-prod-2 ankr-chain-prod-1"
+            for cluster in $clustersNames;do
+                doctl kubernetes cluster kubeconfig save $cluster
+            done
+            if [[ ($BRANCH_NAME == "master") ]]; then
+               clusters="do-nyc1-ankr-chain-prod-1 do-sfo2-ankr-chain-prod-2 do-sgp1-ankr-chain-prod-3"
+               for clu in $clusters; do
+                  kubectl config use-context $clu
+                  kubectl apply -f k8s/ankr-chain-digital-prod.yaml
+                  kubectl apply -f k8s/ankrchain-digital-svc.yaml
+               done
+            elif [[ ($BRANCH_NAME == "feat") ]]; then
+               clusters="do-sfo2-ankr-chain-stage-1 do-nyc1-tendermint-stage-2"
+               for clu in $clusters; do
+                  kubectl config use-context $clu
+                  kubectl apply -f k8s/ankr-chain-digital-stage.yaml
+                  kubectl apply -f k8s/ankrchain-digital-svc.yaml
+               done
+            else
+                 echo "BRANCH_NAME is " $BRANCH_NAME
+            fi

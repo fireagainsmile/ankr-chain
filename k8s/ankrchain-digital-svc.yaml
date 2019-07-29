@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+    service.beta.kubernetes.io/do-loadbalancer-tls-ports: "443"
+    service.beta.kubernetes.io/do-loadbalancer-certificate-id: "b210c2eb-31b0-49df-bef0-a7601e304392"
+  name: ankr-chain
+  labels:
+    app: ankr-chain
+spec:
+  externalTrafficPolicy: Local
+  selector:
+    app: ankr-chain
+  type: LoadBalancer
+  ports:
+    - name: https
+      port: 443
+      targetPort: 26657

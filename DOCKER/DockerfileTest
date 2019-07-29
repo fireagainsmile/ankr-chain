@@ -1,0 +1,18 @@
+FROM golang:1.11.4-alpine as builder
+ARG TENDERMINT_DNS
+RUN apk add --no-cache gcc g++ linux-headers
+RUN apk add --no-cache git dep
+WORKDIR /go/src/github.com/Ankr-network/ankr-chain
+COPY . .
+
+RUN go get github.com/Ankr-network/dccn-common/wallet
+RUN go get github.com/smartystreets/goconvey/convey
+RUN go test -i abci/ankrchain/test/*
+
+RUN go test -c abci/ankrchain/test/*
+
+FROM frolvlad/alpine-glibc
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /go/src/github.com/Ankr-network/ankr-chain  /

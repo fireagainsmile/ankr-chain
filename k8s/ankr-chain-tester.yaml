@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ankr-chain-test
+spec:
+  template:
+    metadata:
+      labels:
+        app: ankr-chain-test
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: aws-ecr
+      containers:
+        - name: ankr-chain-test
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain-test:tester.test-hub-feat
+          command: [ "./tester.test" ]

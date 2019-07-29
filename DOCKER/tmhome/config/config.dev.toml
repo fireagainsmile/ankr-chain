@@ -112,10 +112,10 @@ laddr = "tcp://0.0.0.0:26656"
 external_address = ""
 
 # Comma separated list of seed nodes to connect to
-seeds = ""
+seeds = "59de3baa9aa93d5734e1a65a50a46073f96a32f7ea0460@13.57.179.223:26656,f97d44995ca86688871581babf11a7fc01c6eb326c7798@54.193.115.60:26656,4526a18efa94f33f71718365a137aae04e33f3cca66519@54.183.191.249:26656,e3a8c7c9f48cda5f2c4dfbedaee36ada2f61bbed7ad92f@13.57.200.106:26656"
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "66a1791afda598d30e1a136a52b3c5d1223c8bb8a90a9c@chain-stage.dccn.ankr.com:20016,0e213a7d53abdb9471c31accbc06849610ba4dc3ade685@chain-stage.dccn.ankr.com:20026,efa64840128fff7ab57ecd9f990740c9d8175f7f333e21@chain-stage.dccn.ankr.com:20036,3911239f059eb9e92ad729a42e269496d5dd1386d77c77@chain-stage.dccn.ankr.com:20046"
+persistent_peers = ""
 
 # UPNP port forwarding
 upnp = false
@@ -152,7 +152,7 @@ pex = true
 # peers. If another node asks it for addresses, it responds and disconnects.
 #
 # Does not work if the peer-exchange reactor is disabled.
-seed_mode = false
+seed_mode = true
 
 # Comma separated list of peer IDs to keep private (will not be gossiped to other peers)
 private_peer_ids = ""
