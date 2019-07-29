@@ -180,14 +180,14 @@ jobs:
                clusters="do-nyc1-ankr-chain-prod-1 do-sfo2-ankr-chain-prod-2 do-sgp1-ankr-chain-prod-3"
                for clu in $clusters; do
                   kubectl config use-context $clu
-                  kubectl apply -f k8s/ankr-chain-digital-prod.yaml
+                  kubectl apply -f k8s/ankrchain-digital-prod.yaml
                   kubectl apply -f k8s/ankrchain-digital-svc.yaml
                done
             elif [[ ($BRANCH_NAME == "feat") ]]; then
                clusters="do-sfo2-ankr-chain-stage-1 do-nyc1-tendermint-stage-2"
                for clu in $clusters; do
                   kubectl config use-context $clu
-                  kubectl apply -f k8s/ankr-chain-digital-stage.yaml
+                  kubectl apply -f k8s/ankrchain-digital-stage.yaml
                   kubectl apply -f k8s/ankrchain-digital-svc.yaml
                done
             else
