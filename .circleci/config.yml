@@ -184,7 +184,7 @@ jobs:
                   kubectl apply -f k8s/ankrchain-digital-svc.yaml
                done
             elif [[ ($BRANCH_NAME == "feat") ]]; then
-               clusters="do-sfo2-ankr-chain-stage-1 do-nyc1-tendermint-stage-2"
+               clusters="do-sfo2-ankr-chain-stage-1 do-nyc1-ankr-chain-stage-2"
                for clu in $clusters; do
                   kubectl config use-context $clu
                   kubectl apply -f k8s/ankrchain-digital-stage.yaml
