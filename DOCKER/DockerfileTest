@@ -7,9 +7,9 @@ COPY . .
 
 RUN go get github.com/Ankr-network/dccn-common/wallet
 RUN go get github.com/smartystreets/goconvey/convey
-RUN go test -i abci/ankrchain/test/*
+RUN go test -i integrationtesting/*
 
-RUN go test -c abci/ankrchain/test/*
+RUN go test -c integrationtesting/*
 
 FROM frolvlad/alpine-glibc
 

@@ -48,16 +48,11 @@ func TestSendCoin(t *testing.T) {
   //check balance of both address
     _, _, receiveAddr := wallet.GenerateKeys()
   Convey("Test SendCoin main flow, should return nil", t, func() {
-      setVal := new(big.Int)
-      setVal = setVal.Mul(balBase, big.NewInt(10))
-      sentVal := new(big.Int).Mul(balBase, big.NewInt(10))
-      _, err := wallet.SendCoins(node1, ipPort, adminPrivKey, adminAddress, receiveAddr, sentVal.String())
+      _, err := wallet.SendCoins(node1, ipPort, adminPrivKey, adminAddress, receiveAddr, sendVal2)
       So(err, ShouldBeNil)
       balanceT, err := wallet.GetBalance(node1, ipPort, receiveAddr)
       So(err, ShouldBeNil)
-      receiveVal := new(big.Int)
-      receiveVal.Mul(balBase, big.NewInt(5))
-      So(balanceT, ShouldEqual, receiveVal.String())
+      So(balanceT, ShouldEqual, "5000000000000000000")
   })
 
   Convey("TestSendCoin should success if send more than max uint64", t, func() {
@@ -72,7 +67,7 @@ func TestSendCoin(t *testing.T) {
   Convey("TestSendCoin should fail if send more than total supply", t, func() {
       totalSupply := new(big.Int)
       ankrBase := big.NewInt(1000000000000000000)
-      totalSupply = totalSupply.Mul(ankrBase, big.NewInt(10000000000))
+      totalSupply = totalSupply.Mul(ankrBase, big.NewInt(1000000000000000000))
       _, err := wallet.SendCoins(node1, ipPort, adminPrivKey, adminAddress, receiveAddr, totalSupply.Add(totalSupply, big.NewInt(1)).String())
       So(err, ShouldBeError)
       balance1, err := wallet.GetBalance(node1, ipPort, receiveAddr)
@@ -83,7 +78,7 @@ func TestSendCoin(t *testing.T) {
 
 func TestGetMeter(t *testing.T) {
   Convey("test get meter", t, func() {
-      _, err := wallet.GetHistoryMetering(node1, "26657", "datacenter_name", "test-deploy", false, 0, 0)
+      _, err := wallet.GetHistoryMetering(node1, ipPort, "datacenter_name", "test-deploy", false, 0, 0)
       So(err, ShouldBeNil)
   })
 }

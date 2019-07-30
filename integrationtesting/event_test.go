@@ -1,21 +1,21 @@
 package tester
 
 import (
-   "context"
-   "fmt"
+    "testing"
+    "context"
+    "fmt"
+    "time"
+
    "github.com/Ankr-network/dccn-common/wallet"
    . "github.com/smartystreets/goconvey/convey"
    "github.com/tendermint/tendermint/libs/pubsub/query"
-   "github.com/tendermint/tendermint/rpc/client"
    "github.com/tendermint/tendermint/types"
-   "testing"
-   "time"
 )
 
 var waitForEventTimeout = 30 * time.Second
 
 func TestTxAndAddress(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    _, _, addr := wallet.GenerateKeys()
    qStr := fmt.Sprintf("tm.event='%s' AND app.toaddress CONTAINS '%s'", types.EventTx, addr)
    q := query.MustParse(qStr)
@@ -45,7 +45,7 @@ func TestTxAndAddress(t *testing.T) {
 }
 
 func TestSubEventTx(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='Tx'")
@@ -67,7 +67,7 @@ func TestSubEventTx(t *testing.T) {
 }
 
 func TestSubNewBlock(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='NewBlock'")
@@ -99,7 +99,7 @@ func TestSubNewBlock(t *testing.T) {
 }
 
 func TestSubNewBlockHeader(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='NewBlockHeader'")
@@ -131,7 +131,7 @@ func TestSubNewBlockHeader(t *testing.T) {
 }
 
 func TestSubEventLock(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='Lock'")
@@ -159,7 +159,7 @@ func TestSubEventLock(t *testing.T) {
 }
 
 func TestSubEventUnLock(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    Convey("test sub unlock", t, func() {
        ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
        defer cancel()
@@ -190,7 +190,7 @@ func TestSubEventUnLock(t *testing.T) {
 }
 
 func TestSubEventValidatorSetUpdates(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    Convey("test sub validator set updates", t, func() {
        ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
        defer cancel()
@@ -214,7 +214,7 @@ func TestSubEventValidatorSetUpdates(t *testing.T) {
 }
 
 func TestSubEventCompleteProposal(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    Convey("test sub complete proposal", t, func() {
        ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
        defer cancel()
@@ -238,7 +238,7 @@ func TestSubEventCompleteProposal(t *testing.T) {
 }
 
 func TestSubEventEventNewRound(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    Convey("event new round", t, func() {
        ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
        defer cancel()
@@ -262,7 +262,7 @@ func TestSubEventEventNewRound(t *testing.T) {
 }
 
 func TestSubEventEventNewRoundStep(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='NewRoundStep'")
@@ -284,7 +284,7 @@ func TestSubEventEventNewRoundStep(t *testing.T) {
 }
 
 func TestSubEventValidBlock(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='ValidBlock'")
@@ -305,7 +305,7 @@ func TestSubEventValidBlock(t *testing.T) {
 }
 
 func TestSubEventVote(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='vote'")
@@ -327,7 +327,7 @@ func TestSubEventVote(t *testing.T) {
 }
 
 func TestSubEventPolka(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='Polka'")
@@ -348,7 +348,7 @@ func TestSubEventPolka(t *testing.T) {
 }
 
 func TestSubEventTimeoutPropose(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='TimeoutPropose'")
@@ -372,7 +372,7 @@ func TestSubEventTimeoutPropose(t *testing.T) {
 }
 
 func TestSubEventTimeoutWait(t *testing.T) {
-   Hclient := NewHttpClient1()
+   Hclient := NewHttpClient()
    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='TimeoutWait'")
@@ -390,13 +390,4 @@ func TestSubEventTimeoutWait(t *testing.T) {
        }
    }()
    time.Sleep(10 * time.Second)
-}
-
-func NewHttpClient1() *client.HTTP {
-   httpClient := client.NewHTTP(node1+":26657", "/websocket")
-   err := httpClient.Start()
-   if err != nil {
-       fmt.Printf("new http error %v", err)
-   }
-   return httpClient
 }
