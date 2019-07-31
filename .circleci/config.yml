@@ -38,7 +38,7 @@ jobs:
             BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
             SHA1_SHORT=$(git rev-parse --short HEAD)
             DATE=`date +%Y%m%d%H%M%S`
-            ANKR_URL=""
+            ANKR_URL="chain-dev.dccn.ankr.com"
             if [[ ($BRANCH_NAME == "master") ]]; then
               BRANCH_NAME="stage"
               K8S_CLUSTER="hub"
