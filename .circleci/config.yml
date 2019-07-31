@@ -167,7 +167,7 @@ jobs:
                 fi
                 break
               done
-              kubectl delete job dccn-ankr-chain-test
+              kubectl delete job ankr-chain-test
             fi
 
             wget https://github.com/digitalocean/doctl/releases/download/v1.23.1/doctl-1.23.1-linux-amd64.tar.gz

@@ -13,7 +13,7 @@ spec:
         - name: aws-ecr
       containers:
         - name: ankr-chain-test
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain-test:tester.test-hub-feat
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:tester.test-hub-feat
           command: [ "./tester.test" ]
           env:
             - name: ANKR_URL
