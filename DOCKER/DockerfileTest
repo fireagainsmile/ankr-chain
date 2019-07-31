@@ -2,7 +2,7 @@ FROM golang:1.11.4-alpine as builder
 ARG TENDERMINT_DNS
 RUN apk add --no-cache gcc g++ linux-headers
 RUN apk add --no-cache git dep
-WORKDIR /go/src/github.com/Ankr-network/ankr-chain
+WORKDIR /ankr-chain
 COPY . .
 
 RUN go test -i integrationtesting/*
@@ -13,4 +13,4 @@ FROM frolvlad/alpine-glibc
 
 RUN apk add --no-cache ca-certificates
 
-COPY --from=builder /go/src/github.com/Ankr-network/ankr-chain  /
+COPY --from=builder /ankr-chain/tester.test  /
