@@ -37,7 +37,6 @@ jobs:
 
             BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
             SHA1_SHORT=$(git rev-parse --short HEAD)
-            PRIV_PATH="config/priv_validator_key.json"
             DATE=`date +%Y%m%d%H%M%S`
             if [[ ($BRANCH_NAME == "master") ]]; then
               BRANCH_NAME="stage"
@@ -107,7 +106,7 @@ jobs:
               kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$BRANCH_NAME$DATE \
                 -f k8s/ankrchain.yaml --local -o yaml > k8s/ankrchain-patched.yaml
             fi
-            if [[($BRANCH_NAME == "dev")]]; then
+            if [[($BRANCH_NAME == "feat")]]; then
                 docker build --no-cache -f DOCKER/DockerfileTest --build-arg TENDERMINT_DNS=${TENDERMINT_DNS} -t tester.test:$BRANCH_NAME .
                 for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
                   docker tag tester.test:$BRANCH_NAME $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:tester.test-hub-$TAG
@@ -158,7 +157,8 @@ jobs:
                   for testRes in $testResults;do
                     echo "test case failure"
                     kubectl logs $testRes
-                      break;
+                    error
+                    break;
                   done
                 fi
                 break

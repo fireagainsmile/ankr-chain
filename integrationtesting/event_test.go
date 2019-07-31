@@ -35,13 +35,51 @@ func TestTxAndAddress(t *testing.T) {
                } else {
                    t.Error("TestTxAndAddress error")
                }
-               //So(evDataTx.Result.Code, ShouldEqual, 0)
+               err:=Hclient.Unsubscribe(ctx,"helper", q.String())
+               if err !=nil{
+                   t.Error("TestTxAndAddress Unsubscribe error")
+               }
                return
            }
        }
    }()
    wallet.SendCoins(node1, ipPort, adminPrivKey, adminAddress, addr, "1000000000000000000")
    time.Sleep(10 *time.Second)
+}
+
+func TestTxAndsubMuitAddress(t *testing.T) {
+    Hclient := NewHttpClient()
+    _, _, addr1 := wallet.GenerateKeys()
+    _, _, addr2 := wallet.GenerateKeys()
+    addr:=fmt.Sprintf("%s,%s",addr2,addr1)
+    qStr := fmt.Sprintf("tm.event='%s' AND app.toaddress CONTAINS '%s'", types.EventTx, addr)
+    q := query.MustParse(qStr)
+    ctx, cancel := context.WithTimeout(context.Background(), waitForEventTimeout)
+    defer cancel()
+    eventChTx, err := Hclient.Subscribe(ctx, "helper", q.String())
+    if err != nil {
+        t.Error("sub tx and toaddress error", err)
+    }
+    go func() {
+        for {
+            select {
+            case evt := <-eventChTx:
+                evDataTx := evt.Data.(types.EventDataTx)
+                if evDataTx.Tx != nil {
+                    t.Log(evDataTx.Height)
+                } else {
+                    t.Error("TestTxAndAddress error")
+                }
+                err:=Hclient.Unsubscribe(ctx,"helper", q.String())
+                if err!=nil{
+                    t.Error("TestTxAndsubMuitAddress Unsubscribe error")
+                }
+                return
+            }
+        }
+    }()
+    wallet.SendCoins(node1, ipPort, adminPrivKey, adminAddress, addr, "1000000000000000000")
+    time.Sleep(10 *time.Second)
 }
 
 func TestSubEventTx(t *testing.T) {
@@ -58,6 +96,10 @@ func TestSubEventTx(t *testing.T) {
            case evt := <-eventCh:
                evDataTx := evt.Data.(types.EventDataTx)
                t.Log(evDataTx.Height)
+               err:=Hclient.Unsubscribe(ctx,"helper", "tm.event='Tx'")
+               if err!=nil{
+                   t.Error("TestSubEventTx Unsubscribe error")
+               }
                //So(evDataTx.Result.Code, ShouldEqual, 0)
                return
            }
@@ -85,6 +127,10 @@ func TestSubNewBlock(t *testing.T) {
                        fmt.Printf("%d", evData.Block.Height)
                    } else {
                        t.Error("NewBlock error")
+                   }
+                   err:=Hclient.Unsubscribe(ctx, "helper", "tm.event='NewBlock'")
+                   if err!=nil{
+                       t.Error("TestSubNewBlock Unsubscribe error")
                    }
                    return
                }
@@ -118,6 +164,10 @@ func TestSubNewBlockHeader(t *testing.T) {
                    } else {
                        t.Error("NewBlock error")
                    }
+                   err := Hclient.Unsubscribe(ctx, "helper", "tm.event='NewBlockHeader'")
+                   if err!=nil{
+                       t.Error("TestSubNewBlockHeader Unsubscribe error")
+                   }
                    return
                }
            }
@@ -147,6 +197,10 @@ func TestSubEventLock(t *testing.T) {
                    evData := evt.Data.(types.EventDataRoundState)
                    fmt.Printf("%d", evData.Height)
                    //So(evData.Height, ShouldBeGreaterThan, stat.SyncInfo.LatestBlockHeight)
+                   err := Hclient.Unsubscribe(ctx, "helper", "tm.event='Lock'")
+                   if err!=nil{
+                       t.Error("TestSubEventLock Unsubscribe error")
+                   }
                    return
                }
            }
@@ -177,6 +231,10 @@ func TestSubEventUnLock(t *testing.T) {
                        evData := evt.Data.(types.EventDataRoundState)
                        fmt.Printf("%d", evData.Height)
                        // So(evData.Height, ShouldBeGreaterThan, stat.SyncInfo.LatestBlockHeight)
+                       err := Hclient.Unsubscribe(ctx, "helper", "tm.event='Unlock'")
+                       if err!=nil{
+                           t.Error("TestSubEventUnLock Unsubscribe error")
+                       }
                        return
                    }
                }
@@ -205,6 +263,10 @@ func TestSubEventValidatorSetUpdates(t *testing.T) {
                    evData := evt.Data.(types.EventDataValidatorSetUpdates)
                    fmt.Printf("%d", len(evData.ValidatorUpdates))
                    //So(len(evData.ValidatorUpdates), ShouldNotBeEmpty)
+                   err := Hclient.Unsubscribe(ctx, "helper", "tm.evnet='ValidatorSetUpdates'")
+                   if err!=nil{
+                       t.Error("TestSubEventValidatorSetUpdates Unsubscribe error", err)
+                   }
                    return
                }
            }
@@ -229,6 +291,10 @@ func TestSubEventCompleteProposal(t *testing.T) {
                    evData := evt.Data.(types.EventDataCompleteProposal)
                    fmt.Printf("%d", evData.Height)
                    //So(evData.Height, ShouldNotBeEmpty)
+                   err := Hclient.Unsubscribe(ctx, "helper", "tm.event='CompleteProposal'")
+                   if err!=nil{
+                       t.Error("TestSubEventCompleteProposal unsubscribe error")
+                   }
                    return
                }
            }
@@ -253,6 +319,10 @@ func TestSubEventEventNewRound(t *testing.T) {
                    evData := evt.Data.(types.EventDataNewRound)
                    fmt.Printf("%d", evData.Height)
                    //So(evData.Height, ShouldNotBeEmpty)
+                   err:=Hclient.Unsubscribe(ctx, "helper", "tm.event='NewRound'")
+                   if err!=nil{
+                       t.Errorf("TestSubEventEventNewRound unsubscribe error %s",err)
+                   }
                    return
                }
            }
@@ -276,6 +346,10 @@ func TestSubEventEventNewRoundStep(t *testing.T) {
                evData := evt.Data.(types.EventDataRoundState)
                fmt.Printf("%d", evData.Height)
                //So(evData.Height, ShouldNotBeEmpty)
+               err := Hclient.Unsubscribe(ctx, "helper", "tm.event='NewRoundStep'")
+               if err != nil {
+                   t.Error("TestSubEventEventNewRoundStep unsubscribe error")
+               }
                return
            }
        }
@@ -297,6 +371,10 @@ func TestSubEventValidBlock(t *testing.T) {
            case evt := <-eventCh:
                evData := evt.Data.(types.EventDataRoundState)
                fmt.Printf("%d", evData.Height)
+               err := Hclient.Unsubscribe(ctx, "helper", "tm.event='ValidBlock'")
+               if err != nil {
+                   t.Error("TestSubEventValidBlock unsubscribe error")
+               }
                return
            }
        }
@@ -319,6 +397,10 @@ func TestSubEventVote(t *testing.T) {
                evData := evt.Data.(types.EventDataVote)
                fmt.Printf("%d", evData.Vote.Height)
                //So(evData.Vote.Height, ShouldNotBeEmpty)
+               err := Hclient.Unsubscribe(ctx, "helper", "tm.event='vote'")
+               if err != nil {
+                   t.Error("TestSubEventVote unsubscribe error")
+               }
                return
            }
        }
@@ -340,6 +422,10 @@ func TestSubEventPolka(t *testing.T) {
            case evt := <-eventCh:
                evData := evt.Data.(types.EventDataRoundState)
                fmt.Printf("%d", evData.Height)
+               err := Hclient.Unsubscribe(ctx, "helper", "tm.event='Polka'")
+               if err != nil {
+                   t.Error("TestSubEventPolka unsubscribe error")
+               }
                return
            }
        }
@@ -377,7 +463,7 @@ func TestSubEventTimeoutWait(t *testing.T) {
    defer cancel()
    eventCh, err := Hclient.Subscribe(ctx, "helper", "tm.event='TimeoutWait'")
    if err != nil {
-       t.Error("event TimeoutWait", err)
+       t.Errorf("event TimeoutWait %s" , err)
    }
    go func() {
        for {
@@ -385,6 +471,10 @@ func TestSubEventTimeoutWait(t *testing.T) {
            case evt := <-eventCh:
                evData := evt.Data.(types.EventDataRoundState)
                fmt.Printf("%d", evData.Height)
+               err := Hclient.Unsubscribe(ctx, "helper", "tm.event='TimeoutWait'")
+               if err!=nil{
+                   t.Error("TestSubEventTimeoutWait unsubscribe error")
+               }
                return
            }
        }

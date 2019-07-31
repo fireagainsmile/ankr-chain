@@ -2,9 +2,10 @@ package tester
 
 import (
     "fmt"
+    "testing"
+
     . "github.com/smartystreets/goconvey/convey"
     "github.com/tendermint/tendermint/rpc/client"
-    "testing"
 )
 
 func NewHttpClient() *client.HTTP {
