@@ -151,7 +151,7 @@ jobs:
 
             if [[ ($BRANCH_NAME == "feat") ]]; then
             if kubectl get job ankr-chain-test; then
-                kubectl delete job dccn-tendermint-test
+                kubectl delete job ankr-chain-test
             fi
               kubectl apply -f k8s/ankrchain-tester.yaml
               sleep 240
