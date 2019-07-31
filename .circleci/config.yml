@@ -145,7 +145,7 @@ jobs:
             INPUT_JSON_STR="{\"ChangeBatch\":{\"Comment\":\"Update\",\"Changes\":[{\"Action\":\"UPSERT\",\"ResourceRecordSet\":{\"Name\":\"${ANKRCHAIN_DNS}\",\"Type\":\"A\",\"AliasTarget\":{\"HostedZoneId\":\"${ELB_HOST_ZONE_ID}\",\"DNSName\":\"${ANKRCHAIN_SVC}\",\"EvaluateTargetHealth\":true}}}]}}"
             aws route53 change-resource-record-sets --hosted-zone-id ${DNS_HOSTED_ZONE_ID} --cli-input-json ${INPUT_JSON_STR}
 
-            if [[ ($BRANCH_NAME == "dev") ]]; then
+            if [[ ($BRANCH_NAME == "feat") ]]; then
               kubectl apply -f k8s/ankr-chain-tester.yaml
               sleep 240
               results=`kubectl get pods | grep dccn-ankr-chain-test | awk '{print $3}'`
@@ -183,7 +183,7 @@ jobs:
                   kubectl apply -f k8s/ankrchain-digital-prod.yaml
                   kubectl apply -f k8s/ankrchain-digital-svc.yaml
                done
-            elif [[ ($BRANCH_NAME == "feat") ]]; then
+            elif [[ ($BRANCH_NAME == "dev") ]]; then
                clusters="do-sfo2-ankr-chain-stage-1 do-nyc1-ankr-chain-stage-2"
                for clu in $clusters; do
                   kubectl config use-context $clu
