@@ -158,7 +158,6 @@ spec:
             - name: TXHISTORY_DB_TYPE
             - name: TXHISTORY_DB_HOST
             - name: TXHISTORY_DB_NAME
-            - name: TEST_URL
           ports:
             - name: p2p-4
               containerPort: 26656

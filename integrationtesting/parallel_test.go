@@ -2,6 +2,7 @@ package tester
 
 import (
     "fmt"
+    "os"
     "sync"
     "testing"
 
@@ -18,8 +19,8 @@ type account struct {
 
 var (
     ipPort       = "26657"                     // ip port of nodes
-    node1        = "127.0.0.1" //"chain-stage.dccn.ankr.com" //local node ip
-    node2        = "127.0.0.1" //"chain-stage.dccn.ankr.com" //
+    node1        = os.Getenv("ANKR_URL") //"127.0.0.1" //"chain-stage.dccn.ankr.com" //local node ip
+    node2        = os.Getenv("ANKR_URL") //"127.0.0.1" //"chain-stage.dccn.ankr.com" //
     adminAddress = "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67"
     adminPrivKey = "wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==" //node amin private key
     sendVal      = "20000000000000000000"

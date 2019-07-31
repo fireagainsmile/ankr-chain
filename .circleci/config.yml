@@ -38,6 +38,7 @@ jobs:
             BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
             SHA1_SHORT=$(git rev-parse --short HEAD)
             DATE=`date +%Y%m%d%H%M%S`
+            ANKR_URL=""
             if [[ ($BRANCH_NAME == "master") ]]; then
               BRANCH_NAME="stage"
               K8S_CLUSTER="hub"
@@ -47,6 +48,7 @@ jobs:
               ANKRCHAIN_DNS="chain.dccn.ankr.com"
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_STAGE
             elif [[ ($BRANCH_NAME == "develop") ]]; then
+              ANKR_URL=$STAGE_URL
               BRANCH_NAME="dev"
               K8S_CLUSTER="stage.hub"
               CHARTMUSEUM_URL="http://chart-stage.dccn.ankr.com:8080"
@@ -54,6 +56,7 @@ jobs:
               ANKRCHAIN_DNS="chain-stage.dccn.ankr.com"
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_STAGE
             else
+              ANKR_URL=$DEV_URL
               BRANCH_NAME="feat"
               K8S_CLUSTER="dev.hub"
               CHARTMUSEUM_URL="http://chart-dev.dccn.ankr.com:8080"
@@ -121,6 +124,7 @@ jobs:
             sed -i "/name: TXHISTORY_DB_TYPE/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_TYPE}\'" k8s/ankrchain-patched.yaml
             sed -i "/name: TXHISTORY_DB_HOST/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_HOST}\'" k8s/ankrchain-patched.yaml
             sed -i "/name: TXHISTORY_DB_NAME/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_NAME}\'" k8s/ankrchain-patched.yaml
+            sed -i "/name: ANKR_URL/a\ \ \ \ \ \ \ \ \ \ value: \'${ANKR_URL}\'" k8s/ankrchain-tester.yaml
             cat k8s/ankrchain-patched.yaml
             kubectl apply -f k8s/ankrchain-patched.yaml
 
@@ -146,7 +150,7 @@ jobs:
             aws route53 change-resource-record-sets --hosted-zone-id ${DNS_HOSTED_ZONE_ID} --cli-input-json ${INPUT_JSON_STR}
 
             if [[ ($BRANCH_NAME == "feat") ]]; then
-              kubectl apply -f k8s/ankr-chain-tester.yaml
+              kubectl apply -f k8s/ankrchain-tester.yaml
               sleep 240
               results=`kubectl get pods | grep dccn-ankr-chain-test | awk '{print $3}'`
               for res in $results;do
