@@ -17,3 +17,4 @@ spec:
           command: [ "./tester.test" ]
           env:
             - name: ANKR_URL
+              value: ANKR_URL_VAL

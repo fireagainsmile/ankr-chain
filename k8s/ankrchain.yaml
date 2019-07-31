@@ -156,6 +156,7 @@ spec:
           command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.4.json config/node_key.json && mv config/priv_validator_key.4.json config/priv_validator_key.json && ankrchain node --log_level=debug --moniker=`hostname` --historydb.type=$TXHISTORY_DB_TYPE --historydb.host=$TXHISTORY_DB_HOST --historydb.name=$TXHISTORY_DB_NAME"]
           env:
             - name: TXHISTORY_DB_TYPE
+              value: TXHISTORY_DB_TYPE_VALUE
             - name: TXHISTORY_DB_HOST
             - name: TXHISTORY_DB_NAME
           ports:

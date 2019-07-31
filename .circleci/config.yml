@@ -124,7 +124,7 @@ jobs:
             sed -i "/name: TXHISTORY_DB_TYPE/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_TYPE}\'" k8s/ankrchain-patched.yaml
             sed -i "/name: TXHISTORY_DB_HOST/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_HOST}\'" k8s/ankrchain-patched.yaml
             sed -i "/name: TXHISTORY_DB_NAME/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_NAME}\'" k8s/ankrchain-patched.yaml
-            sed -i "/name: ANKR_URL/a\ \ \ \ \ \ \ \ \ \ value: \'${ANKR_URL}\'" k8s/ankrchain-tester.yaml
+            sed -i "s/ANKR_URL_VAL/$ANKR_URL/g" k8s/ankrchain-tester.yaml
             cat k8s/ankrchain-patched.yaml
             kubectl apply -f k8s/ankrchain-patched.yaml
 
