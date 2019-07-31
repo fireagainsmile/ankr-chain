@@ -150,6 +150,9 @@ jobs:
             aws route53 change-resource-record-sets --hosted-zone-id ${DNS_HOSTED_ZONE_ID} --cli-input-json ${INPUT_JSON_STR}
 
             if [[ ($BRANCH_NAME == "feat") ]]; then
+            if kubectl get job ankr-chain-test; then
+                kubectl delete job dccn-tendermint-test
+            fi
               kubectl apply -f k8s/ankrchain-tester.yaml
               sleep 240
               results=`kubectl get pods | grep ankr-chain-test | awk '{print $3}'`
@@ -157,7 +160,7 @@ jobs:
                 if [ "Error" != $res ];then
                   echo "test case successful"
                 else
-                  testResults=`kubectl get pods | grep dccn-ankr-chain-test | awk '{print $1}'`
+                  testResults=`kubectl get pods | grep ankr-chain-test | awk '{print $1}'`
                   for testRes in $testResults;do
                     echo "test case failure"
                     kubectl logs $testRes
