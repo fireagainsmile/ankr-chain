@@ -5,8 +5,6 @@ RUN apk add --no-cache git dep
 WORKDIR /go/src/github.com/Ankr-network/ankr-chain
 COPY . .
 
-RUN go get github.com/Ankr-network/dccn-common/wallet
-RUN go get github.com/smartystreets/goconvey/convey
 RUN go test -i integrationtesting/*
 
 RUN go test -c integrationtesting/*
