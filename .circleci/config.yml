@@ -152,7 +152,7 @@ jobs:
             if [[ ($BRANCH_NAME == "feat") ]]; then
               kubectl apply -f k8s/ankrchain-tester.yaml
               sleep 240
-              results=`kubectl get pods | grep dccn-ankr-chain-test | awk '{print $3}'`
+              results=`kubectl get pods | grep ankr-chain-test | awk '{print $3}'`
               for res in $results;do
                 if [ "Error" != $res ];then
                   echo "test case successful"
