@@ -127,10 +127,6 @@ func TestSubNewBlock(t *testing.T) {
                    } else {
                        t.Error("NewBlock error")
                    }
-                   err:=Hclient.Unsubscribe(ctx, "helper", "tm.event='NewBlock'")
-                   if err!=nil{
-                       t.Error("TestSubNewBlock Unsubscribe error")
-                   }
                    return
                }
            }
@@ -163,10 +159,6 @@ func TestSubNewBlockHeader(t *testing.T) {
                    } else {
                        t.Error("NewBlock error")
                    }
-                   err := Hclient.Unsubscribe(ctx, "helper", "tm.event='NewBlockHeader'")
-                   if err!=nil{
-                       t.Error("TestSubNewBlockHeader Unsubscribe error")
-                   }
                    return
                }
            }
@@ -194,10 +186,6 @@ func TestSubEventVote(t *testing.T) {
                evData := evt.Data.(types.EventDataVote)
                fmt.Printf("%d", evData.Vote.Height)
                //So(evData.Vote.Height, ShouldNotBeEmpty)
-               err := Hclient.Unsubscribe(ctx, "helper", "tm.event='vote'")
-               if err != nil {
-                   t.Error("TestSubEventVote unsubscribe error")
-               }
                return
            }
        }

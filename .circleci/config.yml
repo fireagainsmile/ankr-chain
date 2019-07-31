@@ -150,9 +150,9 @@ jobs:
             aws route53 change-resource-record-sets --hosted-zone-id ${DNS_HOSTED_ZONE_ID} --cli-input-json ${INPUT_JSON_STR}
 
             if [[ ($BRANCH_NAME == "feat") ]]; then
-            if kubectl get job ankr-chain-test; then
+              if kubectl get job ankr-chain-test; then
                 kubectl delete job ankr-chain-test
-            fi
+              fi
               kubectl apply -f k8s/ankrchain-tester.yaml
               sleep 240
               results=`kubectl get pods | grep ankr-chain-test | awk '{print $3}'`
