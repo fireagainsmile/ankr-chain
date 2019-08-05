@@ -46,10 +46,13 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		oldPV.Upgrade(newPrivValKey, newPrivValState)
 	}
 
+	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir())
+	ankrChainApp.SetLogger(logger.With("module", "AnkrChainApp"))
+
 	tmNode, err :=  tmcorenode.NewNode(config.TendermintCoreConfig(),
 		privval.LoadOrGenFilePV(newPrivValKey, newPrivValState),
 		nodeKey,
-		proxy.NewLocalClientCreator(ankrchain.NewAnkrChainApplication(config.DBDir())),
+		proxy.NewLocalClientCreator(ankrChainApp),
 		tmcorenode.DefaultGenesisDocProviderFunc(config.TendermintCoreConfig()),
 		tmcorenode.DefaultDBProvider,
 		tmcorenode.DefaultMetricsProvider(config.Instrumentation),
