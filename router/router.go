@@ -79,7 +79,8 @@ func(mr *MsgRouter) TxMessageHandler(tx []byte) TxMessageHandler {
 
 func MsgRouterInstance() *MsgRouter {
 	onceMR.Do(func(){
-		instanceMR = new(MsgRouter)
+		routerMap := make(map[string]TxMessageHandler)
+		instanceMR = &MsgRouter{routerMap: routerMap}
 	})
 
 	return instanceMR

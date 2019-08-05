@@ -35,6 +35,7 @@ func NewAnkrChainApplication(dbDir string) *AnkrChainApplication {
 
 func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 	app.logger = l
+	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
