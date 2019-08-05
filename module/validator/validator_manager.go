@@ -23,12 +23,12 @@ type ValidatorManager struct {
 
 func (vm *ValidatorManager) InitValidator(appStore appstore.AppStore) {
 	appStore.Set([]byte(ankrtypes.SET_VAL_NONCE), []byte("0"))
-	//appStore.Set(PrefixStakeKey([]byte("")), []byte("0:1"))
-	value := []byte("")
+	appStore.Set(PrefixStakeKey([]byte("")), []byte("0:1"))
+	/*value := []byte("")
 	value = appStore.Get([]byte(ankrtypes.AccountStakePrefix))
 	if value == nil || string(value) == "" {
 		appStore.Set(PrefixStakeKey([]byte("")), []byte("0:1"))
-	}
+	}*/
 }
 
 // add, update, or remove a validator
