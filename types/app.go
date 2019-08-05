@@ -27,4 +27,14 @@ const (
 	ADMIN_OP_METERING_PUBKEY_NAME string = "admin_op_metering_pubkey"
 )
 
+func PrefixBalanceKey(key []byte) []byte {
+	return append([]byte(AccountBlancePrefix), key...)
+}
+
 type JudgeValidatorTx func([]byte) bool
+
+// CommitID contains the tree version number and its merkle root.
+type CommitID struct {
+	Version int64
+	Hash    []byte
+}
