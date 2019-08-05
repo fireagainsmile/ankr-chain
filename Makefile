@@ -6,6 +6,16 @@ OUTPUTTOOLDIR?=build/tool
 
 export GO111MODULE=on
 
+ifeq ($(OS),Windows_NT)
+  PLATFORM="Windows"
+else
+  ifeq ($(shell uname),Darwin)
+    PLATFORM="MacOS"
+  else
+    PLATFORM="Linux"
+  endif
+endif
+
 all: build install
 
 build:
