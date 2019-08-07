@@ -32,23 +32,19 @@ func (vm *ValidatorManager) InitValidator(appStore appstore.AppStore) {
 }
 
 // add, update, or remove a validator
-func (v *ValidatorManager) UpdateValidator(valUP types.ValidatorUpdate, appStore appstore.AppStore) types.ResponseDeliverTx {
+func (v *ValidatorManager) UpdateValidator(valUP types.ValidatorUpdate, appStore appstore.AppStore) (uint32, string,  []cmn.KVPair) {
 	key := []byte("val:" + string(valUP.PubKey.Data))
 	if valUP.Power == 0 {
 		// remove validator
 		if !appStore.Has(key) {
-			return types.ResponseDeliverTx{
-				Code: code.CodeTypeUnauthorized,
-				Log:  fmt.Sprintf("Cannot remove non-existent validator %X", key)}
+			return code.CodeTypeUnauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), nil
 		}
 		appStore.Delete(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
 		if err := types.WriteMessage(&valUP, value); err != nil {
-			return types.ResponseDeliverTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
+			return code.CodeTypeEncodingError, fmt.Sprintf("Error encoding validator: %v", err), nil
 		}
 		appStore.Set(key, value.Bytes())
 	}
@@ -59,7 +55,8 @@ func (v *ValidatorManager) UpdateValidator(valUP types.ValidatorUpdate, appStore
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("UpdateValidator")},
 	}
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasUsed: 0, Tags: tags}
+
+	return code.CodeTypeOK, "", tags
 }
 
 func (vm *ValidatorManager) Reset() {

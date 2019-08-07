@@ -12,9 +12,13 @@ const (
 )
 
 type Account struct {
-   accountType AccountType
-   address     string
-   balances    map[string]*big.Int
+   accType   AccountType
+   address   string
+   balances  map[string]*big.Int
+   codes     map[string][]byte
+   codeDescs map[string]string
 }
+
+
 
 
