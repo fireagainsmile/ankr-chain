@@ -18,15 +18,15 @@ type SetCertMsg struct {
 	module.BaseTxMsg
 }
 
-func (m *SetCertMsg) GasWanted() int64 {
+func (sc *SetCertMsg) GasWanted() int64 {
 	return 0
 }
 
-func (m *SetCertMsg) GasUsed() int64 {
+func (sc *SetCertMsg) GasUsed() int64 {
 	return 0
 }
 
-func (m *SetCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (sc *SetCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
 	tx = tx[len(ankrtypes.SetCertPrefix):]
 	trxSetCertSlices := strings.SplitN(string(tx), ":", 4)
 	if len(trxSetCertSlices) != 4 {
@@ -97,15 +97,15 @@ type RemoveCertMsg struct {
 	module.BaseTxMsg
 }
 
-func (m *RemoveCertMsg) GasWanted() int64 {
+func (rc *RemoveCertMsg) GasWanted() int64 {
 	return 0
 }
 
-func (m *RemoveCertMsg) GasUsed() int64 {
+func (rc *RemoveCertMsg) GasUsed() int64 {
 	return 0
 }
 
-func (m *RemoveCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (rc *RemoveCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
 	tx = tx[len(ankrtypes.RemoveCertPrefix):]
 	trxSetCertSlices := strings.SplitN(string(tx), ":", 3)
 	if len(trxSetCertSlices) != 3 {
