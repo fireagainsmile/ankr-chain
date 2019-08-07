@@ -85,8 +85,8 @@ func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.Respon
 func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
 	var initTotalPowers int64
 	for _, v := range req.Validators {
-		r := val.ValidatorManagerInstance().UpdateValidator(v, app.app)
-		if r.IsErr() {
+		codeT, _, _ := val.ValidatorManagerInstance().UpdateValidator(v, app.app)
+		if codeT != code.CodeTypeOK {
 			app.logger.Error("Error updating validators", "r", r)
 		}
 
