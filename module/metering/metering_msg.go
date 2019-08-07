@@ -9,14 +9,14 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	"github.com/Ankr-network/ankr-chain/module"
+	apm "github.com/Ankr-network/ankr-chain/module"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type MeteringMsg struct {
-	module.BaseTxMsg
+	apm.BaseTxMsg
 }
 
 func (m *MeteringMsg) GasWanted() int64 {
