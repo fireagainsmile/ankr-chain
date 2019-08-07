@@ -9,7 +9,7 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	"github.com/Ankr-network/ankr-chain/module"
+	apm "github.com/Ankr-network/ankr-chain/module"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
@@ -18,7 +18,7 @@ import (
 )
 
 type ValidatorMsg struct {
-	module.BaseTxMsg
+	apm.BaseTxMsg
 }
 
 func (v *ValidatorMsg) isValidatorTx(tx []byte) bool {

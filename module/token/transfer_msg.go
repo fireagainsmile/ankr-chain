@@ -10,7 +10,7 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	"github.com/Ankr-network/ankr-chain/module"
+	apm "github.com/Ankr-network/ankr-chain/module"
 	"github.com/Ankr-network/ankr-chain/module/account"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
@@ -22,7 +22,7 @@ const (
 )
 
 type TransferMsg struct {
-	module.BaseTxMsg
+	apm.BaseTxMsg
 }
 
 

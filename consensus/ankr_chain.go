@@ -87,7 +87,7 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 	for _, v := range req.Validators {
 		codeT, _, _ := val.ValidatorManagerInstance().UpdateValidator(v, app.app)
 		if codeT != code.CodeTypeOK {
-			app.logger.Error("Error updating validators", "r", r)
+			app.logger.Error("Error updating validators", "code", codeT)
 		}
 
 		initTotalPowers += v.Power
