@@ -6,36 +6,29 @@ import (
 	"strings"
 
 	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/module"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type StakeMsg struct {
-	
+	module.BaseTxMsg
 }
 
-func (s *StakeMsg)CheckTx(tx []byte, appStore appstore.AppStore) types.ResponseCheckTx {
-	tx = tx[len(ankrtypes.SetStakePrefix):]
-		trxSetStakeSlices := strings.Split(string(tx), ":")
-		if len(trxSetStakeSlices) != 4 {
-			return types.ResponseCheckTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Expected trx set stake. Got %v", trxSetStakeSlices)}
-		}
-
-		return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
+func (s *StakeMsg) GasWanted() int64 {
+	return 0
 }
 
-/* this function is disabled for now */
-func (s *StakeMsg) DeliverTx(tx []byte, appStore appstore.AppStore) types.ResponseDeliverTx {
+func (s *StakeMsg) GasUsed() int64 {
+	return 0
+}
+
+func (s *StakeMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
 	tx = tx[len(ankrtypes.SetStakePrefix):]
 	trxSetStakeSlices := strings.Split(string(tx), ":")
 	if len(trxSetStakeSlices) != 4 {
-		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
-			Log:  fmt.Sprintf("Expected trx set balance. Got %v", trxSetStakeSlices)}
+		return code.CodeTypeEncodingError, fmt.Sprintf("Expected trx set balance. Got %v", trxSetStakeSlices), nil
 	}
 
 	amountS := trxSetStakeSlices[0]
@@ -43,16 +36,16 @@ func (s *StakeMsg) DeliverTx(tx []byte, appStore appstore.AppStore) types.Respon
 
 	amountSet, err := new(big.Int).SetString(string(amountS), 10)
 	if !err {
-		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
-			Log:  fmt.Sprintf("Unexpected amount. Got %v", amountS)}
+		return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected amount. Got %v", amountS), nil
 	} else { // amountSet < 0
 		zeroN, _ := new(big.Int).SetString("0", 10)
 		if amountSet.Cmp(zeroN) == -1 {
-			return types.ResponseDeliverTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Unexpected amount, negative num. Got %v", amountS)}
+			return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected amount, negative num. Got %v", amountS), nil
 		}
+	}
+
+	if isOnlyCheck {
+		return code.CodeTypeOK, "", nil
 	}
 
 	//app.app.state.db.Set(prefixStakeKey([]byte("")), []byte(amountS +":"+ nonceS))
@@ -61,5 +54,6 @@ func (s *StakeMsg) DeliverTx(tx []byte, appStore appstore.AppStore) types.Respon
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("SetStake")},
 	}
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK,  GasUsed: 0, Tags: tags}
+	return code.CodeTypeOK, "", tags
 }
+
