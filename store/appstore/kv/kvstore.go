@@ -31,6 +31,10 @@ type State struct {
 	AppHash []byte `json:"app_hash"`
 }
 
+type Seeds struct {
+    Seeds []string `json:""seeds`
+}
+
 func loadState(db dbm.DB) State {
 	stateBytes := db.Get(stateKey)
 	var state State
@@ -188,7 +192,11 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 		            }
                         }
                     }
-		} else {
+		} else if string(reqQuery.Data) == "seeds" {
+            var se = []string{"127.0.0.1:26657", "127.0.0.1:26658"}
+            var see = Seeds{Seeds: se}
+            value, _ = json.Marshal(see)
+        } else {
 		    value = app.state.db.Get(prefixKey(reqQuery.Data))
 		}
 
