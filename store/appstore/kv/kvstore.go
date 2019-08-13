@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
-	"math/big"
 
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/example/code"
@@ -125,6 +125,7 @@ func (app *KVStoreApplication) Commit() types.ResponseCommit {
 	app.state.AppHash = appHash
 	app.state.Height += 1
 	saveState(app.state)
+
 	return types.ResponseCommit{Data: appHash}
 }
 
@@ -168,19 +169,17 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 		    value = app.state.db.Get(reqQuery.Data)
 		} else if len(reqQuery.Data) >= 24 && string(reqQuery.Data[:24]) == ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME{
 		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) &&
-					string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
-                    itr := app.state.db.Iterator(nil, nil)
-                    for ; itr.Valid(); itr.Next() {
-			if len(itr.Key()) >= len(ankrtypes.AccountBlancePrefix) &&
-					string(itr.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
-			    valueItem := []byte("")
-			    valueItem = app.state.db.Get(itr.Key())
-			    if len(valueItem) != 0 {
-				    value = []byte(string(value) + string(itr.Key()[len(ankrtypes.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
-		            }
-                        }
-                    }
+		} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
+			itr := app.state.db.Iterator(nil, nil)
+			for ; itr.Valid(); itr.Next() {
+				if len(itr.Key()) >= len(ankrtypes.AccountBlancePrefix) && string(itr.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
+					valueItem := []byte("")
+					valueItem = app.state.db.Get(itr.Key())
+					if len(valueItem) != 0 {
+						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
+					 }
+				}
+			}
 		} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
                     itr := app.state.db.Iterator(nil, nil)
                     for ; itr.Valid(); itr.Next() {
@@ -255,45 +254,6 @@ func (app *KVStoreApplication) Has(key []byte) bool {
 	return app.state.db.Has(key)
 }
 
-func (app *KVStoreApplication) Validators(judgeValidatorTx ankrtypes.JudgeValidatorTx) (validators []types.ValidatorUpdate) {
-	itr := app.state.db.Iterator(nil, nil)
-	for ; itr.Valid(); itr.Next() {
-		if judgeValidatorTx(itr.Key()) {
-			validator := new(types.ValidatorUpdate)
-			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
-			if err != nil {
-				panic(err)
-			}
-			validators = append(validators, *validator)
-		}
-	}
-	return
-}
-
-func (app *KVStoreApplication) TotalValidatorPowers(judgeValidatorTx ankrtypes.JudgeValidatorTx) int64 {
-	var totalValPowers int64 = 0
-	it := app.state.db.Iterator(nil, nil)
-	if it != nil && it.Valid(){
-		it.Next()
-		for it.Valid() {
-			if judgeValidatorTx(it.Key()) {
-				validator := new(types.ValidatorUpdate)
-				err := types.ReadMessage(bytes.NewBuffer(it.Value()), validator)
-				if err != nil {
-					panic(err)
-				}
-
-				totalValPowers += validator.Power
-				fmt.Printf("validator = %v\n", validator)
-			}
-			it.Next()
-		}
-	}
-	it.Close()
-
-	return  totalValPowers
-}
-
 func (app *KVStoreApplication) Size() int64 {
 	return app.state.Size
 }
@@ -308,4 +268,8 @@ func (app *KVStoreApplication) Height() int64 {
 
 func (app *KVStoreApplication) APPHash() []byte {
 	return app.state.AppHash
+}
+
+func (app *KVStoreApplication) DB() dbm.DB {
+	return app.state.db
 }
