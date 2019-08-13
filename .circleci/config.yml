@@ -62,7 +62,7 @@ jobs:
               ANKRCHAIN_DNS="chain-dev.dccn.ankr.com"
               TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_DEV
             fi
-
+            sed -i "s/seeds = \"\"/$SEEDS/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             docker build --label=ankrchain --target=public --build-arg BRANCH_NAME=${BRANCH_NAME} --build-arg PRIV_PATH=${PRIV_PATH} --build-arg BRANCH_NAME=${BRANCH_NAME} -t ankr-chain:$BRANCH_NAME . -f DOCKER/Dockerfile
             for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
               docker tag ankr-chain:$BRANCH_NAME $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:$TAG
@@ -109,8 +109,6 @@ jobs:
             fi
             # add page break line before new deployment, not compatible with bsd style command line tool, eg: macOS
             # add colon to separate with json in annotation
-            sed -i "s/seeds = \"\"/$SEEDS/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
-            cat DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             sed -i '/apiVersion:/i---' k8s/ankrchain-patched.yaml
             sed -i "/name: TXHISTORY_DB_TYPE/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_TYPE}\'" k8s/ankrchain-patched.yaml
             sed -i "/name: TXHISTORY_DB_HOST/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_HOST}\'" k8s/ankrchain-patched.yaml
