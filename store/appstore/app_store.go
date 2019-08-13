@@ -2,9 +2,13 @@ package appstore
 
 import (
 	"github.com/Ankr-network/ankr-chain/store/appstore/kv"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
+	dbm "github.com/tendermint/tendermint/libs/db"
 )
+
+type AccountStore interface {
+
+}
 
 type AppStore interface {
 	Info(req types.RequestInfo) (resInfo types.ResponseInfo)
@@ -17,12 +21,11 @@ type AppStore interface {
 	Set(key []byte, val []byte)
 	Delete(key []byte)
 	Has(key []byte) bool
-	Validators(judgeValidatorTx ankrtypes.JudgeValidatorTx) (validators []types.ValidatorUpdate)
-	TotalValidatorPowers(judgeValidatorTx ankrtypes.JudgeValidatorTx) int64
 	Size() int64
 	IncSize()
 	Height() int64
 	APPHash() []byte
+    DB() dbm.DB
 }
 
 func NewAppStore(dbDir string) AppStore {

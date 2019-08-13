@@ -21,10 +21,6 @@ type ValidatorMsg struct {
 	apm.BaseTxMsg
 }
 
-func (v *ValidatorMsg) isValidatorTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), ankrtypes.ValidatorSetChangePrefix)
-}
-
 func (v *ValidatorMsg) GasWanted() int64 {
 	return 0
 }
@@ -68,7 +64,7 @@ func (v *ValidatorMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCh
 		}
 	}
 
-	curValidatorCount := appStore.TotalValidatorPowers(v.isValidatorTx)
+	curValidatorCount := ValidatorManagerInstance().TotalValidatorPowers(appStore)
 	if (curValidatorCount + int64(powerInt)) > tmCoreTypes.MaxTotalVotingPower {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Total powers %d will reach with the power %d", tmCoreTypes.MaxTotalVotingPower, powerInt), nil
 	}

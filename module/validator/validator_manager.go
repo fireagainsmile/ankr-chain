@@ -67,6 +67,45 @@ func (vm *ValidatorManager) ValUpdates() []types.ValidatorUpdate {
 	return vm.valUpdates
 }
 
+func (vm *ValidatorManager) Validators(appStore appstore.AppStore) (validators []types.ValidatorUpdate) {
+	itr := appStore.DB().Iterator(nil, nil)
+	for ; itr.Valid(); itr.Next() {
+		if isValidatorTx(itr.Key()) {
+			validator := new(types.ValidatorUpdate)
+			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
+			if err != nil {
+				panic(err)
+			}
+			validators = append(validators, *validator)
+		}
+	}
+	return
+}
+
+func (vm *ValidatorManager) TotalValidatorPowers(appStore appstore.AppStore) int64 {
+	var totalValPowers int64 = 0
+	it := appStore.DB().Iterator(nil, nil)
+	if it != nil && it.Valid(){
+		it.Next()
+		for it.Valid() {
+			if isValidatorTx(it.Key()) {
+				validator := new(types.ValidatorUpdate)
+				err := types.ReadMessage(bytes.NewBuffer(it.Value()), validator)
+				if err != nil {
+					panic(err)
+				}
+
+				totalValPowers += validator.Power
+				fmt.Printf("validator = %v\n", validator)
+			}
+			it.Next()
+		}
+	}
+	it.Close()
+
+	return  totalValPowers
+}
+
 func ValidatorManagerInstance() *ValidatorManager {
 	onceVM.Do(func(){
 		instanceVM = &ValidatorManager{make([]types.ValidatorUpdate, 0)}
