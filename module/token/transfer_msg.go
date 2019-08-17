@@ -111,7 +111,7 @@ func (tr *TransferMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCh
 		return  code.CodeTypeEncodingError, fmt.Sprintf("Bad signature. Got %v", sigS), nil
 	}
 
-	fromBalanceNonce := appStore.Get(ankrtypes.PrefixBalanceKey([]byte(fromS)))
+	fromBalanceNonce := appStore.Balance(ankrtypes.PrefixBalanceKey([]byte(fromS)))
 	balanceNonceSlices := strings.Split(string(fromBalanceNonce), ":")
 	var fromBalance string
 	var fromNonce string
@@ -174,7 +174,7 @@ func (tr *TransferMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCh
 	}
 
 	fundRealBalance, _ := new(big.Int).SetString("0", 10)
-	fundBalanceNonce := appStore.Get(ankrtypes.PrefixBalanceKey([]byte(account.AccountManagerInstance().GasAccountAddress())))
+	fundBalanceNonce := appStore.Balance(ankrtypes.PrefixBalanceKey([]byte(account.AccountManagerInstance().GasAccountAddress())))
 	var fundBalance string
 	var fundNonce string = "1"
 	if  fundBalanceNonce != nil {
@@ -208,7 +208,7 @@ func (tr *TransferMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCh
 	}
 
 	toRealBalance, _ := new(big.Int).SetString("0", 10)
-	toBalanceNonce := appStore.Get(ankrtypes.PrefixBalanceKey([]byte(toS)))
+	toBalanceNonce := appStore.Balance(ankrtypes.PrefixBalanceKey([]byte(toS)))
 	var toBalance string
 	var toNonce string = "1"
 	if  toBalanceNonce != nil {
@@ -252,10 +252,9 @@ func (tr *TransferMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCh
 	toRealBalance.Add(toRealBalance, amountSend.Sub(amountSend, gas))
 	fundRealBalance.Add(fundRealBalance, gas)
 
-	appStore.Set(ankrtypes.PrefixBalanceKey([]byte(fromS)), []byte(fromBalanceInt.String()+":"+nonceS))
-	appStore.Set(ankrtypes.PrefixBalanceKey([]byte(toS)), []byte(toRealBalance.String()+":"+toNonce)) // use original nonce
-	appStore.Set(ankrtypes.PrefixBalanceKey([]byte(account.AccountManagerInstance().GasAccountAddress())), []byte(fundRealBalance.String()+":"+fundNonce)) // use original nonce
-	appStore.IncSize()
+	appStore.SetBalance(ankrtypes.PrefixBalanceKey([]byte(fromS)), []byte(fromBalanceInt.String()+":"+nonceS))
+	appStore.SetBalance(ankrtypes.PrefixBalanceKey([]byte(toS)), []byte(toRealBalance.String()+":"+toNonce)) // use original nonce
+	appStore.SetBalance(ankrtypes.PrefixBalanceKey([]byte(account.AccountManagerInstance().GasAccountAddress())), []byte(fundRealBalance.String()+":"+fundNonce)) // use original nonce
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{

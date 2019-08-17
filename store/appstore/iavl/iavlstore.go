@@ -48,6 +48,14 @@ func (s *IavlStore) Get(key []byte) ([]byte, error) {
 	return val, nil
 }
 
+func (s *IavlStore) Has(key []byte) bool {
+	return s.tree.Has(key)
+}
+
+func (s *IavlStore) Remove(key []byte) ([]byte, bool) {
+	return s.tree.Remove(key)
+}
+
 func (s *IavlStore) Commit() (types.CommitID, error) {
 	rHash, ver, err := s.tree.SaveVersion()
 	if err != nil {

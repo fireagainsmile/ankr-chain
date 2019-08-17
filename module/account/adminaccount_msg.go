@@ -87,7 +87,6 @@ func (s *AdminAccountMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnl
 
 	appStore.Set([]byte(keynameS), []byte(valueS))
 	appStore.Set([]byte(ankrtypes.SET_OP_NONCE), []byte(nonceS))
-	appStore.IncSize()
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("SetOp")},

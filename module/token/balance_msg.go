@@ -84,7 +84,7 @@ func (b *BalanceMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyChec
 		return  code.CodeTypeEncodingError, fmt.Sprintf("Bad signature. Got %v", sigS), nil
 	}
 
-	inBalanceAndNonce := appStore.Get(ankrtypes.PrefixBalanceKey([]byte(addressS)))
+	inBalanceAndNonce := appStore.Balance(ankrtypes.PrefixBalanceKey([]byte(addressS)))
 	balanceNonceSlices := strings.Split(string(inBalanceAndNonce), ":")
 	var inBalance string
 	var inNonce string
@@ -113,8 +113,7 @@ func (b *BalanceMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyChec
 		return code.CodeTypeOK, "", nil
 	}
 
-	appStore.Set(ankrtypes.PrefixBalanceKey([]byte(addressS)), []byte(amountS+":"+nonceS))
-	appStore.IncSize()
+	appStore.SetBalance(ankrtypes.PrefixBalanceKey([]byte(addressS)), []byte(amountS+":"+nonceS))
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("SetBalance")},

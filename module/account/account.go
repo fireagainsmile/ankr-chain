@@ -1,7 +1,7 @@
 package account
 
 import (
-	"math/big"
+	"github.com/Ankr-network/ankr-chain/types"
 )
 
 type AccountType int
@@ -14,7 +14,7 @@ const (
 type Account struct {
    accType   AccountType
    address   string
-   balances  map[string]*big.Int
+   balance   types.Balance
    codes     map[string][]byte
    codeDescs map[string]string
 }

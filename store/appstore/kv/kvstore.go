@@ -1,29 +1,26 @@
 package kv
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
 
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/version"
 )
 
 var (
-	stateKey        = []byte("stateKey")
 	kvPairPrefixKey = []byte("kvPairKey:")
 
 	ProtocolVersion version.Protocol = 0x1
 )
 
+<<<<<<< HEAD
 type State struct {
 	db      dbm.DB
 	Size    int64  `json:"size"`
@@ -49,25 +46,26 @@ func loadState(db dbm.DB) State {
 }
 
 func saveState(state State) {
+=======
+func saveState(state appstore.State) {
+>>>>>>> perfect the function of the iavl multi store
 	stateBytes, err := json.Marshal(state)
 	if err != nil {
 		panic(err)
 	}
-	state.db.Set(stateKey, stateBytes)
+	state.DB.Set(appstore.StateKey, stateBytes)
 }
 
 func prefixKey(key []byte) []byte {
 	return append(kvPairPrefixKey, key...)
 }
 
-//---------------------------------------------------
-
 var _ types.Application = (*KVStoreApplication)(nil)
 
 type KVStoreApplication struct {
 	types.BaseApplication
 
-	state State
+	state appstore.State
 }
 
 func NewKVStoreApplication(dbDir string) *KVStoreApplication {
@@ -84,38 +82,7 @@ func (app *KVStoreApplication) init(dbDir string) {
 		panic(err)
 	}
 
-	app.state= loadState(db)
-}
-
-func (app *KVStoreApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
-	return types.ResponseInfo{
-		Data:       fmt.Sprintf("{\"size\":%v}", app.state.Size),
-		Version:    version.ABCIVersion,
-		AppVersion: ProtocolVersion.Uint64(),
-	}
-}
-
-// tx is either "key=value" or just arbitrary bytes
-func (app *KVStoreApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
-	var key, value []byte
-	parts := bytes.Split(tx, []byte("="))
-	if len(parts) == 2 {
-		key, value = parts[0], parts[1]
-	} else {
-		key, value = tx, tx
-	}
-	app.state.db.Set(prefixKey(key), value)
-	app.state.Size += 1
-
-	tags := []cmn.KVPair{
-		{Key: []byte("app.creator"), Value: []byte("Cosmoshi Netowoko")},
-		{Key: []byte("app.key"), Value: key},
-	}
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Tags: tags}
-}
-
-func (app *KVStoreApplication) CheckTx(tx []byte) types.ResponseCheckTx {
-	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
+	app.state= appstore.LoadState(db)
 }
 
 func (app *KVStoreApplication) Commit() types.ResponseCommit {
@@ -130,57 +97,50 @@ func (app *KVStoreApplication) Commit() types.ResponseCommit {
 }
 
 func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
-	isBalance := false
+	var value []byte
+	resQuery.Log = "exists"
 
 	if reqQuery.Prove {
-		value := app.state.db.Get(prefixKey(reqQuery.Data))
+		value = app.state.DB.Get(prefixKey(reqQuery.Data))
 		resQuery.Index = -1 // TODO make Proof return index
 		resQuery.Key = reqQuery.Data
 		resQuery.Value = value
-		if value != nil {
-			resQuery.Log = "exists"
-		} else {
-			resQuery.Log = "does not exist"
-		}
-		return
 	} else {
 		resQuery.Key = reqQuery.Data
-		value := []byte("")
 		if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
-		    isBalance = true
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == ankrtypes.AccountStakePrefix[:3]{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == ankrtypes.MeteringPrefix[:3]{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 3 && string(reqQuery.Data[:3]) == ankrtypes.CertPrefix[:3]{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 13 && string(reqQuery.Data[:13]) == ankrtypes.SET_CRT_NONCE{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 11 && string(reqQuery.Data[:11]) == ankrtypes.SET_OP_NONCE{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 9 && string(reqQuery.Data[:9]) == ankrtypes.SET_VAL_NONCE{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 13 && string(reqQuery.Data[:13]) == ankrtypes.RMV_CRT_NONCE{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 19 && string(reqQuery.Data[:19]) == ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 20 && string(reqQuery.Data[:20]) == ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME{
-		    value = app.state.db.Get(reqQuery.Data)
-		} else if len(reqQuery.Data) >= 24 && string(reqQuery.Data[:24]) == ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME{
-		    value = app.state.db.Get(reqQuery.Data)
+		    value = app.state.DB.Get(reqQuery.Data)
+			trxGetBalanceSlices := strings.Split(string(value), ":")
+			if len(trxGetBalanceSlices) == 1 {
+				_, err := new(big.Int).SetString(string(value), 10)
+				if !err {
+					resQuery.Log = "internal error, value format incorrect, single value"
+				}
+			}else if len(trxGetBalanceSlices) == 2 {
+				_, berr := new(big.Int).SetString(trxGetBalanceSlices[0], 10)
+				if !berr {
+					resQuery.Log = "internal error, value format incorrect, first value"
+				} else {
+					_, err := strconv.ParseInt(string(trxGetBalanceSlices[1]), 10, 64)
+					if err != nil {
+						resQuery.Log = "internal error, value format incorrect, second value"
+					}
+				}
+			} else {
+				resQuery.Log = "internal error, value format incorrect, extra value"
+			}
 		} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
-			itr := app.state.db.Iterator(nil, nil)
+			itr := app.state.DB.Iterator(nil, nil)
 			for ; itr.Valid(); itr.Next() {
 				if len(itr.Key()) >= len(ankrtypes.AccountBlancePrefix) && string(itr.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
 					valueItem := []byte("")
-					valueItem = app.state.db.Get(itr.Key())
+					valueItem = app.state.DB.Get(itr.Key())
 					if len(valueItem) != 0 {
 						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
 					 }
 				}
 			}
 		} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
+<<<<<<< HEAD
                     itr := app.state.db.Iterator(nil, nil)
                     for ; itr.Valid(); itr.Next() {
 			if len(itr.Key()) >= len(ankrtypes.CertPrefix) && string(itr.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
@@ -197,61 +157,58 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
             value, _ = json.Marshal(see)
         } else {
 		    value = app.state.db.Get(prefixKey(reqQuery.Data))
-		}
-
-		//fmt.Println("queried value:", value)
-		resQuery.Value = value
-
-		if value != nil {
-			if isBalance {
-			    trxGetBalanceSlices := strings.Split(string(value), ":")
-			    if len(trxGetBalanceSlices) == 1 {
-				    _, err := new(big.Int).SetString(string(value), 10)
-				    if !err {
-					    resQuery.Log = "internal error, value format incorrect, single value"
-					    return
-				    }
-			    } else if len(trxGetBalanceSlices) == 2 {
-				    _, berr := new(big.Int).SetString(trxGetBalanceSlices[0], 10)
-				    if !berr {
-					    resQuery.Log = "internal error, value format incorrect, first value"
-					    return
-				    }
-
-				    _, err := strconv.ParseInt(string(trxGetBalanceSlices[1]), 10, 64)
-				    if err != nil {
-					    resQuery.Log = "internal error, value format incorrect, second value"
-					    return
-				    }
-
-			    } else {
-				    resQuery.Log = "internal error, value format incorrect, extra value"
-				    return
-			    }
-		        }
-
-		        resQuery.Log = "exists"
+=======
+			itr := app.state.DB.Iterator(nil, nil)
+			for ; itr.Valid(); itr.Next() {
+				if len(itr.Key()) >= len(ankrtypes.CertPrefix) && string(itr.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
+					valueItem := []byte("")
+					valueItem = app.state.DB.Get(itr.Key())
+					if len(valueItem) != 0 {
+						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.CertPrefix):]) + ";")
+					 }
+				}
+            }
 		} else {
-			resQuery.Log = "does not exist"
+			value = app.state.DB.Get(reqQuery.Data)
+>>>>>>> perfect the function of the iavl multi store
 		}
-		return
 	}
+
+	resQuery.Value = value
+
+	if value == nil {
+		resQuery.Log = "does not exist"
+	}
+
+	return
+}
+
+func (app *KVStoreApplication) SetCertKey(key []byte, val []byte) {
+	app.state.DB.Set(key, val)
+}
+
+func (app *KVStoreApplication) CertKey(key []byte) []byte {
+	return app.state.DB.Get(key)
+}
+
+func (app *KVStoreApplication) DeleteCertKey(key []byte) {
+	app.state.DB.Delete(key)
 }
 
 func (app *KVStoreApplication) Get(key []byte) []byte {
-	return app.state.db.Get(key)
+	return app.state.DB.Get(key)
 }
 
 func (app *KVStoreApplication) Set(key []byte, val []byte) {
-	app.state.db.Set(key, val)
+	app.state.DB.Set(key, val)
 }
 
 func (app *KVStoreApplication) Delete(key []byte) {
-	app.state.db.Delete(key)
+	app.state.DB.Delete(key)
 }
 
 func (app *KVStoreApplication) Has(key []byte) bool {
-	return app.state.db.Has(key)
+	return app.state.DB.Has(key)
 }
 
 func (app *KVStoreApplication) Size() int64 {
@@ -271,5 +228,13 @@ func (app *KVStoreApplication) APPHash() []byte {
 }
 
 func (app *KVStoreApplication) DB() dbm.DB {
-	return app.state.db
+	return app.state.DB
+}
+
+func (app *KVStoreApplication) SetBalance(key []byte, val []byte) {
+	app.state.DB.Set(key, val)
+}
+
+func (app *KVStoreApplication) Balance(key []byte) []byte {
+	return app.state.DB.Get(key)
 }

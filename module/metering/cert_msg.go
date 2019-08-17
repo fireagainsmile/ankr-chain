@@ -84,7 +84,6 @@ func (sc *SetCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyChe
 
 	appStore.Set(([]byte(ankrtypes.SET_CRT_NONCE)) ,[]byte(nonceS))
 	appStore.Set(prefixCertKey([]byte(dcS)), []byte(pemB64S))
-	appStore.IncSize()
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("RemoveCert")},
@@ -163,7 +162,6 @@ func (rc *RemoveCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnly
 
 	appStore.Set(([]byte(ankrtypes.RMV_CRT_NONCE)), []byte(nonceS))
 	appStore.Delete(prefixCertKey([]byte(dcS)))
-	appStore.IncSize()
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte("RemoveCert")},

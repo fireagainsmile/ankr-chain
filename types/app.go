@@ -1,6 +1,10 @@
 package types
 
+import "math/big"
+
 const (
+	APPName = "AnkrApp"
+
 	KeyAddressLen = 46
 	ValidatorSetChangePrefix string = "val:"
 	AccountBlancePrefix string = "bal:"
@@ -31,10 +35,18 @@ func PrefixBalanceKey(key []byte) []byte {
 	return append([]byte(AccountBlancePrefix), key...)
 }
 
-type JudgeValidatorTx func([]byte) bool
-
 // CommitID contains the tree version number and its merkle root.
 type CommitID struct {
 	Version int64
 	Hash    []byte
+}
+
+type Token struct {
+	Name    string   `json:"name"`
+	Decimal int64    `json:"decimal"`
+	Amount  *big.Int `json:"amount"`
+}
+
+type Balance struct {
+	Amounts map[string]Token `json:"amounts"`
 }
