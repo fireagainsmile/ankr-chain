@@ -93,9 +93,6 @@ func (m *MeteringMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyChe
 
 	appStore.Set(m.prefixSetMeteringKey([]byte(dcS + ":" + nsS)),
 		[]byte(valueS + ":" + sigxS + ":" + sigyS + ":" + nonceS))
-	//fmt.Println(string((prefixSetMeteringKey([]byte(dcS + ":" + nsS)))))
-	//fmt.Println(string([]byte(valueS + ":" + sigxS + ":" + sigyS + ":" + sigaS + ":" + sigbS + ":" + nonceS)))
-	appStore.IncSize()
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{

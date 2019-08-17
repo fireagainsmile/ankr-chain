@@ -18,7 +18,7 @@ type AccountManager struct {
 }
 
 func (am *AccountManager) InitBalance(appStore appstore.AppStore){
-	appStore.Set(types.PrefixBalanceKey([]byte(am.InitAccountAddress())),
+	appStore.SetBalance(types.PrefixBalanceKey([]byte(am.InitAccountAddress())),
 		[]byte("10000000000000000000000000000:1")) // 10000000000,000,000,000,000,000,000, 10 billion tokens
 }
 

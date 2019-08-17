@@ -11,42 +11,49 @@ import (
 	val "github.com/Ankr-network/ankr-chain/module/validator"
 	"github.com/Ankr-network/ankr-chain/router"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+    akver "github.com/Ankr-network/ankr-chain/version"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmCoreTypes "github.com/tendermint/tendermint/types"
+	"github.com/tendermint/tendermint/version"
 )
 
 var _ types.Application = (*AnkrChainApplication)(nil)
 
 type AnkrChainApplication struct {
-	app appstore.AppStore
-
-	logger log.Logger
+	appName string
+	app     appstore.AppStore
+	logger  log.Logger
 }
 
-func NewAnkrChainApplication(dbDir string) *AnkrChainApplication {
-	appStore := appstore.NewAppStore(dbDir)
+func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
+	appStore := appstore.NewAppStore(dbDir, l.With("module", "AppStore"))
 
 	return &AnkrChainApplication{
-		app:    appStore,
-		logger: log.NewNopLogger(),
+		appName: appName,
+		app:     appStore,
+		logger:  l,
 	}
+
+	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 }
 
 func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 	app.logger = l
-	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
-	res := app.app.Info(req)
-	res.LastBlockHeight = app.app.Height()
-	res.LastBlockAppHash = app.app.APPHash()
-	return res
+	return types.ResponseInfo{
+		Data:             app.appName,
+		Version:          version.ABCIVersion,
+		AppVersion:       akver.APPVersion,
+		LastBlockHeight:  app.app.Height(),
+		LastBlockAppHash: app.app.APPHash(),
+	}
 }
 
 func (app *AnkrChainApplication) SetOption(req types.RequestSetOption) types.ResponseSetOption {
-	return app.app.SetOption(req)
+	return types.ResponseSetOption{}
 }
 
 // tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes

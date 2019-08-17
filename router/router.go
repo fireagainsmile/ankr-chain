@@ -11,7 +11,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-
 var (
 	onceMR     sync.Once
 	instanceMR *MsgRouter
