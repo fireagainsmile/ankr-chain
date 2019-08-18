@@ -177,7 +177,6 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	var value []byte
 	resQuery.Log = "exists"
 
-
 	storeName, _ := sp.parsePath(reqQuery.Path)
 	if reqQuery.Path != "" {
 		storeName = IAvlStoreTxKey
