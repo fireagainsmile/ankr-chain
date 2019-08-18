@@ -38,5 +38,6 @@ func NewRunNodeCmd(nodeProvider node.AnkrNodeProvider) *cobra.Command {
 
 	tmcorecmd.AddNodeFlags(cmd)
 	AddHistoryStorageNodeFlags(cmd, config.HistoryDB.Type, config.HistoryDB.Host, config.HistoryDB.Name)
+	AddPeerFilterNodeFlags(cmd, config.AllowedPeers)
 	return cmd
 }

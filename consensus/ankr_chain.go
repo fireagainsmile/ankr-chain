@@ -29,13 +29,13 @@ type AnkrChainApplication struct {
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
 	appStore := appstore.NewAppStore(dbDir, l.With("module", "AppStore"))
 
+	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
+
 	return &AnkrChainApplication{
 		appName: appName,
 		app:     appStore,
 		logger:  l,
 	}
-
-	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 }
 
 func (app *AnkrChainApplication) SetLogger(l log.Logger) {

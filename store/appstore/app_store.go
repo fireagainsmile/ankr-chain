@@ -2,8 +2,9 @@ package appstore
 
 import (
 	"encoding/json"
-	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
 
+	"github.com/Ankr-network/ankr-chain/router"
+	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
@@ -27,7 +28,6 @@ type AccountStore interface {
 
 type TxStore interface {
 	Commit() types.ResponseCommit
-	Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery)
 	SetCertKey(key []byte, val []byte)
 	CertKey(key []byte) []byte
 	DeleteCertKey(key []byte)
@@ -40,6 +40,7 @@ type TxStore interface {
 type AppStore interface {
 	AccountStore
 	TxStore
+	router.QueryHandler
 	Height() int64
 	APPHash() []byte
     DB() dbm.DB
@@ -60,5 +61,9 @@ func LoadState(db dbm.DB) State {
 }
 
 func NewAppStore(dbDir string, l log.Logger) AppStore {
-	return  iavl.NewIavlStoreApp(dbDir, l)
+	appStore := iavl.NewIavlStoreApp(dbDir, l)
+
+	router.QueryRouterInstance().AddQueryHandler("store", appStore)
+
+	return  appStore
 }

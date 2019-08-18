@@ -1,11 +1,15 @@
 package code
 
-
+import (
+	"github.com/tendermint/tendermint/abci/types"
+)
 
 const (
-	CodeTypeOK            uint32 = 0
-	CodeTypeEncodingError uint32 = 1
-	CodeTypeBadNonce      uint32 = 2
-	CodeTypeUnauthorized  uint32 = 3
-	CodeTypeUnknownError  uint32 = 4
+	CodeTypeOK                 uint32 = types.CodeTypeOK
+	CodeTypeEncodingError      uint32 = 1
+	CodeTypeBadNonce           uint32 = 2
+	CodeTypeUnauthorized       uint32 = 3
+	CodeTypeP2PFilterPathError uint32 = 4
+	CodeTypeP2PFilterNotPass   uint32 = 5
+	CodeTypeUnknownError       uint32 = 6
 )
