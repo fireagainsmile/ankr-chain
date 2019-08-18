@@ -85,7 +85,9 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 }
 
 func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
-	return app.app.Query(reqQuery)
+	qHandler, subPath := router.QueryRouterInstance().QueryHandler(reqQuery.Path)
+	reqQuery.Path = subPath
+	return qHandler.Query(reqQuery)
 }
 
 // Save the validators in the merkle tree
