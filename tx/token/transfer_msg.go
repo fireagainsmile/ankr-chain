@@ -10,8 +10,8 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/module"
-	"github.com/Ankr-network/ankr-chain/module/account"
+	apm "github.com/Ankr-network/ankr-chain/tx"
+	"github.com/Ankr-network/ankr-chain/tx/account"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"

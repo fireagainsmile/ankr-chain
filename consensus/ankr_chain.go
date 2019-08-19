@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/Ankr-network/ankr-chain/common/code"
-	act "github.com/Ankr-network/ankr-chain/module/account"
-	_ "github.com/Ankr-network/ankr-chain/module/metering"
-	_ "github.com/Ankr-network/ankr-chain/module/token"
-	val "github.com/Ankr-network/ankr-chain/module/validator"
+	act "github.com/Ankr-network/ankr-chain/tx/account"
+	_ "github.com/Ankr-network/ankr-chain/tx/metering"
+	_ "github.com/Ankr-network/ankr-chain/tx/token"
+	val "github.com/Ankr-network/ankr-chain/tx/validator"
 	"github.com/Ankr-network/ankr-chain/router"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
     akver "github.com/Ankr-network/ankr-chain/version"
@@ -27,9 +27,9 @@ type AnkrChainApplication struct {
 }
 
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
-	appStore := appstore.NewAppStore(dbDir, l.With("module", "AppStore"))
+	appStore := appstore.NewAppStore(dbDir, l.With("tx", "AppStore"))
 
-	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
+	router.MsgRouterInstance().SetLogger(l.With("tx", "AnkrChainRouter"))
 
 	return &AnkrChainApplication{
 		appName: appName,

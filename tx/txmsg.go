@@ -1,4 +1,4 @@
-package module
+package tx
 
 import (
 	"github.com/Ankr-network/ankr-chain/common/code"
