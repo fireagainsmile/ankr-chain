@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Ankr-network/ankr-chain/module/account"
+	"github.com/Ankr-network/ankr-chain/tx/account"
 	"github.com/Ankr-network/ankr-chain/store/historystore/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"

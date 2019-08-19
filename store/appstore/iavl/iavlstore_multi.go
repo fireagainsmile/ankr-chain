@@ -50,13 +50,13 @@ func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
 	storeMap := make(map[string]*IavlStore)
 
 	dbAcc := dbm.NewPrefixDB(db, []byte("ankr:"+IavlStoreAccountKey+"/"))
-	storeMap[IavlStoreAccountKey] = NewIavlStore(dbAcc, IavlStoreAccountDefCacheSize, IAVLStoreAccountKeepVersionNum, storeLog.With("module", "accountstore"))
+	storeMap[IavlStoreAccountKey] = NewIavlStore(dbAcc, IavlStoreAccountDefCacheSize, IAVLStoreAccountKeepVersionNum, storeLog.With("tx", "accountstore"))
 
 	dbTran := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreTxKey+"/"))
-	storeMap[IAvlStoreTxKey] = NewIavlStore(dbTran, IAvlStoreTxDefCacheSize, IAVLStoreTxKeepVersionNum, storeLog.With("module", "txstore"))
+	storeMap[IAvlStoreTxKey] = NewIavlStore(dbTran, IAvlStoreTxDefCacheSize, IAVLStoreTxKeepVersionNum, storeLog.With("tx", "txstore"))
 
 	dbMt := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreContractKey+"/"))
-	storeMap[IAvlStoreContractKey] = NewIavlStore(dbMt, IAvlStoreContractDefCacheSize, IAVLStoreContractKeepVersionNum, storeLog.With("module", "contractstore"))
+	storeMap[IAvlStoreContractKey] = NewIavlStore(dbMt, IAvlStoreContractDefCacheSize, IAVLStoreContractKeepVersionNum, storeLog.With("tx", "contractstore"))
 
 	return &IavlStoreMulti{db, storeMap, storeLog}
 }

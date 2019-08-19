@@ -66,7 +66,7 @@ var RootCmd = &cobra.Command{
 		if viper.GetBool(cli.TraceFlag) {
 			logger = log.NewTracingLogger(logger)
 		}
-		logger = logger.With("module", "main")
+		logger = logger.With("tx", "main")
 		return nil
 	},
 }
