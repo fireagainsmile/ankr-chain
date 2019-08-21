@@ -2,18 +2,15 @@ package validator
 
 import (
 	"fmt"
-	"math/big"
-	"strings"
-
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/tx"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	apm "github.com/Ankr-network/ankr-chain/tx"
 	cmn "github.com/tendermint/tendermint/libs/common"
+	"math/big"
 )
 
 type StakeMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 func (s *StakeMsg) GasWanted() int64 {
@@ -24,9 +21,12 @@ func (s *StakeMsg) GasUsed() int64 {
 	return 0
 }
 
-func (s *StakeMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	tx = tx[len(ankrtypes.SetStakePrefix):]
-	trxSetStakeSlices := strings.Split(string(tx), ":")
+func (s *StakeMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	trxSetStakeSlices, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx set op msg"), nil
+	}
+
 	if len(trxSetStakeSlices) != 4 {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Expected trx set balance. Got %v", trxSetStakeSlices), nil
 	}

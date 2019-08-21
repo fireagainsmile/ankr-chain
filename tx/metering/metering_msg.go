@@ -16,7 +16,7 @@ import (
 )
 
 type MeteringMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 func (m *MeteringMsg) GasWanted() int64 {
@@ -31,9 +31,12 @@ func (m *MeteringMsg) prefixSetMeteringKey(key []byte) []byte {
 	return append([]byte(ankrtypes.MeteringPrefix), key...)
 }
 
-func (m *MeteringMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	tx = tx[len(ankrtypes.SetMeteringPrefix):]
-	trxSetMeteringSlices := strings.SplitN(string(tx), ":", 6)
+func (m *MeteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	trxSetMeteringSlices, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx set metering msg"), nil
+	}
+
 	if len(trxSetMeteringSlices) != 6 {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Expected trx set metering. Got %v", trxSetMeteringSlices), nil
 	}

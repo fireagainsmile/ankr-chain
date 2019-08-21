@@ -22,7 +22,7 @@ const (
 )
 
 type TransferMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 
@@ -36,9 +36,12 @@ func (tr *TransferMsg) GasUsed() int64 {
 	return gasUsed
 }
 
-func (tr *TransferMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
-	tx = tx[len(ankrtypes.TrxSendPrefix):]
-	trxSendSlices := strings.Split(string(tx), ":")
+func (tr *TransferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+	trxSendSlices, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx transfer msg"), nil
+	}
+
 	if len(trxSendSlices) < 6 {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Expected trx send. Got %v", trxSendSlices), nil
 	}
