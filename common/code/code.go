@@ -11,5 +11,6 @@ const (
 	CodeTypeUnauthorized       uint32 = 3
 	CodeTypeP2PFilterPathError uint32 = 4
 	CodeTypeP2PFilterNotPass   uint32 = 5
-	CodeTypeUnknownError       uint32 = 6
+	CodeQueryDataLenZero       uint32 = 6
+	CodeTypeUnknownError       uint32 = 7
 )

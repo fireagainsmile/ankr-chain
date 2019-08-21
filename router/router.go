@@ -1,12 +1,10 @@
 package router
 
 import (
-	"errors"
-	"strings"
+	"github.com/Ankr-network/ankr-chain/tx/decoder"
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -17,32 +15,8 @@ var (
 )
 
 type TxMessageHandler interface {
-	CheckTx(tx []byte, appStore appstore.AppStore) types.ResponseCheckTx
-	DeliverTx(tx []byte, appStore appstore.AppStore) types.ResponseDeliverTx
-}
-
-func ParseTxPrefix(tx []byte) (string, error) {
-	if strings.HasPrefix(string(tx), ankrtypes.ValidatorSetChangePrefix) {
-		return ankrtypes.ValidatorSetChangePrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.TrxSendPrefix) {
-		return ankrtypes.TrxSendPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetMeteringPrefix) {
-		return ankrtypes.SetMeteringPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetCertPrefix) {
-		return ankrtypes.SetCertPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.RemoveCertPrefix) {
-		return ankrtypes.RemoveCertPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetBalancePrefix) {
-		return ankrtypes.SetBalancePrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetOpPrefix) {
-		return ankrtypes.SetOpPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetStakePrefix) {
-		return ankrtypes.SetOpPrefix, nil
-	}else {
-		return "", errors.New("unknown tx")
-	}
-
-	return "", nil
+	CheckTx(txMsg interface{}, appStore appstore.AppStore) types.ResponseCheckTx
+	DeliverTx(txMsg interface{}, appStore appstore.AppStore) types.ResponseDeliverTx
 }
 
 type MsgRouter struct {
@@ -58,21 +32,21 @@ func(mr *MsgRouter) AddTxMessageHandler(txMsgName string, txMsgHandler TxMessage
 	mr.routerMap[txMsgName] = txMsgHandler
 }
 
-func(mr *MsgRouter) TxMessageHandler(tx []byte) TxMessageHandler {
-	txMsgName, err := ParseTxPrefix(tx)
+func(mr *MsgRouter) TxMessageHandler(tx []byte) (TxMessageHandler, interface{}) {
+	txType, data, err := new(decoder.TxDecoderAdapter).Decode(tx)
 	if err != nil {
 		if mr.mrLog != nil {
-			mr.mrLog.Error("unknown tx", "err", err)
+			mr.mrLog.Error("can't decode tx", "err", err)
 		}
 
-		return nil
+		return nil, nil
 	}
 
-	if txHandler, ok:= mr.routerMap[txMsgName]; ok {
-		return txHandler
+	if txHandler, ok:= mr.routerMap[txType]; ok {
+		return txHandler, data
 	}else {
-		mr.mrLog.Error("can't find the respond txmsg handler", "txmsgname", txMsgName)
-		return nil
+		mr.mrLog.Error("can't find the respond txmsg handler", "txType", txType)
+		return nil, nil
 	}
 }
 

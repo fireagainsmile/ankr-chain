@@ -15,7 +15,7 @@ import (
 )
 
 type AdminAccountMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 func (s *AdminAccountMsg) GasWanted() int64 {
@@ -26,11 +26,14 @@ func (s *AdminAccountMsg) GasUsed() int64 {
 	return 0
 }
 
-func (s *AdminAccountMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	tx = tx[len(ankrtypes.SetOpPrefix):]
-	trxSetOpSlices := strings.Split(string(tx), ":")
+func (s *AdminAccountMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	trxSetOpSlices, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx set op msg"), nil
+	}
+
 	if len(trxSetOpSlices) != 5{
-		return code.CodeTypeEncodingError, fmt.Sprintf("Set Balance incorrect format, got %d", len(tx)), nil
+		return code.CodeTypeEncodingError, fmt.Sprintf("Set Op incorrect format, got %d", len(tx)), nil
 	}
 
 	keynameS  := trxSetOpSlices[0]

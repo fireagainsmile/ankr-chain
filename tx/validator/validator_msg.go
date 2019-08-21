@@ -4,21 +4,19 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/tx"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	apm "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmCoreTypes "github.com/tendermint/tendermint/types"
+	"strconv"
 )
 
 type ValidatorMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 func (v *ValidatorMsg) GasWanted() int64 {
@@ -29,18 +27,20 @@ func (v *ValidatorMsg) GasUsed() int64 {
 	return 0
 }
 
-func (v *ValidatorMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
-	tx = tx[len(ankrtypes.ValidatorSetChangePrefix):]
+func (v *ValidatorMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
+	pubKeyAndPower, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx set op msg"), nil
+	}
 
-	//get the pubkey and power
-	pubKeyAndPower := strings.Split(string(tx), ":")
 	if len(pubKeyAndPower) != 5 {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Expected 'pubkey/power'. Got %v", pubKeyAndPower), nil
 	}
-	pubkeyS, powerS := pubKeyAndPower[0], pubKeyAndPower[1]
-	nonceS := pubKeyAndPower[2]
+	pubkeyS   := pubKeyAndPower[0]
+	powerS    :=pubKeyAndPower[1]
+	nonceS    := pubKeyAndPower[2]
 	adminPubS := pubKeyAndPower[3]
-	sigS := pubKeyAndPower[4]
+	sigS      := pubKeyAndPower[4]
 
 	var admin_pubkey_str string = ""
 	admin_pubkey := appStore.Get([]byte(ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME))

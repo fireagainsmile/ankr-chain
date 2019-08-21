@@ -2,9 +2,13 @@ package iavl
 
 import (
 	"errors"
+	"fmt"
+	"github.com/Ankr-network/ankr-chain/common/code"
 
-	"github.com/Ankr-network/ankr-chain/types"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/iavl"
+	"github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/merkle"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -56,7 +60,7 @@ func (s *IavlStore) Remove(key []byte) ([]byte, bool) {
 	return s.tree.Remove(key)
 }
 
-func (s *IavlStore) Commit() (types.CommitID, error) {
+func (s *IavlStore) Commit() (ankrtypes.CommitID, error) {
 	rHash, ver, err := s.tree.SaveVersion()
 	if err != nil {
 		panic(err)
@@ -69,14 +73,14 @@ func (s *IavlStore) Commit() (types.CommitID, error) {
 		}
 	}
 
-	return types.CommitID{ver, rHash}, nil
+	return ankrtypes.CommitID{ver, rHash}, nil
 }
 
-func (s *IavlStore) LatestVersion() types.CommitID {
+func (s *IavlStore) LatestVersion() ankrtypes.CommitID {
 	ver   :=  s.tree.Version()
 	rHash := s.tree.Hash()
 
-	return types.CommitID{ver, rHash}
+	return ankrtypes.CommitID{ver, rHash}
 }
 
 func (s *IavlStore) LoadVersion(ver int64) (int64, error) {
@@ -91,4 +95,74 @@ func (s *IavlStore) Load() (int64, error) {
 func (s *IavlStore) Rollback() {
 	s.tree.Rollback()
 	s.log.Debug("IavlStore rollback happens")
+}
+
+
+func (s *IavlStore) getHeight(reqHeight int64) int64 {
+	height := reqHeight
+	if height == 0 {
+		latest := s.tree.Version()
+		if s.tree.VersionExists(latest - 1) {
+			height = latest - 1
+		} else {
+			height = latest
+		}
+	}
+	return height
+}
+
+func (s *IavlStore) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
+	if len(reqQuery.Data) == 0 {
+		resQuery.Code = code.CodeQueryDataLenZero
+		resQuery.Log  = "Query cannot be zero length"
+		return
+	}
+
+	tree := s.tree
+
+	// store the height we chose in the response, with 0 being changed to the
+	// latest height
+	resQuery.Height = s.getHeight(reqQuery.Height)
+
+	switch reqQuery.Path {
+	case "/key":        // get by key
+		key := reqQuery.Data // data holds the key bytes
+
+		resQuery.Key = key
+		if !s.tree.VersionExists(resQuery.Height) {
+			resQuery.Log = iavl.ErrVersionDoesNotExist.Error()
+			break
+		}
+
+		if reqQuery.Prove {
+			value, proof, err := tree.GetVersionedWithProof(key, resQuery.Height)
+			if err != nil {
+				resQuery.Log = err.Error()
+				break
+			}
+			if proof == nil {
+				// Proof == nil implies that the store is empty.
+				if value != nil {
+					panic("unexpected value for an empty proof")
+				}
+			}
+			if value != nil {
+				// value was found
+				resQuery.Value = value
+				resQuery.Proof = &merkle.Proof{Ops: []merkle.ProofOp{iavl.NewIAVLValueOp(key, proof).ProofOp()}}
+			} else {
+				// value wasn't found
+				resQuery.Value = nil
+				resQuery.Proof = &merkle.Proof{Ops: []merkle.ProofOp{iavl.NewIAVLAbsenceOp(key, proof).ProofOp()}}
+			}
+		} else {
+			_, resQuery.Value = tree.GetVersioned(key, resQuery.Height)
+		}
+	default:
+		resQuery.Code = code.CodeTypeUnknownError
+		resQuery.Log  =  fmt.Sprintf("Unexpected Query path: %v", reqQuery.Path)
+		return
+	}
+
+	return
 }

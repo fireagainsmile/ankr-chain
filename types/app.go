@@ -1,7 +1,5 @@
 package types
 
-import "math/big"
-
 const (
 	APPName = "AnkrApp"
 
@@ -41,12 +39,3 @@ type CommitID struct {
 	Hash    []byte
 }
 
-type Token struct {
-	Name    string   `json:"name"`
-	Decimal int64    `json:"decimal"`
-	Amount  *big.Int `json:"amount"`
-}
-
-type Balance struct {
-	Amounts map[string]Token `json:"amounts"`
-}

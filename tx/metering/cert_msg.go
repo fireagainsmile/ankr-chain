@@ -15,7 +15,7 @@ import (
 )
 
 type SetCertMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 func (sc *SetCertMsg) GasWanted() int64 {
@@ -26,9 +26,12 @@ func (sc *SetCertMsg) GasUsed() int64 {
 	return 0
 }
 
-func (sc *SetCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	tx = tx[len(ankrtypes.SetCertPrefix):]
-	trxSetCertSlices := strings.SplitN(string(tx), ":", 4)
+func (sc *SetCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	trxSetCertSlices, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx set cert msg"), nil
+	}
+
 	if len(trxSetCertSlices) != 4 {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Expected trx set cert. Got %v", trxSetCertSlices), nil
 	}
@@ -93,7 +96,7 @@ func (sc *SetCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyChe
 }
 
 type RemoveCertMsg struct {
-	apm.BaseTxMsg
+	apm.TxMsg
 }
 
 func (rc *RemoveCertMsg) GasWanted() int64 {

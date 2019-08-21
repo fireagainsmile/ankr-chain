@@ -8,3 +8,7 @@ const (
 )
 
 var RM = RunModeTesting
+
+type ChainID string
+
+type Address []byte

@@ -9,14 +9,14 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/tx"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	ankrtx "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type BalanceMsg struct {
-	apm.BaseTxMsg
+	ankrtx.TxMsg
 }
 
 func (b *BalanceMsg) GasWanted() int64 {
@@ -27,9 +27,12 @@ func (b *BalanceMsg) GasUsed() int64 {
 	return 0
 }
 
-func (b *BalanceMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
-	tx = tx[len(ankrtypes.SetBalancePrefix):]
-	trxSetBalanceSlices := strings.Split(string(tx), ":")
+func (b *BalanceMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
+	trxSetBalanceSlices, ok := txMsg.([]string)
+	if !ok {
+		return  code.CodeTypeEncodingError, fmt.Sprintf("invalid tx balance msg"), nil
+	}
+
 	if len(trxSetBalanceSlices) != 5 {
 		return  code.CodeTypeEncodingError, fmt.Sprintf("Expected trx set balance. Got %v", trxSetBalanceSlices), nil
 	}
