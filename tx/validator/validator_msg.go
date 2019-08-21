@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	apm "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
@@ -25,6 +26,21 @@ func (v *ValidatorMsg) GasWanted() int64 {
 
 func (v *ValidatorMsg) GasUsed() int64 {
 	return 0
+}
+
+func (v *ValidatorMsg) Type() string {
+	return ankrtypes.TrxSendPrefix
+}
+
+func (v *ValidatorMsg) Bytes() []byte {
+	return nil
+}
+func (v *ValidatorMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (v *ValidatorMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (v *ValidatorMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {

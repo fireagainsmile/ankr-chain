@@ -10,9 +10,10 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	apm "github.com/Ankr-network/ankr-chain/tx"
 	"github.com/Ankr-network/ankr-chain/tx/account"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -34,6 +35,21 @@ func (tr *TransferMsg) GasUsed() int64 {
 	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
 
 	return gasUsed
+}
+
+func (tr *TransferMsg) Type() string {
+	return ankrtypes.TrxSendPrefix
+}
+
+func (tr *TransferMsg) Bytes() []byte {
+	return nil
+}
+func (tr *TransferMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (tr *TransferMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (tr *TransferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair){

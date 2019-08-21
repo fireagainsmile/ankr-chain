@@ -8,8 +8,9 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	apm "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -24,6 +25,21 @@ func (sc *SetCertMsg) GasWanted() int64 {
 
 func (sc *SetCertMsg) GasUsed() int64 {
 	return 0
+}
+
+func (sc *SetCertMsg) Type() string {
+	return ankrtypes.SetCertPrefix
+}
+
+func (sc *SetCertMsg) Bytes() []byte {
+	return nil
+}
+func (sc *SetCertMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (sc *SetCertMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (sc *SetCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
@@ -106,6 +122,22 @@ func (rc *RemoveCertMsg) GasWanted() int64 {
 func (rc *RemoveCertMsg) GasUsed() int64 {
 	return 0
 }
+
+func (rc *RemoveCertMsg) Type() string {
+	return ankrtypes.RemoveCertPrefix
+}
+
+func (rc *RemoveCertMsg) Bytes() []byte {
+	return nil
+}
+func (rc *RemoveCertMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
+}
+
 
 func (rc *RemoveCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
 	tx = tx[len(ankrtypes.RemoveCertPrefix):]

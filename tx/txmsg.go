@@ -14,7 +14,6 @@ type ImplTxMsg interface {
 	GasUsed() int64
 	Type() string
 	Bytes() []byte
-	Signers() []common.Address
 	SetSecretKey(sk ankrcrypto.SecretKey)
 	SecretKey() ankrcrypto.SecretKey
 	ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair)

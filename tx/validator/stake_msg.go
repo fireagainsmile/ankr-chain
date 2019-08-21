@@ -2,9 +2,12 @@ package validator
 
 import (
 	"fmt"
+
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	apm "github.com/Ankr-network/ankr-chain/tx"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"math/big"
 )
@@ -19,6 +22,21 @@ func (s *StakeMsg) GasWanted() int64 {
 
 func (s *StakeMsg) GasUsed() int64 {
 	return 0
+}
+
+func (s *StakeMsg) Type() string {
+	return ankrtypes.TrxSendPrefix
+}
+
+func (s *StakeMsg) Bytes() []byte {
+	return nil
+}
+func (s *StakeMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (s *StakeMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (s *StakeMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {

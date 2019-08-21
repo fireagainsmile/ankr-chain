@@ -9,6 +9,7 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtx "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
@@ -25,6 +26,21 @@ func (b *BalanceMsg) GasWanted() int64 {
 
 func (b *BalanceMsg) GasUsed() int64 {
 	return 0
+}
+
+func (b *BalanceMsg) Type() string {
+	return ankrtypes.SetBalancePrefix
+}
+
+func (b *BalanceMsg) Bytes() []byte {
+	return nil
+}
+func (b *BalanceMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (b *BalanceMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (b *BalanceMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {

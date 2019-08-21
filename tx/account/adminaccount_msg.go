@@ -4,18 +4,19 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
-	"strings"
+
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	ankrtx "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type AdminAccountMsg struct {
-	apm.TxMsg
+	ankrtx.TxMsg
 }
 
 func (s *AdminAccountMsg) GasWanted() int64 {
@@ -24,6 +25,21 @@ func (s *AdminAccountMsg) GasWanted() int64 {
 
 func (s *AdminAccountMsg) GasUsed() int64 {
 	return 0
+}
+
+func (s *AdminAccountMsg) Type() string {
+	return ankrtypes.SetOpPrefix
+}
+
+func (s *AdminAccountMsg) Bytes() []byte {
+	return nil
+}
+func (s *AdminAccountMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (s *AdminAccountMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (s *AdminAccountMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {

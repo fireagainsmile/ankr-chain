@@ -20,7 +20,7 @@ func (txdv1 *TxDecoderV1) Decode(txBytes []byte) (txType string, data interface{
 
 	err = tx.TxCdc.UnmarshalBinaryLengthPrefixed(txBytes, &txMsg)
 	if err == nil {
-		txType = txMsg.Data.Type()
+		txType = txMsg.Type()
 	} else {
 		txType = ""
 	}

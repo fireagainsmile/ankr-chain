@@ -9,8 +9,9 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	ankrcrypto"github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	apm "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -25,6 +26,21 @@ func (m *MeteringMsg) GasWanted() int64 {
 
 func (m *MeteringMsg) GasUsed() int64 {
 	return 0
+}
+
+func (m *MeteringMsg) Type() string {
+	return ankrtypes.MeteringPrefix
+}
+
+func (m *MeteringMsg) Bytes() []byte {
+	return nil
+}
+func (m *MeteringMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+
+}
+
+func (m *MeteringMsg) SecretKey() ankrcrypto.SecretKey {
+	return nil
 }
 
 func (m *MeteringMsg) prefixSetMeteringKey(key []byte) []byte {
