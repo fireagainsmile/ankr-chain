@@ -65,7 +65,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog}
 
 	iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(AccountKey), []byte(""))
-	iavlSM.storeMap[IAvlStoreTxKey].Set([]byte(CertKey), []byte(""))
+	iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
 
 	if isKVPathExist {
 		iavlSApp.Prefixed(kvDB, kvPath)
@@ -85,7 +85,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 				iavlStore = sp.iavlSM.IavlStore(IavlStoreAccountKey)
 				sp.SetBalance(it.Key(), it.Value())
 			}else {
-				iavlStore = sp.iavlSM.IavlStore(IAvlStoreTxKey)
+				iavlStore = sp.iavlSM.IavlStore(IAvlStoreMainKey)
 				if len(it.Key()) >= len(ankrtypes.CertPrefix) && string(it.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
 					sp.SetCertKey(it.Key(), it.Value())
 				} else {
@@ -179,7 +179,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 
 	storeName, _ := sp.parsePath(reqQuery.Path)
 	if reqQuery.Path != "" {
-		storeName = IAvlStoreTxKey
+		storeName = IAvlStoreMainKey
 	}
 
 	if reqQuery.Prove {
@@ -228,7 +228,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
 		value = sp.CertKeyList()
 	} else {
-		value, _ = sp.iavlSM.IavlStore(IAvlStoreTxKey).Get(reqQuery.Data)
+		value, _ = sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(reqQuery.Data)
 	}
 
 	resQuery.Value = value
@@ -244,26 +244,26 @@ func (sp *IavlStoreApp) updateCertKey(dcS string){
 	sp.certStoreLocker.Lock()
 	defer sp.certStoreLocker.Unlock()
 
-	certs, err := sp.iavlSM.IavlStore(IAvlStoreTxKey).Get([]byte(CertKey))
+	certs, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get([]byte(CertKey))
 	if err == nil {
 		certs = append(certs, []byte(";" + dcS)...)
-		sp.iavlSM.IavlStore(IAvlStoreTxKey).Set([]byte(CertKey), certs)
+		sp.iavlSM.IavlStore(IAvlStoreMainKey).Set([]byte(CertKey), certs)
 	}else {
 		sp.storeLog.Error("can't get the CertKey value", "err",  err)
 	}
 }
 
 func (sp *IavlStoreApp) SetCertKey(key []byte, val []byte) {
-	if !sp.iavlSM.IavlStore(IAvlStoreTxKey).Has(key) {
+	if !sp.iavlSM.IavlStore(IAvlStoreMainKey).Has(key) {
 		dcS := strings.Split(string(key), ":")[1]
 		sp.updateCertKey(dcS)
 	}
 
-	sp.iavlSM.IavlStore(IAvlStoreTxKey).Set(key, val)
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, val)
 }
 
 func (sp *IavlStoreApp) CertKey(key []byte) []byte {
-	valBytes, err :=  sp.iavlSM.IavlStore(IAvlStoreTxKey).Get(key)
+	valBytes, err :=  sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(key)
 	if err != nil {
 		sp.storeLog.Error("can't get the key's value", "key", key)
 		valBytes = nil
@@ -273,11 +273,11 @@ func (sp *IavlStoreApp) CertKey(key []byte) []byte {
 }
 
 func (sp *IavlStoreApp) DeleteCertKey(key []byte) {
-	sp.iavlSM.IavlStore(IAvlStoreTxKey).Remove(key)
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove(key)
 }
 
 func (sp *IavlStoreApp) CertKeyList() []byte {
-	certs, err := sp.iavlSM.IavlStore(IAvlStoreTxKey).Get([]byte(CertKey))
+	certs, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get([]byte(CertKey))
 	if err == nil {
 		return certs
 	}
@@ -286,7 +286,7 @@ func (sp *IavlStoreApp) CertKeyList() []byte {
 }
 
 func (sp *IavlStoreApp) Get(key []byte) []byte {
-	val, err := sp.iavlSM.IavlStore(IAvlStoreTxKey).Get(key)
+	val, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(key)
 	if err != nil {
 		sp.storeLog.Error("can't get the key value", "key", string(key))
 		val = nil
@@ -296,15 +296,15 @@ func (sp *IavlStoreApp) Get(key []byte) []byte {
 }
 
 func (sp *IavlStoreApp) Set(key []byte, val []byte) {
-	sp.iavlSM.IavlStore(IAvlStoreTxKey).Set(key, val)
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, val)
 }
 
 func (sp *IavlStoreApp) Delete(key []byte) {
-	sp.iavlSM.IavlStore(IAvlStoreTxKey).Remove(key)
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove(key)
 }
 
 func (sp *IavlStoreApp) Has(key []byte) bool {
-	return sp.iavlSM.IavlStore(IAvlStoreTxKey).Has(key)
+	return sp.iavlSM.IavlStore(IAvlStoreMainKey).Has(key)
 }
 
 func (sp *IavlStoreApp) Height() int64 {

@@ -11,7 +11,7 @@ import (
 
 const (
 	IavlStoreAccountKey  = "ANKRCHAINACCOUNT"
-	IAvlStoreTxKey       = "ANKRCHAINTX"
+	IAvlStoreMainKey     = "ANKRCHAINMAIN"
 	IAvlStoreContractKey = "ANKRCHAINCONTRACT"
 
 	IavlStoreAccountDefCacheSize  = 10000
@@ -19,7 +19,7 @@ const (
 	IAvlStoreContractDefCacheSize = 10000
 
 	IAVLStoreAccountKeepVersionNum  = 100
-	IAVLStoreTxKeepVersionNum       = 100
+	IAVLStoreMainKeepVersionNum     = 100
 	IAVLStoreContractKeepVersionNum = 100
 
     ProofOpMultiStore = "multistore"
@@ -52,8 +52,8 @@ func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
 	dbAcc := dbm.NewPrefixDB(db, []byte("ankr:"+IavlStoreAccountKey+"/"))
 	storeMap[IavlStoreAccountKey] = NewIavlStore(dbAcc, IavlStoreAccountDefCacheSize, IAVLStoreAccountKeepVersionNum, storeLog.With("tx", "accountstore"))
 
-	dbTran := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreTxKey+"/"))
-	storeMap[IAvlStoreTxKey] = NewIavlStore(dbTran, IAvlStoreTxDefCacheSize, IAVLStoreTxKeepVersionNum, storeLog.With("tx", "txstore"))
+	dbTran := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreMainKey+"/"))
+	storeMap[IAvlStoreMainKey] = NewIavlStore(dbTran, IAvlStoreTxDefCacheSize, IAVLStoreMainKeepVersionNum, storeLog.With("tx", "txstore"))
 
 	dbMt := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreContractKey+"/"))
 	storeMap[IAvlStoreContractKey] = NewIavlStore(dbMt, IAvlStoreContractDefCacheSize, IAVLStoreContractKeepVersionNum, storeLog.With("tx", "contractstore"))
