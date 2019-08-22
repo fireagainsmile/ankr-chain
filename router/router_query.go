@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/tendermint/tendermint/abci/types"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -14,12 +14,8 @@ var (
 	instanceQR *QueryRouter
 )
 
-type QueryHandler interface {
-	Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery)
-}
-
 type QueryRouter struct {
-	qrMap map[string]QueryHandler
+	qrMap map[string]appstore.QueryHandler
 	qrLog log.Logger
 }
 
@@ -27,7 +23,7 @@ func(qr *QueryRouter) SetLogger(qrLog log.Logger) {
 	qr.qrLog = qrLog
 }
 
-func (qr *QueryRouter) AddQueryHandler(path string, qHandler QueryHandler) {
+func (qr *QueryRouter) AddQueryHandler(path string, qHandler appstore.QueryHandler) {
 	qr.qrMap[path] = qHandler
 }
 
@@ -56,7 +52,7 @@ func (qr *QueryRouter) parseRouterPath(path string) (routerPath string, subPath 
 	}
 }
 
-func (qr* QueryRouter) QueryHandler(path string) (QueryHandler, string) {
+func (qr* QueryRouter) QueryHandler(path string) (appstore.QueryHandler, string) {
 	rPath, subPath, err := qr.parseRouterPath(path)
 	if err != nil {
 		return nil, ""
@@ -73,7 +69,7 @@ func (qr* QueryRouter) QueryHandler(path string) (QueryHandler, string) {
 
 func QueryRouterInstance() *QueryRouter {
 	onceMR.Do(func(){
-		qrMap := make(map[string]QueryHandler)
+		qrMap := make(map[string]appstore.QueryHandler)
 		instanceQR = &QueryRouter{qrMap: qrMap}
 	})
 

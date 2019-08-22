@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Ankr-network/ankr-chain/store/appstore"
+	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -20,6 +20,7 @@ var (
 	ProtocolVersion version.Protocol = 0x1
 )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 type State struct {
 	db      dbm.DB
@@ -49,11 +50,14 @@ func saveState(state State) {
 =======
 func saveState(state appstore.State) {
 >>>>>>> perfect the function of the iavl multi store
+=======
+func saveState(state apscomm.State) {
+>>>>>>> Modift cycle importing
 	stateBytes, err := json.Marshal(state)
 	if err != nil {
 		panic(err)
 	}
-	state.DB.Set(appstore.StateKey, stateBytes)
+	state.DB.Set(apscomm.StateKey, stateBytes)
 }
 
 func prefixKey(key []byte) []byte {
@@ -65,7 +69,7 @@ var _ types.Application = (*KVStoreApplication)(nil)
 type KVStoreApplication struct {
 	types.BaseApplication
 
-	state appstore.State
+	state apscomm.State
 }
 
 func NewKVStoreApplication(dbDir string) *KVStoreApplication {
@@ -82,7 +86,7 @@ func (app *KVStoreApplication) init(dbDir string) {
 		panic(err)
 	}
 
-	app.state= appstore.LoadState(db)
+	app.state= apscomm.LoadState(db)
 }
 
 func (app *KVStoreApplication) Commit() types.ResponseCommit {

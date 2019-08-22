@@ -1,10 +1,10 @@
 package router
 
 import (
-	"github.com/Ankr-network/ankr-chain/tx/decoder"
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	"github.com/Ankr-network/ankr-chain/tx/decoder"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )

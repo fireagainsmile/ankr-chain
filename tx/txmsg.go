@@ -73,7 +73,7 @@ func (tx *TxMsg) SignAndMarshal() ([]byte, error) {
 }
 
 func (tx *TxMsg) BasicVerify() types.ResponseCheckTx {
-
+	return types.ResponseCheckTx{}
 }
 
 func (b *TxMsg) CheckTx(txMsg interface{}, appStore appstore.AppStore) types.ResponseCheckTx {

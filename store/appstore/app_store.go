@@ -1,25 +1,9 @@
 package appstore
 
 import (
-	"encoding/json"
-
-	"github.com/Ankr-network/ankr-chain/router"
-	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
-	"github.com/tendermint/tendermint/libs/log"
 )
-
-var (
-	StateKey = []byte("stateKey")
-)
-
-type State struct {
-	DB      dbm.DB
-	Size    int64  `json:"size"`
-	Height  int64  `json:"height"`
-	AppHash []byte `json:"app_hash"`
-}
 
 type AccountStore interface {
 	SetBalance(key []byte, val []byte)
@@ -37,33 +21,15 @@ type TxStore interface {
 	Has(key []byte) bool
 }
 
+type QueryHandler interface {
+	Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery)
+}
+
 type AppStore interface {
 	AccountStore
 	TxStore
-	router.QueryHandler
+	QueryHandler
 	Height() int64
 	APPHash() []byte
     DB() dbm.DB
-}
-
-func LoadState(db dbm.DB) State {
-	stateBytes := db.Get(StateKey)
-	var state State
-	if len(stateBytes) != 0 {
-		err := json.Unmarshal(stateBytes, &state)
-		if err != nil {
-			panic(err)
-		}
-	}
-	state.DB = db
-
-	return state
-}
-
-func NewAppStore(dbDir string, l log.Logger) AppStore {
-	appStore := iavl.NewIavlStoreApp(dbDir, l)
-
-	router.QueryRouterInstance().AddQueryHandler("store", appStore)
-
-	return  appStore
 }

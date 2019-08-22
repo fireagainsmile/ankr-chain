@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/router"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
+	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
 	act "github.com/Ankr-network/ankr-chain/tx/account"
 	_ "github.com/Ankr-network/ankr-chain/tx/metering"
 	_ "github.com/Ankr-network/ankr-chain/tx/token"
 	val "github.com/Ankr-network/ankr-chain/tx/validator"
-	"github.com/Ankr-network/ankr-chain/router"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
     akver "github.com/Ankr-network/ankr-chain/version"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -26,8 +27,15 @@ type AnkrChainApplication struct {
 	logger  log.Logger
 }
 
+func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
+	appStore := iavl.NewIavlStoreApp(dbDir, l)
+	router.QueryRouterInstance().AddQueryHandler("store", appStore)
+
+	return  appStore
+}
+
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
-	appStore := appstore.NewAppStore(dbDir, l.With("tx", "AppStore"))
+	appStore := NewAppStore(dbDir, l.With("tx", "AppStore"))
 
 	router.MsgRouterInstance().SetLogger(l.With("tx", "AnkrChainRouter"))
 
@@ -58,9 +66,9 @@ func (app *AnkrChainApplication) SetOption(req types.RequestSetOption) types.Res
 
 // tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
-	txMsgHandler := router.MsgRouterInstance().TxMessageHandler(tx)
+	txMsgHandler, txData := router.MsgRouterInstance().TxMessageHandler(tx)
 	if txMsgHandler != nil {
-		return txMsgHandler.DeliverTx(tx, app.app)
+		return txMsgHandler.DeliverTx(txData, app.app)
 	}
 
 	return types.ResponseDeliverTx{
@@ -69,9 +77,9 @@ func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 }
 
 func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
-	txMsgHandler := router.MsgRouterInstance().TxMessageHandler(tx)
+	txMsgHandler, txData := router.MsgRouterInstance().TxMessageHandler(tx)
 	if txMsgHandler != nil {
-		return txMsgHandler.CheckTx(tx, app.app)
+		return txMsgHandler.CheckTx(txData, app.app)
 	}
 
 	return types.ResponseCheckTx{
