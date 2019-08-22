@@ -49,7 +49,7 @@ func (s *AdminAccountMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStor
 	}
 
 	if len(trxSetOpSlices) != 5{
-		return code.CodeTypeEncodingError, fmt.Sprintf("Set Op incorrect format, got %d", len(tx)), nil
+		return code.CodeTypeEncodingError, fmt.Sprintf("Set Op incorrect format, got %d", len(trxSetOpSlices)), nil
 	}
 
 	keynameS  := trxSetOpSlices[0]
