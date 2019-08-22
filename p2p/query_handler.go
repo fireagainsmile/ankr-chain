@@ -42,6 +42,8 @@ func (pqh *P2PQueryHandler) Query(reqQuery types.RequestQuery) (resQuery types.R
 	   }
 
 	}
+
+	return types.ResponseQuery{Code: code.CodeTypeUnknownError, Log: "Unknown query error"}
 }
 
 

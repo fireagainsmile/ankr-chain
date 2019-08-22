@@ -75,6 +75,7 @@ func DefaultAnkrConfig() *AnkrConfig {
 		tmcoreconfig.DefaultTxIndexConfig(),
 		tmcoreconfig.DefaultInstrumentationConfig(),
 		DefaultHistoryDBConfig(),
+		  "",
 	}
 }
 
