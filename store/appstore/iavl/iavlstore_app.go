@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/common"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
+	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
@@ -46,7 +46,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 			panic(err)
 		}
 
-		oldState := appstore.LoadState(kvDB)
+		oldState := apscomm.LoadState(kvDB)
 		lcmmID.Version = oldState.Height
 		lcmmID.Hash    = oldState.AppHash
 	}
