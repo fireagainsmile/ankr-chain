@@ -68,6 +68,15 @@ func (wvm *WASMVirtualMachine) ExportFnIndex(fnName string) int64 {
 	return -1
 }
 
+func (wvm *WASMVirtualMachine) FuncSig(fnIndex int64) wasm.Function {
+	return wvm.wasmModule.FunctionIndexSpace[fnIndex]
+}
+
+func (wvm *WASMVirtualMachine) SetBytes(bytes []byte) (uint64, error) {
+	return wvm.SetBytes(bytes)
+}
+
+
 func (wvm *WASMVirtualMachine) Execute(fnIndex int64, args ...uint64)(interface{}, error) {
 	return wvm.wasmVM.ExecCode(fnIndex, args...)
 }

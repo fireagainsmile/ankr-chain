@@ -21,6 +21,11 @@ type TxStore interface {
 	Has(key []byte) bool
 }
 
+type ContractStore interface {
+	SaveContract(key []byte, val []byte) error
+	LoadContract(key []byte) ([]byte, error)
+}
+
 type QueryHandler interface {
 	Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery)
 }
@@ -29,6 +34,7 @@ type AppStore interface {
 	AccountStore
 	TxStore
 	QueryHandler
+	ContractStore
 	Height() int64
 	APPHash() []byte
     DB() dbm.DB

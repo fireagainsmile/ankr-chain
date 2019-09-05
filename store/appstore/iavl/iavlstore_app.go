@@ -1,6 +1,7 @@
 package iavl
 
 import (
+	"errors"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -317,6 +318,26 @@ func (sp *IavlStoreApp) APPHash() []byte {
 
 func (sp *IavlStoreApp) DB() dbm.DB {
 	return sp.iavlSM.db
+}
+
+func (sp *IavlStoreApp) SaveContract(key []byte, val []byte) error {
+	if sp.iavlSM.IavlStore(IAvlStoreMainKey).Has(key) {
+		return errors.New("the contract name has existed")
+	}
+
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, val)
+
+	return nil
+}
+
+func (sp *IavlStoreApp) LoadContract(key []byte) ([]byte, error) {
+	val, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get(key)
+	if err != nil {
+		sp.storeLog.Error("can't get the contract", "key", string(key))
+		val = nil
+	}
+
+	return val, err
 }
 
 
