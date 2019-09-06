@@ -2,9 +2,9 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
-    service.beta.kubernetes.io/do-loadbalancer-tls-ports: "443"
-    service.beta.kubernetes.io/do-loadbalancer-certificate-id: "b210c2eb-31b0-49df-bef0-a7601e304392"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
   name: ankr-chain
   labels:
     app: ankr-chain
@@ -14,6 +14,37 @@ spec:
     app: ankr-chain
   type: LoadBalancer
   ports:
-    - name: https
-      port: 443
-      targetPort: 26657
+  - name: rpc-1
+    port: 20051
+    targetPort: 26657
+  - name: rpc-2
+    port: 20052
+    targetPort: 26657
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  ankrchain-1
+  labels:
+    app:  ankrchain-1
+spec:
+  selector:
+    app: ankrchain-1
+  ports:
+  - name: rpc-1
+    port: 26657
+    targetPort: 26657
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name:  ankrchain-2
+  labels:
+    app:  ankrchain-2
+spec:
+  selector:
+    app: ankrchain-2
+  ports:
+  - name: rpc-2
+    port: 26657
+    targetPort: 26657
