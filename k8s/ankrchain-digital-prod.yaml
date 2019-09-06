@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ankrchain-1
+spec:
+  selector:
+    matchLabels:
+      app: ankr-chain
+      id: ankrchain-1
+  replicas: 1
+  serviceName: ankrchain-1
+  template:
+    metadata:
+      labels:
+        app: ankr-chain
+        id: ankrchain-1
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      containers:
+        - name: ankrchain
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:feat
+          command: ["sh", "-c", "ankrchain init && ankrchain node --moniker=`hostname`"]
+          imagePullPolicy: Always
+          ports:
+            - name: rpc
+              containerPort: 26657
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ankrchain-2
+spec:
+  selector:
+    matchLabels:
+      app: ankr-chain
+      id: ankrchain-2
+  replicas: 1
+  serviceName: ankrchain-2
+  template:
+    metadata:
+      labels:
+        app: ankr-chain
+        id: ankrchain-2
+    spec:
+      imagePullSecrets:
+        - name: aws-ecr
+      containers:
+        - name: ankrchain
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:feat
+          imagePullPolicy: Always
+          command: ["sh", "-c", "ankrchain init && ankrchain node --moniker=`hostname`"]
+          ports:
+            - name: rpc
+              containerPort: 26657

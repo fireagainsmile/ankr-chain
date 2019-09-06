@@ -34,7 +34,6 @@ jobs:
           name: "Build & Push Docker Image, rollout on K8s and test"
           command: |
             set -x
-
             BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
             SHA1_SHORT=$(git rev-parse --short HEAD)
             DATE=`date +%Y%m%d%H%M%S`
@@ -187,13 +186,21 @@ jobs:
                clusters="do-nyc1-ankr-chain-prod-1 do-sfo2-ankr-chain-prod-2 do-sgp1-ankr-chain-prod-3"
                for clu in $clusters; do
                   kubectl config use-context $clu
+                  if kubectl get job init-ecr; then
+                      kubectl delete  job init-ecr
+                  fi
+                  kubectl create job --from=cronjob/ecr-secret init-ecr
                   kubectl apply -f k8s/ankrchain-digital-prod.yaml
                   kubectl apply -f k8s/ankrchain-digital-svc.yaml
                done
-            elif [[ ($BRANCH_NAME == "dev") ]]; then
-               clusters="do-sfo2-ankr-chain-stage-1 do-nyc1-ankr-chain-stage-2"
+            elif [[ ($BRANCH_NAME == "feat") ]]; then
+               clusters="do-sfo2-ankr-chain-stage-1 do-nyc3-ankr-chain-stage-2"
                for clu in $clusters; do
                   kubectl config use-context $clu
+                  if kubectl get job init-ecr; then
+                     kubectl delete  job init-ecr
+                  fi
+                  kubectl create job --from=cronjob/ecr-secret init-ecr
                   kubectl apply -f k8s/ankrchain-digital-stage.yaml
                   kubectl apply -f k8s/ankrchain-digital-svc.yaml
                done
