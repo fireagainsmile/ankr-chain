@@ -1,9 +1,9 @@
-package contract
+package types
 
 type Param struct {
-	Index     uint8
-	ParamType string
-	Value     interface{}
+	Index     uint8        `json:"index"`
+	ParamType string       `json:"paramType"`
+	Value     interface{} `json:"value"`
 }
 
 type ParamSort []*Param

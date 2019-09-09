@@ -42,7 +42,6 @@ func (r *ImplImportResolver) resolverEnvModule() (*wasm.Module, error) {
 	}
 
 	return r.envModle.wasmModule, nil
-
 }
 
 func (r *ImplImportResolver) Resolve(name string) (*wasm.Module, error) {

@@ -97,7 +97,6 @@ func (s *IavlStore) Rollback() {
 	s.log.Debug("IavlStore rollback happens")
 }
 
-
 func (s *IavlStore) getHeight(reqHeight int64) int64 {
 	height := reqHeight
 	if height == 0 {
