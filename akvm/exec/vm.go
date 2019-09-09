@@ -3,7 +3,6 @@ package exec
 import (
 	"bytes"
 	"github.com/Ankr-network/ankr-chain/akvm/memory"
-
 	"github.com/Ankr-network/ankr-chain/akvm/module"
 	"github.com/go-interpreter/wagon/exec"
 	"github.com/go-interpreter/wagon/log"
@@ -11,10 +10,9 @@ import (
 )
 
 type WASMVirtualMachine struct {
-	wasmVM     *exec.VM
-	wasmModule *wasm.Module
-	envModule  *module.ModuleEnv
-	log        log.Logger
+	wasmVM       *exec.VM
+	envModule    *module.ModuleEnv
+	log          log.Logger
 }
 
 func NewWASMVirtualMachine(code []byte, log log.Logger) *WASMVirtualMachine {
@@ -38,8 +36,6 @@ func (wvm *WASMVirtualMachine) loadAndInstantiateModule(code []byte) {
 
 	m.HeapMem = memory.NewHeapMemory()
 
-	wvm.wasmModule = m
-
 	/*err = validate.VerifyModule(m)
 	if err != nil {
 		panic(err)
@@ -56,11 +52,11 @@ func (wvm *WASMVirtualMachine) loadAndInstantiateModule(code []byte) {
 }
 
 func (wvm *WASMVirtualMachine) ExportFnIndex(fnName string) int64 {
-	if wvm.wasmModule == nil || wvm.wasmModule.Export == nil {
+	if wvm.wasmVM.Module() == nil || wvm.wasmVM.Module().Export == nil {
 		return -1
 	}
 
-	exportEntry, ok := wvm.wasmModule.Export.Entries[fnName]
+	exportEntry, ok := wvm.wasmVM.Module().Export.Entries[fnName]
 	if ok && exportEntry.Kind == wasm.ExternalFunction{
 		return int64(exportEntry.Index)
 	}
@@ -69,14 +65,27 @@ func (wvm *WASMVirtualMachine) ExportFnIndex(fnName string) int64 {
 }
 
 func (wvm *WASMVirtualMachine) FuncSig(fnIndex int64) wasm.Function {
-	return wvm.wasmModule.FunctionIndexSpace[fnIndex]
+	return wvm.wasmVM.Module().FunctionIndexSpace[fnIndex]
 }
 
 func (wvm *WASMVirtualMachine) SetBytes(bytes []byte) (uint64, error) {
 	return wvm.SetBytes(bytes)
 }
 
-
-func (wvm *WASMVirtualMachine) Execute(fnIndex int64, args ...uint64)(interface{}, error) {
-	return wvm.wasmVM.ExecCode(fnIndex, args...)
+func (wvm *WASMVirtualMachine) ReadString(off int64) (string, error) {
+	return wvm.wasmVM.ReadString(off)
 }
+
+func (wvm *WASMVirtualMachine) SetContrInvoker(contrInvoker exec.ContractInvoker){
+	wvm.wasmVM.SetContrInvoker(contrInvoker)
+}
+
+func (wvm *WASMVirtualMachine) ContrInvoker() exec.ContractInvoker{
+	return wvm.wasmVM.ContrInvoker()
+}
+
+func (wvm *WASMVirtualMachine) Execute(fnIndex int64, rtnType string, args ...uint64)(interface{}, error) {
+	return wvm.wasmVM.ExecCode(fnIndex, rtnType, args...)
+}
+
+
