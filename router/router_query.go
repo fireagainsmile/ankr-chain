@@ -68,7 +68,7 @@ func (qr* QueryRouter) QueryHandler(path string) (appstore.QueryHandler, string)
 }
 
 func QueryRouterInstance() *QueryRouter {
-	onceMR.Do(func(){
+	onceQR.Do(func(){
 		qrMap := make(map[string]appstore.QueryHandler)
 		instanceQR = &QueryRouter{qrMap: qrMap}
 	})

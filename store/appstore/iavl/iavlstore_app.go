@@ -179,7 +179,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	resQuery.Log = "exists"
 
 	storeName, _ := sp.parsePath(reqQuery.Path)
-	if reqQuery.Path != "" {
+	if reqQuery.Path == "" {
 		storeName = IAvlStoreMainKey
 	}
 
@@ -229,7 +229,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
 		value = sp.CertKeyList()
 	} else {
-		value, _ = sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(reqQuery.Data)
+		value, _ = sp.iavlSM.IavlStore(storeName).Get(reqQuery.Data)
 	}
 
 	resQuery.Value = value

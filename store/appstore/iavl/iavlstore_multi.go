@@ -154,6 +154,7 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 	version += 1
 
 	cmmInfo.version = version
+	cmmInfo.commit = make(map[string]ankrtypes.CommitID)
 	hashM := make(map[string][]byte)
 	for k, s := range ms.storeMap {
 		commitID, err := s.Commit()
