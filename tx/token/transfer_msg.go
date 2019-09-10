@@ -22,8 +22,11 @@ const (
 	MIN_TOKEN_SEND = "5000000000000000000" // 5 tokens
 )
 
+func NewTransferTxM() *apm.TxMsg {
+	return &apm.TxMsg{ImplTxMsg: new(TransferMsg)}
+}
+
 type TransferMsg struct {
-	apm.TxMsg
 }
 
 
