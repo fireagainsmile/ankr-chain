@@ -31,11 +31,17 @@ type IavlStoreMulti struct {
 	db           dbm.DB
 	storeMap     map[string]*IavlStore
 	log          log.Logger
+	cdc          *amino.Codec
+}
+
+type storeCommitID struct {
+	Name string
+	CID  ankrtypes.CommitID
 }
 
 type commitInfo struct {
-	version int64
-	commit  map[string]ankrtypes.CommitID //storeName->CommID
+	Version int64
+	Commits  []storeCommitID
 }
 
 func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
@@ -58,7 +64,7 @@ func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
 	dbMt := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreContractKey+"/"))
 	storeMap[IAvlStoreContractKey] = NewIavlStore(dbMt, IAvlStoreContractDefCacheSize, IAVLStoreContractKeepVersionNum, storeLog.With("tx", "contractstore"))
 
-	return &IavlStoreMulti{db, storeMap, storeLog}
+	return &IavlStoreMulti{db, storeMap, storeLog, amino.NewCodec()}
 }
 
 func (ms *IavlStoreMulti) IavlStore(storeKey string) *IavlStore {
@@ -87,9 +93,8 @@ func (ms *IavlStoreMulti) commitInfo(version int64) *commitInfo {
 	infoKey := fmt.Sprintf(CommitInfoKey, version)
 	infoV := ms.db.Get([]byte(infoKey))
 	if infoV != nil {
-		cdc := amino.NewCodec()
 		var cmmInfo commitInfo
-		cdc.MustUnmarshalBinaryLengthPrefixed(infoV, &cmmInfo)
+		ms.cdc.MustUnmarshalBinaryLengthPrefixed(infoV, &cmmInfo)
 		return &cmmInfo
 	}else {
 		ms.log.Error("can't get commit info", "infokey", infoKey)
@@ -98,8 +103,7 @@ func (ms *IavlStoreMulti) commitInfo(version int64) *commitInfo {
 }
 
 func (ms *IavlStoreMulti) setCommitInfo(batch dbm.Batch, version int64, info commitInfo) {
-	cdc := amino.NewCodec()
-	infoBytes := cdc.MustMarshalBinaryLengthPrefixed(info)
+	infoBytes := ms.cdc.MustMarshalBinaryLengthPrefixed(info)
 	infoKey := fmt.Sprintf(CommitInfoKey, version)
 	batch.Set([]byte(infoKey), infoBytes)
 }
@@ -111,8 +115,7 @@ func (ms *IavlStoreMulti) latestVersion() int64 {
 	}
 
 	var latestVer int64
-	cdc := amino.NewCodec()
-	err := cdc.UnmarshalBinaryLengthPrefixed(verBytes, &latestVer)
+	err := ms.cdc.UnmarshalBinaryLengthPrefixed(verBytes, &latestVer)
 	if err != nil {
 		panic(err)
 	}
@@ -121,22 +124,25 @@ func (ms *IavlStoreMulti) latestVersion() int64 {
 }
 
 func (ms *IavlStoreMulti) setLatestVersion(batch dbm.Batch, version int64) {
-	cdc := amino.NewCodec()
-	latestVerBtest := cdc.MustMarshalBinaryBare(version)
+	latestVerBtest, _ := ms.cdc.MarshalBinaryLengthPrefixed(version)
 	batch.Set([]byte(LatestVerKey), latestVerBtest)
 }
 
 func (ms *IavlStoreMulti) lastCommit() ankrtypes.CommitID {
 	latestVer := ms.latestVersion()
+	if latestVer == 0 {
+		return ankrtypes.CommitID{}
+	}
+
     cmmInfos :=  ms.commitInfo(latestVer)
     if cmmInfos != nil {
-    	if cmmInfos.version != latestVer {
-    		ms.log.Error("error commitinfo, mmInfos.version != latestVer", "latestVer", latestVer, "commitInfoVer", cmmInfos.version)
+    	if cmmInfos.Version != latestVer {
+    		ms.log.Error("error commitinfo, mmInfos.version != latestVer", "latestVer", latestVer, "commitInfoVer", cmmInfos.Version)
 		}
 
 		hashM := make(map[string][]byte)
-		for k, s := range cmmInfos.commit {
-			hashM[k] = s.Hash
+		for _, s := range cmmInfos.Commits {
+			hashM[s.Name] = s.CID.Hash
 		}
 		reHash := merkle.SimpleHashFromMap(hashM)
 
@@ -153,8 +159,8 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 
 	version += 1
 
-	cmmInfo.version = version
-	cmmInfo.commit = make(map[string]ankrtypes.CommitID)
+	cmmInfo.Version = version
+
 	hashM := make(map[string][]byte)
 	for k, s := range ms.storeMap {
 		commitID, err := s.Commit()
@@ -164,7 +170,7 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 
 		hashM[k] = commitID.Hash
 
-		cmmInfo.commit[k] = commitID
+		cmmInfo.Commits = append(cmmInfo.Commits, storeCommitID{k,commitID})
 	}
 
 	reHash := merkle.SimpleHashFromMap(hashM)
@@ -172,6 +178,8 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 	batch := ms.db.NewBatch()
 	ms.setCommitInfo(batch, version, cmmInfo)
 	ms.setLatestVersion(batch, version)
+
+	batch.Write()
 
 	return ankrtypes.CommitID{version, reHash}
 }

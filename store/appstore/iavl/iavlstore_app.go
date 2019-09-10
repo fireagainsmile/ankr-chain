@@ -321,11 +321,11 @@ func (sp *IavlStoreApp) DB() dbm.DB {
 }
 
 func (sp *IavlStoreApp) SaveContract(key []byte, val []byte) error {
-	if sp.iavlSM.IavlStore(IAvlStoreMainKey).Has(key) {
+	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has(key) {
 		return errors.New("the contract name has existed")
 	}
 
-	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, val)
+	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set(key, val)
 
 	return nil
 }
