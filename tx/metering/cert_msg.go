@@ -145,7 +145,8 @@ func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 
-func (rc *RemoveCertMsg) ProcessTx(tx []byte, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (rc *RemoveCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	tx := txMsg.([]byte)
 	tx = tx[len(ankrtypes.RemoveCertPrefix):]
 	trxSetCertSlices := strings.SplitN(string(tx), ":", 3)
 	if len(trxSetCertSlices) != 3 {
