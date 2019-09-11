@@ -79,8 +79,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 	var iavlStore *IavlStore
 	it := kvDB.Iterator(nil, nil)
 
-	if it != nil && it.Valid(){
-		it.Next()
+	if it != nil {
 		for it.Valid() {
 			if len(it.Key()) >= len(ankrtypes.AccountBlancePrefix) && string(it.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
 				iavlStore = sp.iavlSM.IavlStore(IavlStoreAccountKey)
