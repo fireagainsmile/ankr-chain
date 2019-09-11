@@ -20,39 +20,7 @@ var (
 	ProtocolVersion version.Protocol = 0x1
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-type State struct {
-	db      dbm.DB
-	Size    int64  `json:"size"`
-	Height  int64  `json:"height"`
-	AppHash []byte `json:"app_hash"`
-}
-
-type Seeds struct {
-    Seeds []string `json:""seeds`
-}
-
-func loadState(db dbm.DB) State {
-	stateBytes := db.Get(stateKey)
-	var state State
-	if len(stateBytes) != 0 {
-		err := json.Unmarshal(stateBytes, &state)
-		if err != nil {
-			panic(err)
-		}
-	}
-	state.db = db
-	return state
-}
-
-func saveState(state State) {
-=======
-func saveState(state appstore.State) {
->>>>>>> perfect the function of the iavl multi store
-=======
 func saveState(state apscomm.State) {
->>>>>>> Modift cycle importing
 	stateBytes, err := json.Marshal(state)
 	if err != nil {
 		panic(err)
@@ -112,7 +80,7 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 	} else {
 		resQuery.Key = reqQuery.Data
 		if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
-		    value = app.state.DB.Get(reqQuery.Data)
+			value = app.state.DB.Get(reqQuery.Data)
 			trxGetBalanceSlices := strings.Split(string(value), ":")
 			if len(trxGetBalanceSlices) == 1 {
 				_, err := new(big.Int).SetString(string(value), 10)
@@ -140,28 +108,10 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 					valueItem = app.state.DB.Get(itr.Key())
 					if len(valueItem) != 0 {
 						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
-					 }
+					}
 				}
 			}
 		} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
-<<<<<<< HEAD
-                    itr := app.state.db.Iterator(nil, nil)
-                    for ; itr.Valid(); itr.Next() {
-			if len(itr.Key()) >= len(ankrtypes.CertPrefix) && string(itr.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
-			    valueItem := []byte("")
-			    valueItem = app.state.db.Get(itr.Key())
-			    if len(valueItem) != 0 {
-				    value = []byte(string(value) + string(itr.Key()[len(ankrtypes.CertPrefix):]) + ";")
-		            }
-                        }
-                    }
-		} else if string(reqQuery.Data) == "seeds" {
-            var se = []string{"127.0.0.1:26657", "127.0.0.1:26658"}
-            var see = Seeds{Seeds: se}
-            value, _ = json.Marshal(see)
-        } else {
-		    value = app.state.db.Get(prefixKey(reqQuery.Data))
-=======
 			itr := app.state.DB.Iterator(nil, nil)
 			for ; itr.Valid(); itr.Next() {
 				if len(itr.Key()) >= len(ankrtypes.CertPrefix) && string(itr.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
@@ -169,12 +119,11 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 					valueItem = app.state.DB.Get(itr.Key())
 					if len(valueItem) != 0 {
 						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.CertPrefix):]) + ";")
-					 }
+					}
 				}
-            }
+			}
 		} else {
 			value = app.state.DB.Get(reqQuery.Data)
->>>>>>> perfect the function of the iavl multi store
 		}
 	}
 
