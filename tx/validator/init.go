@@ -6,9 +6,7 @@ import (
 )
 
 func init() {
-	valMsg  := new(ValidatorMsg)
-	stMsg := new(StakeMsg)
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.ValidatorSetChangePrefix, valMsg)
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetStakePrefix, stMsg)
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.ValidatorSetChangePrefix, NewValidatorTxMsg())
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetStakePrefix, NewStakeTxMsg())
 }
 

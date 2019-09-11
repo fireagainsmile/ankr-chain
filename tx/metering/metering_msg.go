@@ -11,13 +11,16 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto"github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	tx "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
+func NewMeteringTxMsg() *tx.TxMsg {
+	return &tx.TxMsg{ImplTxMsg: new(MeteringMsg)}
+}
+
 type MeteringMsg struct {
-	apm.TxMsg
 }
 
 func (m *MeteringMsg) GasWanted() int64 {

@@ -6,10 +6,7 @@ import (
 )
 
 func init() {
-	metMsg     := new(MeteringMsg)
-	setCertMsg := new(SetCertMsg)
-	rmCertMsg  := new(RemoveCertMsg)
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetMeteringPrefix, metMsg)
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetCertPrefix, setCertMsg)
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.RemoveCertPrefix, rmCertMsg)
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetMeteringPrefix, NewMeteringTxMsg())
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetCertPrefix, NewSetCertTxMsg())
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.RemoveCertPrefix, NewRemoveCertTxMsg())
 }

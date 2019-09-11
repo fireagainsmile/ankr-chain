@@ -10,13 +10,16 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtx "github.com/Ankr-network/ankr-chain/tx"
+	"github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
+func NewAdminAccountMsgTxMsg() *tx.TxMsg {
+	return  &tx.TxMsg{ImplTxMsg: new(AdminAccountMsg)}
+}
+
 type AdminAccountMsg struct {
-	ankrtx.TxMsg
 }
 
 func (s *AdminAccountMsg) GasWanted() int64 {

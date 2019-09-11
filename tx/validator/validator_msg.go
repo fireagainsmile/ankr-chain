@@ -8,7 +8,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	tx "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -16,8 +16,11 @@ import (
 	"strconv"
 )
 
+func NewValidatorTxMsg() *tx.TxMsg {
+	return &tx.TxMsg{ImplTxMsg: new(ValidatorMsg)}
+}
+
 type ValidatorMsg struct {
-	apm.TxMsg
 }
 
 func (v *ValidatorMsg) GasWanted() int64 {

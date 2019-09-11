@@ -6,6 +6,5 @@ import (
 )
 
 func init() {
-	adminAccMsg := new(AdminAccountMsg)
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetOpPrefix, adminAccMsg)
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetOpPrefix, NewAdminAccountMsgTxMsg())
 }

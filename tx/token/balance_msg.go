@@ -11,13 +11,17 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtx "github.com/Ankr-network/ankr-chain/tx"
+	"github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
+func NewBalanceTxMsg() *tx.TxMsg {
+	return &tx.TxMsg{ImplTxMsg: new(BalanceMsg)}
+}
+
 type BalanceMsg struct {
-	ankrtx.TxMsg
+
 }
 
 func (b *BalanceMsg) GasWanted() int64 {

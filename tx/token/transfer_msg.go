@@ -12,7 +12,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	"github.com/Ankr-network/ankr-chain/tx"
 	"github.com/Ankr-network/ankr-chain/tx/account"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -22,8 +22,8 @@ const (
 	MIN_TOKEN_SEND = "5000000000000000000" // 5 tokens
 )
 
-func NewTransferTxM() *apm.TxMsg {
-	return &apm.TxMsg{ImplTxMsg: new(TransferMsg)}
+func NewTransferTxM() *tx.TxMsg {
+	return &tx.TxMsg{ImplTxMsg: new(TransferMsg)}
 }
 
 type TransferMsg struct {

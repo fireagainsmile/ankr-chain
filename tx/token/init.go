@@ -6,7 +6,6 @@ import (
 )
 
 func init() {
-	balMsg := new(BalanceMsg)
 	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.TrxSendPrefix, NewTransferTxM())
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetBalancePrefix, balMsg)
+	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetBalancePrefix, NewBalanceTxMsg())
 }

@@ -10,13 +10,16 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	apm "github.com/Ankr-network/ankr-chain/tx"
+	tx "github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
+func NewSetCertTxMsg() *tx.TxMsg {
+	return &tx.TxMsg{ImplTxMsg: new(SetCertMsg)}
+}
+
 type SetCertMsg struct {
-	apm.TxMsg
 }
 
 func (sc *SetCertMsg) GasWanted() int64 {
@@ -111,8 +114,11 @@ func (sc *SetCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, i
 	return code.CodeTypeOK, "", tags
 }
 
+func NewRemoveCertTxMsg() *tx.TxMsg {
+	return &tx.TxMsg{ImplTxMsg: new(RemoveCertMsg)}
+}
+
 type RemoveCertMsg struct {
-	apm.TxMsg
 }
 
 func (rc *RemoveCertMsg) GasWanted() int64 {
