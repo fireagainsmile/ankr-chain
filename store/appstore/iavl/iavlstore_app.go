@@ -42,7 +42,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	var kvDB dbm.DB
 	var lcmmID ankrtypes.CommitID
 	if isKVPathExist {
-		kvDB, err = dbm.NewGoLevelDB("kvstore.db", dbDir)
+		kvDB, err = dbm.NewGoLevelDB("kvstore", dbDir)
 		if err != nil {
 			panic(err)
 		}
@@ -52,7 +52,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		lcmmID.Hash    = oldState.AppHash
 	}
 
-	db, err := dbm.NewGoLevelDB("appstore.db", dbDir)
+	db, err := dbm.NewGoLevelDB("appstore", dbDir)
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +78,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 	var iavlStore *IavlStore
 	it := kvDB.Iterator(nil, nil)
-	defer it.Close()
+
 	if it != nil && it.Valid(){
 		it.Next()
 		for it.Valid() {
@@ -97,9 +97,12 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 		}
 	}
 
-	os.RemoveAll(kvPath)
+	it.Close()
+	kvDB.Close()
 
-	return nil
+	err := os.RemoveAll(kvPath)
+
+	return err
 }
 
 func (sp* IavlStoreApp) updateAccount(addr string) {
