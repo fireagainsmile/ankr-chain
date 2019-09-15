@@ -279,9 +279,13 @@ func (tr *TransferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, 
 	appStore.SetBalance(ankrtypes.PrefixBalanceKey([]byte(account.AccountManagerInstance().GasAccountAddress())), []byte(fundRealBalance.String()+":"+fundNonce)) // use original nonce
 
 	tvalue := time.Now().UnixNano()
+	addressIndexFrom := fmt.Sprintf("app.%s", fromS)
+	addressIndexTo   := fmt.Sprintf("app.%s", toS)
 	tags := []cmn.KVPair{
 		{Key: []byte("app.fromaddress"), Value: []byte(fromS)},
 		{Key: []byte("app.toaddress"), Value: []byte(toS)},
+		{Key: []byte(addressIndexFrom), Value: []byte(strconv.FormatInt(1, 10))},
+		{Key: []byte(addressIndexTo), Value: []byte(strconv.FormatInt(1, 10))},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte("Send")},
 	}
