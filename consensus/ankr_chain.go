@@ -2,17 +2,19 @@ package ankrchain
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/tx"
 	"strings"
 
+	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/Ankr-network/ankr-chain/router"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
-	act "github.com/Ankr-network/ankr-chain/tx/account"
 	_ "github.com/Ankr-network/ankr-chain/tx/metering"
+	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	_ "github.com/Ankr-network/ankr-chain/tx/token"
 	val "github.com/Ankr-network/ankr-chain/tx/validator"
-    akver "github.com/Ankr-network/ankr-chain/version"
+	akver "github.com/Ankr-network/ankr-chain/version"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmCoreTypes "github.com/tendermint/tendermint/types"
@@ -22,9 +24,11 @@ import (
 var _ types.Application = (*AnkrChainApplication)(nil)
 
 type AnkrChainApplication struct {
-	appName string
-	app     appstore.AppStore
-	logger  log.Logger
+	ChainId      common.ChainID
+	APPName      string
+	app          appstore.AppStore
+	txSerializer serializer.TxSerializer
+	logger       log.Logger
 }
 
 func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
@@ -40,8 +44,9 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 	router.MsgRouterInstance().SetLogger(l.With("tx", "AnkrChainRouter"))
 
 	return &AnkrChainApplication{
-		appName: appName,
-		app:     appStore,
+		APPName:      appName,
+		app:          appStore,
+		txSerializer: serializer.NewTxSerializer(),
 		logger:  l,
 	}
 }
@@ -52,7 +57,7 @@ func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
 	return types.ResponseInfo{
-		Data:             app.appName,
+		Data:             app.APPName,
 		Version:          version.ABCIVersion,
 		AppVersion:       akver.APPVersion,
 		LastBlockHeight:  app.app.Height(),
@@ -64,27 +69,39 @@ func (app *AnkrChainApplication) SetOption(req types.RequestSetOption) types.Res
 	return types.ResponseSetOption{}
 }
 
-// tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes
-func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
-	txMsgHandler, txData := router.MsgRouterInstance().TxMessageHandler(tx)
-	if txMsgHandler != nil {
-		return txMsgHandler.DeliverTx(txData, app.app)
+func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string) {
+	txMsg, err := app.txSerializer.Deserialize(tx)
+	if err != nil {
+		if app.logger != nil {
+			app.logger.Error("can't deserialize tx", "err", err)
+		}
+		return nil, code.CodeTypeDecodingError, fmt.Sprintf("can't deserialize tx: tx=%v, err=%s", tx, err.Error())
+	} else {
+		if txMsg.ChID != app.ChainId {
+			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID", txMsg.ChID, app.ChainId)
+		}
 	}
 
-	return types.ResponseDeliverTx{
-                        Code: code.CodeTypeEncodingError,
-                        Log:  fmt.Sprintf("Unexpected command. Got %v", tx)}
+	return txMsg, code.CodeTypeOK, ""
+}
+
+// tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes
+func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
+	txMsg, codeVal, logStr := app.dispossTx(tx)
+	if codeVal == code.CodeTypeOK {
+		return txMsg.DeliverTx(app.app)
+	}
+
+	return types.ResponseDeliverTx{ Code: codeVal, Log: logStr}
 }
 
 func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
-	txMsgHandler, txData := router.MsgRouterInstance().TxMessageHandler(tx)
-	if txMsgHandler != nil {
-		return txMsgHandler.CheckTx(txData, app.app)
+	txMsg, codeVal, logStr := app.dispossTx(tx)
+	if codeVal == code.CodeTypeOK {
+		return txMsg.CheckTx(app.app)
 	}
 
-	return types.ResponseCheckTx{
-		Code: code.CodeTypeEncodingError,
-		Log:  fmt.Sprintf("Unexpected. Got %v", tx)}
+	return types.ResponseCheckTx{ Code: codeVal, Log: logStr}
 }
 
 // Commit will panic if InitChain was not called
@@ -131,7 +148,10 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 		//app.app.Commit()
 	}
 
-	act.AccountManagerInstance().InitBalance(app.app)
+	app.ChainId = common.ChainID(req.ChainId)
+
+    app.app.InitGenesisAccount()
+	app.app.InitFoundAccount()
 	val.ValidatorManagerInstance().InitValidator(app.app)
 
 	return types.ResponseInitChain{}

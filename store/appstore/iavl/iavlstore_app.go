@@ -2,6 +2,7 @@ package iavl
 
 import (
 	"errors"
+	"github.com/Ankr-network/ankr-chain/account"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -28,6 +29,7 @@ type IavlStoreApp struct {
 	iavlSM          *IavlStoreMulti
 	lastCommitID    ankrtypes.CommitID
 	storeLog        log.Logger
+	cdc             *amino.Codec
 	accStoreLocker  sync.RWMutex
 	certStoreLocker sync.RWMutex
 }
@@ -75,6 +77,16 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	return iavlSApp
 }
 
+func NewMockIavlStoreApp() *IavlStoreApp {
+	db := dbm.NewMemDB()
+	storeLog := log.NewNopLogger()
+
+	iavlSM := NewIavlStoreMulti(db, storeLog)
+	lcmmID := iavlSM.lastCommit()
+
+	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
+}
+
 func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 	var iavlStore *IavlStore
 	it := kvDB.Iterator(nil, nil)
@@ -83,7 +95,20 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 		for it.Valid() {
 			if len(it.Key()) >= len(ankrtypes.AccountBlancePrefix) && string(it.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
 				iavlStore = sp.iavlSM.IavlStore(IavlStoreAccountKey)
-				sp.SetBalance(it.Key(), it.Value())
+				keyStrList := strings.Split(string(it.Key()), ":")
+				valStrList := strings.Split(string(it.Value()), ":")
+				if len(keyStrList) != 2 || len(valStrList) != 2 {
+					sp.storeLog.Error("invalid old account store will be ignored", "keyStrList's len", len(keyStrList), "valStrList's len", len(valStrList))
+				}
+
+				nonce, err := strconv.ParseInt(valStrList[1], 10, 64)
+				if err == nil {
+					sp.SetBalance(keyStrList[1], account.Assert{"ANKR", valStrList[0]}, uint64(nonce))
+				}else {
+					if err != nil {
+						sp.storeLog.Error("invalid old account store will be ignored: parse bal fails", "err", err)
+					}
+				}
 			}else {
 				iavlStore = sp.iavlSM.IavlStore(IAvlStoreMainKey)
 				if len(it.Key()) >= len(ankrtypes.CertPrefix) && string(it.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
@@ -115,35 +140,6 @@ func (sp* IavlStoreApp) updateAccount(addr string) {
 	}else {
 		sp.storeLog.Error("can't get the AccountKey value", "err",  err)
 	}
-}
-
-func (sp *IavlStoreApp) SetBalance(key []byte, val []byte) {
-	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has(key) {
-        accP := string(key)
-        address := strings.Split(accP, ":")
-		sp.updateAccount(address[1])
-	}
-
-	sp.iavlSM.IavlStore(IavlStoreAccountKey).Set(key, val)
-}
-
-func (sp *IavlStoreApp) Balance(key []byte) []byte {
-	balV, err := sp.iavlSM.IavlStore(IavlStoreAccountKey).Get(key)
-	if err != nil {
-		sp.storeLog.Error("can't get balance", "key", key, "err", err)
-		balV = nil
-	}
-
-	return balV
-}
-
-func (sp *IavlStoreApp) AccountList() []byte {
-	accs, err := sp.iavlSM.IavlStore(IavlStoreAccountKey).Get([]byte(AccountKey))
-	if err == nil {
-		return accs
-	}
-
-	return nil
 }
 
 func (sp *IavlStoreApp) LastCommit() *ankrtypes.CommitID{
@@ -227,7 +223,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 			resQuery.Log = "internal error, value format incorrect, extra value"
 		}
 	} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
-		value = sp.AccountList()
+		value, _ = sp.AccountList()
 	} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
 		value = sp.CertKeyList()
 	} else {

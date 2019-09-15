@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	"github.com/Ankr-network/ankr-chain/tx/decoder"
+	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -15,13 +15,14 @@ var (
 )
 
 type TxMessageHandler interface {
-	CheckTx(txMsg interface{}, appStore appstore.AppStore) types.ResponseCheckTx
-	DeliverTx(txMsg interface{}, appStore appstore.AppStore) types.ResponseDeliverTx
+	CheckTx(appStore appstore.AppStore) types.ResponseCheckTx
+	DeliverTx(appStore appstore.AppStore) types.ResponseDeliverTx
 }
 
 type MsgRouter struct {
-	routerMap map[string]TxMessageHandler
-	mrLog log.Logger
+	routerMap    map[string]TxMessageHandler
+	txSerializer serializer.TxSerializer
+	mrLog        log.Logger
 }
 
 func(mr *MsgRouter) SetLogger(mrLog log.Logger) {
@@ -33,7 +34,7 @@ func(mr *MsgRouter) AddTxMessageHandler(txMsgName string, txMsgHandler TxMessage
 }
 
 func(mr *MsgRouter) TxMessageHandler(tx []byte) (TxMessageHandler, interface{}) {
-	txType, data, err := new(decoder.TxDecoderAdapter).Decode(tx)
+	txMsg, err := mr.txSerializer.Deserialize(tx)
 	if err != nil {
 		if mr.mrLog != nil {
 			mr.mrLog.Error("can't decode tx", "err", err)
@@ -42,10 +43,10 @@ func(mr *MsgRouter) TxMessageHandler(tx []byte) (TxMessageHandler, interface{}) 
 		return nil, nil
 	}
 
-	if txHandler, ok:= mr.routerMap[txType]; ok {
-		return txHandler, data
+	if txHandler, ok:= mr.routerMap[txMsg.Type()]; ok {
+		return txHandler, txMsg.ImplTxMsg
 	}else {
-		mr.mrLog.Error("can't find the respond txmsg handler", "txType", txType)
+		mr.mrLog.Error("can't find the respond txmsg handler", "txType", txMsg.Type())
 		return nil, nil
 	}
 }
@@ -53,7 +54,7 @@ func(mr *MsgRouter) TxMessageHandler(tx []byte) (TxMessageHandler, interface{}) 
 func MsgRouterInstance() *MsgRouter {
 	onceMR.Do(func(){
 		routerMap := make(map[string]TxMessageHandler)
-		instanceMR = &MsgRouter{routerMap: routerMap}
+		instanceMR = &MsgRouter{routerMap: routerMap, txSerializer: serializer.NewTxSerializer()}
 	})
 
 	return instanceMR

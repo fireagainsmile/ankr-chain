@@ -4,8 +4,6 @@ import (
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/common"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
-	"github.com/Ankr-network/ankr-chain/types"
 )
 
 var (
@@ -13,16 +11,19 @@ var (
 	instanceAM *AccountManager
 )
 
+type AdminAccountType int
+const (
+	_ AdminAccountType = AdminAccountType(AccountAdminOP-1)
+	AdminAccountOP
+	AdminAccountValidator
+	AdminAccountFound
+	AdminAccountMetering
+)
+
 type AccountManager struct {
-
 }
 
-func (am *AccountManager) InitBalance(appStore appstore.AppStore){
-	appStore.SetBalance(types.PrefixBalanceKey([]byte(am.InitAccountAddress())),
-		[]byte("10000000000000000000000000000:1")) // 10000000000,000,000,000,000,000,000, 10 billion tokens
-}
-
-func (am *AccountManager) InitAccountAddress() string {
+func (am *AccountManager) GenesisAccountAddress() string {
     if common.RM == common.RunModeTesting {
 		return "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67"
 	}else if common.RM == common.RunModeProd {
@@ -32,7 +33,7 @@ func (am *AccountManager) InitAccountAddress() string {
     return ""
 }
 
-func (am *AccountManager) GasAccountAddress() string {
+func (am *AccountManager) FoundAccountAddress() string {
 	if common.RM == common.RunModeTesting {
 		return "64BC85F08C03F42B17EAAF5AFFAF9BFAF96CFCB85CA2F3"
 	}else if common.RM == common.RunModeProd {
@@ -40,6 +41,12 @@ func (am *AccountManager) GasAccountAddress() string {
 	}
 
 	return ""
+}
+
+func (am *AccountManager) AdminOpAccount() map[AdminAccountType]string {
+	adminAccMap := make(map[AdminAccountType]string, 4)
+
+	return adminAccMap
 }
 
 func AccountManagerInstance() *AccountManager{

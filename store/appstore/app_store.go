@@ -1,13 +1,18 @@
 package appstore
 
 import (
+	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
+	"math/big"
 )
 
 type AccountStore interface {
-	SetBalance(key []byte, val []byte)
-	Balance(key []byte) []byte
+	InitGenesisAccount()
+	InitFoundAccount()
+	Nonce(address string) (uint64, error)
+	SetBalance(address string, amount account.Assert)
+	Balance(address string, symbol string) (*big.Int, error)
 }
 
 type TxStore interface {
