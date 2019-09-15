@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	IavlStoreAccountKey  = "ANKRCHAINACCOUNT"
-	IAvlStoreMainKey     = "ANKRCHAINMAIN"
-	IAvlStoreContractKey = "ANKRCHAINCONTRACT"
+	IavlStoreAccountKey  = "account"
+	IAvlStoreMainKey     = "main"
+	IAvlStoreContractKey = "contract"
 
 	IavlStoreAccountDefCacheSize  = 10000
 	IAvlStoreTxDefCacheSize       = 10000

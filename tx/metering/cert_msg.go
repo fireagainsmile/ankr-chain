@@ -105,10 +105,10 @@ func (sc *SetCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, i
 	}
 
 	appStore.Set(([]byte(ankrtypes.SET_CRT_NONCE)) ,[]byte(nonceS))
-	appStore.Set(prefixCertKey([]byte(dcS)), []byte(pemB64S))
+	appStore.SetCertKey(prefixCertKey([]byte(dcS)), []byte(pemB64S))
 
 	tags := []cmn.KVPair{
-		{Key: []byte("app.type"), Value: []byte("RemoveCert")},
+		{Key: []byte("app.type"), Value: []byte("SetCert")},
 	}
 
 	return code.CodeTypeOK, "", tags
