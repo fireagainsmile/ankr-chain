@@ -132,7 +132,7 @@ func (b *BalanceMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, is
 		return  code.CodeTypeEncodingError, fmt.Sprintf("nonce should be one more than last nonce. Got %v", nonceS), nil
 	}
 
-	if !isOnlyCheck {
+	if isOnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
 
