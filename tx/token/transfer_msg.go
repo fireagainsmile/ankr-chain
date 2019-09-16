@@ -157,10 +157,6 @@ func (tr *TransferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, 
 		}
 	}
 
-	if fromBalanceInt.Cmp(amountSend) == -1 { // bignumber comparison
-		return code.CodeTypeEncodingError, fmt.Sprintf("Not enough balance to send. Balance %v, send %v", fromBalanceInt, amountSend), nil
-	}
-
 	// check stake here. If from balance is less than stake, let it fail.
 	var isSucess bool
 	cstake, _ := new(big.Int).SetString("0", 10)
@@ -175,14 +171,10 @@ func (tr *TransferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, 
 		}
 	}
 
-	if fromBalanceInt.Cmp(cstake) == -1 {
-		return code.CodeTypeEncodingError, fmt.Sprintf("Balance <= stake. Balance %v, stake %v", fromBalanceInt, cstake), nil
-	}
-
-	// check stake again.
-	fromBalanceInt.Sub(fromBalanceInt, amountSend)
-	if fromBalanceInt.Cmp(cstake) == -1 {
-		return code.CodeTypeEncodingError, fmt.Sprintf("Sub Balance <= stake. Balance %v, stake %v", fromBalanceInt, cstake), nil
+	amountSendTemp, _ := new(big.Int).SetString(amountSend.String(), 10)
+	amountSendTemp.Add(amountSendTemp, cstake)
+	if fromBalanceInt.Cmp(amountSendTemp) == -1 {
+		return code.CodeTypeEncodingError, fmt.Sprintf("Balance not enough. Balance %v, needed amount %v", fromBalanceInt, amountSendTemp), nil
 	}
 
 	/* check nonce */

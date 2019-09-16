@@ -176,6 +176,7 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 	reHash := merkle.SimpleHashFromMap(hashM)
 
 	batch := ms.db.NewBatch()
+	defer batch.Close()
 	ms.setCommitInfo(batch, version, cmmInfo)
 	ms.setLatestVersion(batch, version)
 
