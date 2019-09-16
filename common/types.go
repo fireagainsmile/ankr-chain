@@ -7,7 +7,7 @@ const (
 	RunModeProd
 )
 
-var RM = RunModeTesting
+var RM = RunModeProd
 
 type ChainID string
 
