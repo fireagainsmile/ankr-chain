@@ -7,5 +7,4 @@ import (
 
 func init() {
 	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.TrxSendPrefix, NewTransferTxM())
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetBalancePrefix, NewBalanceTxMsg())
 }
