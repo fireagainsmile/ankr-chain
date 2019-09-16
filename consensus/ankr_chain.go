@@ -27,15 +27,15 @@ type AnkrChainApplication struct {
 	logger  log.Logger
 }
 
-func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
-	appStore := iavl.NewIavlStoreApp(dbDir, l)
+func NewAppStore(dbDir string, dbBackend string, l log.Logger) appstore.AppStore {
+	appStore := iavl.NewIavlStoreApp(dbDir, dbBackend, l)
 	router.QueryRouterInstance().AddQueryHandler("store", appStore)
 
 	return  appStore
 }
 
-func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
-	appStore := NewAppStore(dbDir, l.With("tx", "AppStore"))
+func NewAnkrChainApplication(dbDir string, dbBackend string, appName string, l log.Logger) *AnkrChainApplication {
+	appStore := NewAppStore(dbDir, dbBackend, l.With("tx", "AppStore"))
 
 	router.MsgRouterInstance().SetLogger(l.With("tx", "AnkrChainRouter"))
 
