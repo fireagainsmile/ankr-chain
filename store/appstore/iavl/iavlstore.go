@@ -66,13 +66,12 @@ func (s *IavlStore) Commit() (ankrtypes.CommitID, error) {
 		panic(err)
 	}
 
-	/*
 	if ver > s.keepVersionNum  && s.keepVersionNum > 0{
 		err = s.tree.DeleteVersion(ver-s.keepVersionNum)
 		if err != nil {
 			panic(err)
 		}
-	}*/
+	}
 
 	return ankrtypes.CommitID{ver, rHash}, nil
 }

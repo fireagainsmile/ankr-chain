@@ -60,6 +60,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	iavlSM := NewIavlStoreMulti(db, storeLog)
 
 	if !isKVPathExist {
+		iavlSM.Load()
 		lcmmID = iavlSM.lastCommit()
 	}
 
