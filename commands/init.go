@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/log"
 
 	ankrconfg "github.com/Ankr-network/ankr-chain/config"
 	"github.com/spf13/cobra"
@@ -29,29 +30,29 @@ func initFilesWithConfig(config *ankrconfg.AnkrConfig) error {
 	var pv *privval.FilePV
 	if cmn.FileExists(privValKeyFile) {
 		pv = privval.LoadFilePV(privValKeyFile, privValStateFile)
-		logger.Info("Found private validator", "keyFile", privValKeyFile,
+		log.DefaultRootLogger.Info("Found private validator", "keyFile", privValKeyFile,
 			"stateFile", privValStateFile)
 	} else {
 		pv = privval.GenFilePV(privValKeyFile, privValStateFile)
 		pv.Save()
-		logger.Info("Generated private validator", "keyFile", privValKeyFile,
+		log.DefaultRootLogger.Info("Generated private validator", "keyFile", privValKeyFile,
 			"stateFile", privValStateFile)
 	}
 
 	nodeKeyFile := config.NodeKeyFile()
 	if cmn.FileExists(nodeKeyFile) {
-		logger.Info("Found node key", "path", nodeKeyFile)
+		log.DefaultRootLogger.Info("Found node key", "path", nodeKeyFile)
 	} else {
 		if _, err := p2p.LoadOrGenNodeKey(nodeKeyFile); err != nil {
 			return err
 		}
-		logger.Info("Generated node key", "path", nodeKeyFile)
+		log.DefaultRootLogger.Info("Generated node key", "path", nodeKeyFile)
 	}
 
 	// genesis file
 	genFile := config.GenesisFile()
 	if cmn.FileExists(genFile) {
-		logger.Info("Found genesis file", "path", genFile)
+		log.DefaultRootLogger.Info("Found genesis file", "path", genFile)
 	} else {
 		genDoc := types.GenesisDoc{
 			ChainID:         fmt.Sprintf("test-chain-%v", cmn.RandStr(6)),
@@ -68,7 +69,7 @@ func initFilesWithConfig(config *ankrconfg.AnkrConfig) error {
 		if err := genDoc.SaveAs(genFile); err != nil {
 			return err
 		}
-		logger.Info("Generated genesis file", "path", genFile)
+		log.DefaultRootLogger.Info("Generated genesis file", "path", genFile)
 	}
 
 	return nil

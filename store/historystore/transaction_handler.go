@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Ankr-network/ankr-chain/consensus"
+	"github.com/Ankr-network/ankr-chain/tx/account"
 	"github.com/Ankr-network/ankr-chain/store/historystore/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -48,9 +48,9 @@ func newTransactionHandler(DBType string, DBHost string, DBName string, txEventC
 	tranHandler.logHis     = logHis
 
 	if tranHandler.txHisStore != nil {
-		acc, err := tranHandler.txHisStore.GetAccount(ankrchain.INIT_ADDRESS)
+		acc, err := tranHandler.txHisStore.GetAccount(account.AccountManagerInstance().InitAccountAddress())
 		if err != nil || acc == nil {
-			tranHandler.txHisStore.AddAccount(&types.Account{ankrchain.INIT_ADDRESS, "1000000000000000000000000"})
+			tranHandler.txHisStore.AddAccount(&types.Account{account.AccountManagerInstance().InitAccountAddress(), "1000000000000000000000000"})
 		}
 	}
 

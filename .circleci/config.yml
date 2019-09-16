@@ -46,21 +46,18 @@ jobs:
               AWS_ZONE=us-west-2a
               ACM_REGION="us-west-2"
               ANKRCHAIN_DNS="chain.dccn.ankr.com"
-              TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_STAGE
             elif [[ ($BRANCH_NAME == "develop") ]]; then
               BRANCH_NAME="dev"
               K8S_CLUSTER="stage.hub"
               CHARTMUSEUM_URL="http://chart-stage.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
               ANKRCHAIN_DNS="chain-stage.dccn.ankr.com"
-              TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_STAGE
             else
               BRANCH_NAME="feat"
               K8S_CLUSTER="dev.hub"
               CHARTMUSEUM_URL="http://chart-dev.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
               ANKRCHAIN_DNS="chain-dev.dccn.ankr.com"
-              TXHISTORY_DB_HOST=$TXHISTORY_MYSQLHOST_DEV
             fi
             sed -i "s/seeds = \"\"/$SEEDS/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             docker build --label=ankrchain --target=public --build-arg BRANCH_NAME=${BRANCH_NAME} --build-arg PRIV_PATH=${PRIV_PATH} --build-arg BRANCH_NAME=${BRANCH_NAME} -t ankr-chain:$BRANCH_NAME . -f DOCKER/Dockerfile
@@ -110,18 +107,8 @@ jobs:
             # add page break line before new deployment, not compatible with bsd style command line tool, eg: macOS
             # add colon to separate with json in annotation
             sed -i '/apiVersion:/i---' k8s/ankrchain-patched.yaml
-            sed -i "/name: TXHISTORY_DB_TYPE/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_TYPE}\'" k8s/ankrchain-patched.yaml
-            sed -i "/name: TXHISTORY_DB_HOST/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_HOST}\'" k8s/ankrchain-patched.yaml
-            sed -i "/name: TXHISTORY_DB_NAME/a\ \ \ \ \ \ \ \ \ \ value: \'${TXHISTORY_DB_NAME}\'" k8s/ankrchain-patched.yaml
             cat k8s/ankrchain-patched.yaml
-            kubectl apply -f k8s/ankrchain-patched.yaml
 
-            for i in 1 2 3 4; do
-              if ! kubectl rollout status statefulset/ankrchain-$i --watch=true --timeout=120s; then
-                echo "Deploy failed, roll back to previous version"
-                kubectl rollout undo statefulset/ankrchain-$i
-              fi
-            done
             kubectl get all
             # update load balancer cert
             sleep 60

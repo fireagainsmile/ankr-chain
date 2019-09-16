@@ -1,6 +1,8 @@
 package types
 
 const (
+	APPName = "AnkrApp"
+
 	KeyAddressLen = 46
 	ValidatorSetChangePrefix string = "val:"
 	AccountBlancePrefix string = "bal:"
@@ -27,4 +29,13 @@ const (
 	ADMIN_OP_METERING_PUBKEY_NAME string = "admin_op_metering_pubkey"
 )
 
-type JudgeValidatorTx func([]byte) bool
+func PrefixBalanceKey(key []byte) []byte {
+	return append([]byte(AccountBlancePrefix), key...)
+}
+
+// CommitID contains the tree version number and its merkle root.
+type CommitID struct {
+	Version int64
+	Hash    []byte
+}
+

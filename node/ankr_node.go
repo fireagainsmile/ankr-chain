@@ -6,7 +6,9 @@ import (
 
 	ankrconfig "github.com/Ankr-network/ankr-chain/config"
 	"github.com/Ankr-network/ankr-chain/consensus"
+	ankrp2p "github.com/Ankr-network/ankr-chain/p2p"
 	"github.com/Ankr-network/ankr-chain/store/historystore"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	tmcorelog "github.com/tendermint/tendermint/libs/log"
 	tmcorenode "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -46,10 +48,14 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		oldPV.Upgrade(newPrivValKey, newPrivValState)
 	}
 
+	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), ankrtypes.APPName, logger.With("tx", "AnkrChainApp"))
+
+	config.FilterPeers = config.AllowedPeers != ""
+
 	tmNode, err :=  tmcorenode.NewNode(config.TendermintCoreConfig(),
 		privval.LoadOrGenFilePV(newPrivValKey, newPrivValState),
 		nodeKey,
-		proxy.NewLocalClientCreator(ankrchain.NewAnkrChainApplication(config.DBDir())),
+		proxy.NewLocalClientCreator(ankrChainApp),
 		tmcorenode.DefaultGenesisDocProviderFunc(config.TendermintCoreConfig()),
 		tmcorenode.DefaultDBProvider,
 		tmcorenode.DefaultMetricsProvider(config.Instrumentation),
@@ -60,12 +66,18 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		return nil, err
 	}
 
-	historyDBLogger := logger.With("module", "historydb")
+	historyDBLogger := logger.With("tx", "historydb")
 	historyDBLogger.Info("historydb parameter", "dbType", config.HistoryDB.Type, "dbHost", config.HistoryDB.Host, "dbName", config.HistoryDB.Name)
 	if config.HistoryDB.Type != "" && config.HistoryDB.Host != "" && config.HistoryDB.Name != "" {
 		historyDBService := historystore.NewHistoryStorageService(config.HistoryDB.Type, config.HistoryDB.Host, config.HistoryDB.Name, tmNode.EventBus(), historyDBLogger)
 		historyDBService.Start()
 	}
+
+	peerFilter := ankrp2p.NewPeerFilter()
+	sd         := ankrp2p.NewSeeds()
+	peerFilter.Config(config.AllowedPeers)
+	sd.Config(config.P2P.Seeds)
+	ankrp2p.Init(peerFilter, sd)
 
 	return &AnkrNode{"", logger, tmNode}, err
 }

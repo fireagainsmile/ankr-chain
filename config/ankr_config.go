@@ -22,6 +22,7 @@ type AnkrConfig struct {
 	TxIndex         *tmcoreconfig.TxIndexConfig         `mapstructure:"tx_index"`
 	Instrumentation *tmcoreconfig.InstrumentationConfig `mapstructure:"instrumentation"`
 	HistoryDB       *HistoryDBConfig
+	AllowedPeers    string
 }
 
 func (ac *AnkrConfig) SetRoot(root string) *AnkrConfig {
@@ -74,6 +75,7 @@ func DefaultAnkrConfig() *AnkrConfig {
 		tmcoreconfig.DefaultTxIndexConfig(),
 		tmcoreconfig.DefaultInstrumentationConfig(),
 		DefaultHistoryDBConfig(),
+		  "",
 	}
 }
 
