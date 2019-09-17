@@ -30,6 +30,7 @@ type TxMsg struct {
     Fee         TxFee                   `json:"fee"`
 	Signs       []ankrcrypto.Signature  `json:"signs"`
 	Memo        string                  `json:"memo"`
+	Version     string                  `json:"version"`
     ImplTxMsg                           `json:"data"`
 }
 

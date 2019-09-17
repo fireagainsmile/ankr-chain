@@ -31,15 +31,12 @@ func ParseTxPrefix(tx []byte) (string, error) {
 	return "", nil
 }
 
-type TxDecoderV0 struct {
+type TxSerializerV0 struct {
 }
 
-func (txdv1 *TxDecoderV0) Decode(txBytes []byte) (txType string, data interface{}, err error) {
+func (txdv1 *TxSerializerV0) Deserialize(txBytes []byte) (*tx.TxMsg, error) {
 	if len(txBytes) == 0 {
-		txType = ""
-		data   = nil
-		err    = errors.New("nil tx")
-		return
+		return nil, errors.New("nil tx")
 	}
 
 	txPrefix, err := ParseTxPrefix(txBytes)
