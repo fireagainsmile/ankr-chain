@@ -166,7 +166,8 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
 
 	rtnHash := commitID.Hash
 	if sp.state.LastBlockHeight != 0 && sp.state.LastBlockHeight == commitID.Version {
-		rtnHash = sp.state.AppHash
+		sp.lastCommitID.Hash = sp.state.AppHash
+		rtnHash              = sp.state.AppHash
 	}
 
 	return types.ResponseCommit{Data: rtnHash}
