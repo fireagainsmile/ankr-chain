@@ -9,6 +9,7 @@ import (
 	ankrp2p "github.com/Ankr-network/ankr-chain/p2p"
 	"github.com/Ankr-network/ankr-chain/store/historystore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	bc "github.com/tendermint/tendermint/blockchain"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	tmcorelog "github.com/tendermint/tendermint/libs/log"
 	tmcorenode "github.com/tendermint/tendermint/node"
@@ -54,13 +55,19 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 
 	config.FilterPeers = config.AllowedPeers != ""
 
+
+	blockStoreDB := dbm.NewDB("blockstore", dbm.DBBackendType(config.TendermintCoreConfig().DBBackend), config.TendermintCoreConfig().DBDir())
+	blockStore := bc.NewBlockStore(blockStoreDB)
+
 	stateDB := dbm.NewDB("state", dbm.DBBackendType(config.TendermintCoreConfig().DBBackend), config.TendermintCoreConfig().DBDir())
 	state := sm.LoadState(stateDB)
 	if state.LastBlockHeight == 1002800 {
-		state.AppHash = []byte("BCDB4B0000000000")
+		state.AppHash = blockStore.LoadBlock(1002800).AppHash
 	}
+
 	sm.SaveState(stateDB, state)
 	stateDB.Close()
+	blockStoreDB.Close()
 
 	tmNode, err :=  tmcorenode.NewNode(config.TendermintCoreConfig(),
 		privval.LoadOrGenFilePV(newPrivValKey, newPrivValState),
