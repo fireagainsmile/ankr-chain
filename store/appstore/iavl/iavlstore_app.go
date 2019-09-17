@@ -54,10 +54,11 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 		lcmmID.Hash    = oldState.AppHash*/
 
 		os.RemoveAll(kvPath)
-		stateDB := dbm.NewDB("state", dbm.DBBackendType(dbBackend), dbDir)
-		defer stateDB.Close()
-		state = sm.LoadState(stateDB)
 	}
+
+	stateDB := dbm.NewDB("state", dbm.DBBackendType(dbBackend), dbDir)
+	defer stateDB.Close()
+	state = sm.LoadState(stateDB)
 
 	db := dbm.NewDB("appstore", dbm.DBBackendType(dbBackend), dbDir)
 
