@@ -62,7 +62,7 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 	stateDB := dbm.NewDB("state", dbm.DBBackendType(config.TendermintCoreConfig().DBBackend), config.TendermintCoreConfig().DBDir())
 	state := sm.LoadState(stateDB)
 	if state.LastBlockHeight == 1002800 {
-		state.AppHash = blockStore.LoadBlock(1002800).AppHash
+		state.AppHash = blockStore.LoadBlock(1002800 + 1).AppHash
 	}
 
 	sm.SaveState(stateDB, state)
