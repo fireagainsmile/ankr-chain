@@ -53,7 +53,7 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 		lcmmID.Version = oldState.Height
 		lcmmID.Hash    = oldState.AppHash*/
 
-		os.RemoveAll(kvPath)
+		//os.RemoveAll(kvPath)
 	}
 
 	stateDB := dbm.NewDB("state", dbm.DBBackendType(dbBackend), dbDir)
@@ -63,7 +63,7 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 	appStorePath := filepath.Join(dbDir, "appstore.db")
 	isAPPStoreExist, err := common.PathExists(appStorePath)
 	if isAPPStoreExist {
-		os.RemoveAll(appStorePath)
+		//os.RemoveAll(appStorePath)
 	}
 
 	db := dbm.NewDB("appstore", dbm.DBBackendType(dbBackend), dbDir)
