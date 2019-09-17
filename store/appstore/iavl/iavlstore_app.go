@@ -60,12 +60,6 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 	defer stateDB.Close()
 	state = sm.LoadState(stateDB)
 
-	appStorePath := filepath.Join(dbDir, "appstore.db")
-	isAPPStoreExist, err := common.PathExists(appStorePath)
-	if isAPPStoreExist {
-		//os.RemoveAll(appStorePath)
-	}
-
 	db := dbm.NewDB("appstore", dbm.DBBackendType(dbBackend), dbDir)
 
 	iavlSM := NewIavlStoreMulti(db, storeLog)
