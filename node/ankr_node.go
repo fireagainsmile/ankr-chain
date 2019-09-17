@@ -9,11 +9,14 @@ import (
 	ankrp2p "github.com/Ankr-network/ankr-chain/p2p"
 	"github.com/Ankr-network/ankr-chain/store/historystore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	bc "github.com/tendermint/tendermint/blockchain"
+	dbm "github.com/tendermint/tendermint/libs/db"
 	tmcorelog "github.com/tendermint/tendermint/libs/log"
 	tmcorenode "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
+	sm "github.com/tendermint/tendermint/state"
 )
 
 type AnkrNode struct {
@@ -51,6 +54,24 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), config.DBBackend, ankrtypes.APPName, logger.With("tx", "AnkrChainApp"))
 
 	config.FilterPeers = config.AllowedPeers != ""
+
+	blockStoreDB := dbm.NewDB("blockstore", dbm.DBBackendType(config.TendermintCoreConfig().DBBackend), config.TendermintCoreConfig().DBDir())
+	blockStore := bc.NewBlockStore(blockStoreDB)
+
+	stateDB := dbm.NewDB("state", dbm.DBBackendType(config.TendermintCoreConfig().DBBackend), config.TendermintCoreConfig().DBDir())
+
+	state := sm.LoadState(stateDB)
+	block := blockStore.LoadBlock(1002800 )
+	nextblock := blockStore.LoadBlock(1002800 +1)
+
+	heightStr := fmt.Sprintf("Height state %X, block %v, nextblock %v", state.LastBlockHeight, block.Height, nextblock.Height)
+	appHash := fmt.Sprintf("AppHash state %X, block %v, nextblock %v", state.AppHash, block.AppHash, nextblock.AppHash)
+	lastRSHash := fmt.Sprintf("LastResultsHash state %X, block %v, nextblock %v", state.LastResultsHash, block.LastResultsHash, nextblock.LastResultsHash)
+
+	logger.Info("state and block info", "heightStr", heightStr, "appHash", appHash,  "lastRSHash", lastRSHash)
+
+	stateDB.Close()
+	blockStoreDB.Close()
 
 	tmNode, err :=  tmcorenode.NewNode(config.TendermintCoreConfig(),
 		privval.LoadOrGenFilePV(newPrivValKey, newPrivValState),
