@@ -2,6 +2,7 @@ package iavl
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -168,6 +169,8 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
 	if sp.state.LastBlockHeight != 0 && sp.state.LastBlockHeight == commitID.Version {
 		sp.lastCommitID.Hash = sp.state.AppHash
 		rtnHash              = sp.state.AppHash
+
+		sp.storeLog.Info("IavlStoreApp Commit", "rtnHash", fmt.Sprintf("%v", rtnHash), "state.LastBlockHeight", sp.state.LastBlockHeight)
 	}
 
 	return types.ResponseCommit{Data: rtnHash}
