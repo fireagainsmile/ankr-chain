@@ -132,9 +132,12 @@ func (sp *IavlStoreApp) SetBalance(key []byte, val []byte) {
 	}
 
 	sp.iavlSM.IavlStore(IavlStoreAccountKey).Set(key, val)
+
+	sp.storeLog.Info("IavlStoreApp SetBalance", "key", string(key), "val", string(val))
 }
 
 func (sp *IavlStoreApp) Balance(key []byte) []byte {
+	sp.storeLog.Info("IavlStoreApp Balance", "key", string(key))
 	balV, err := sp.iavlSM.IavlStore(IavlStoreAccountKey).Get(key)
 	if err != nil {
 		sp.storeLog.Error("can't get balance", "key", key, "err", err)
