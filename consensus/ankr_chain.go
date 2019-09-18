@@ -38,6 +38,7 @@ func NewAnkrChainApplication(dbDir string, dbBackend string, appName string, l l
 	appStore := NewAppStore(dbDir, dbBackend, l.With("tx", "AppStore"))
 
 	router.MsgRouterInstance().SetLogger(l.With("tx", "AnkrChainRouter"))
+	router.QueryRouterInstance().SetLogger(l.With("tx", "AnkrChainQueryRouter"))
 
 	return &AnkrChainApplication{
 		appName: appName,
@@ -68,6 +69,7 @@ func (app *AnkrChainApplication) SetOption(req types.RequestSetOption) types.Res
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	txMsgHandler, txData := router.MsgRouterInstance().TxMessageHandler(tx)
 	if txMsgHandler != nil {
+		app.app.IncTotalTx()
 		return txMsgHandler.DeliverTx(txData, app.app)
 	}
 
@@ -94,6 +96,10 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 
 func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
 	qHandler, subPath := router.QueryRouterInstance().QueryHandler(reqQuery.Path)
+	if qHandler == nil {
+		return types.ResponseQuery{Code: code.CodeQueryNoQueryHandlerFound, Log: "No query handler found" }
+	}
+
 	reqQuery.Path = subPath
 	return qHandler.Query(reqQuery)
 }
