@@ -69,6 +69,7 @@ func (app *AnkrChainApplication) SetOption(req types.RequestSetOption) types.Res
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	txMsgHandler, txData := router.MsgRouterInstance().TxMessageHandler(tx)
 	if txMsgHandler != nil {
+		app.app.IncTotalTx()
 		return txMsgHandler.DeliverTx(txData, app.app)
 	}
 

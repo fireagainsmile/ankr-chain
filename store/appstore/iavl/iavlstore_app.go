@@ -1,6 +1,7 @@
 package iavl
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/big"
@@ -23,6 +24,7 @@ import (
 const (
 	AccountKey = "acckey"
 	CertKey    = "certkey"
+	TotalTxKey = "totaltxkey"
 )
 
 type IavlStoreApp struct {
@@ -30,6 +32,7 @@ type IavlStoreApp struct {
 	lastCommitID    ankrtypes.CommitID
 	storeLog        log.Logger
 	state           sm.State
+	totaltx        int64
 	accStoreLocker  sync.RWMutex
 	certStoreLocker sync.RWMutex
 }
@@ -72,8 +75,26 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, state: state}
 
-	iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(AccountKey), []byte(""))
-	iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
+	if !iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(AccountKey)) {
+		iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(AccountKey), []byte(""))
+	}
+
+	if !iavlSM.storeMap[IAvlStoreMainKey].Has([]byte(CertKey)) {
+		iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
+	}
+
+	if !!iavlSM.storeMap[IAvlStoreMainKey].Has([]byte(TotalTxKey)) {
+		buf := make([]byte, binary.MaxVarintLen64)
+		n := binary.PutVarint(buf, int64(0))
+		iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
+	} else {
+		totalTxBytes, err := iavlSM.storeMap[IAvlStoreMainKey].Get([]byte(TotalTxKey))
+		if err == nil {
+			iavlSApp.totaltx, _ = binary.Varint(totalTxBytes)
+		}else {
+			storeLog.Error("load txtal tx error", "err", err)
+		}
+	}
 
 	/*if isKVPathExist {
 		iavlSApp.Prefixed(kvDB, kvPath)
@@ -160,6 +181,7 @@ func (sp *IavlStoreApp) LastCommit() *ankrtypes.CommitID{
 	return &sp.lastCommitID
 }
 
+/*
 func (sp *IavlStoreApp) Commit() types.ResponseCommit {
     commitID := sp.iavlSM.Commit(sp.lastCommitID.Version)
 
@@ -177,7 +199,36 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
 	}
 
 	return types.ResponseCommit{Data: rtnHash}
+}*/
+
+// Use the old hash calculation way to keep version compitable
+func (sp *IavlStoreApp) Commit() types.ResponseCommit {
+	commitID := sp.iavlSM.Commit(sp.lastCommitID.Version)
+
+	appHash := make([]byte, 8)
+	binary.PutVarint(appHash, sp.totaltx)
+
+	sp.lastCommitID.Hash = sp.lastCommitID.Hash[0:0]
+
+	sp.lastCommitID.Version = commitID.Version
+	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, appHash...)
+
+	rtnHash := appHash
+	if sp.state.LastBlockHeight != 0 && sp.state.LastBlockHeight == commitID.Version {
+		sp.lastCommitID.Hash = sp.state.AppHash
+		rtnHash              = sp.state.AppHash
+
+		sp.storeLog.Info("IavlStoreApp Commit", "rtnHash", fmt.Sprintf("%v", rtnHash), "state.LastBlockHeight", sp.state.LastBlockHeight)
+	}
+
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutVarint(buf, sp.totaltx)
+	sp.iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
+
+	return types.ResponseCommit{Data: rtnHash}
 }
+
+
 
 func (sp *IavlStoreApp) parsePath(path string)(storeName string, subPath string) {
 	if path == "" || !strings.HasPrefix(path, "/"){
@@ -326,6 +377,15 @@ func (sp *IavlStoreApp) Delete(key []byte) {
 
 func (sp *IavlStoreApp) Has(key []byte) bool {
 	return sp.iavlSM.IavlStore(IAvlStoreMainKey).Has(key)
+}
+
+func (sp *IavlStoreApp) TotalTx() int64 {
+	return sp.totaltx
+}
+
+func (sp *IavlStoreApp) IncTotalTx() int64 {
+	sp.totaltx++
+	return sp.totaltx
 }
 
 func (sp *IavlStoreApp) Height() int64 {

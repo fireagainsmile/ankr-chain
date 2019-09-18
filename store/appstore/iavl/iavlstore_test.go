@@ -6,7 +6,6 @@ import (
 
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
-
 )
 
 func TestSaveWithLevelDB(t *testing.T) {
@@ -43,5 +42,4 @@ func TestLoadWithLevelDB(t *testing.T) {
 	assert.Equal(t, err, nil)
 	assert.Equal(t, string(name1), "value1")
 }
-
 
