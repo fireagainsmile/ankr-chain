@@ -48,7 +48,7 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		oldPV.Upgrade(newPrivValKey, newPrivValState)
 	}
 
-	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), ankrtypes.APPName, logger.With("tx", "AnkrChainApp"))
+	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), config.DBBackend, ankrtypes.APPName, logger.With("tx", "AnkrChainApp"))
 
 	config.FilterPeers = config.AllowedPeers != ""
 

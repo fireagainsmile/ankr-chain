@@ -2,6 +2,7 @@ package iavl
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -10,13 +11,13 @@ import (
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/common"
-	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
+	sm "github.com/tendermint/tendermint/state"
 )
 
 const (
@@ -28,34 +29,39 @@ type IavlStoreApp struct {
 	iavlSM          *IavlStoreMulti
 	lastCommitID    ankrtypes.CommitID
 	storeLog        log.Logger
+	state           sm.State
 	accStoreLocker  sync.RWMutex
 	certStoreLocker sync.RWMutex
 }
 
-func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
+func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlStoreApp {
 	kvPath := filepath.Join(dbDir, "kvstore.db")
 	isKVPathExist, err := common.PathExists(kvPath)
 	if err != nil {
 		panic(err)
 	}
 
-	var kvDB dbm.DB
+	//var kvDB dbm.DB
 	var lcmmID ankrtypes.CommitID
+	state := sm.State{}
 	if isKVPathExist {
-		kvDB, err = dbm.NewGoLevelDB("kvstore", dbDir)
+		/*kvDB, err = dbm.NewGoLevelDB("kvstore", dbDir)
 		if err != nil {
 			panic(err)
 		}
 
 		oldState := apscomm.LoadState(kvDB)
 		lcmmID.Version = oldState.Height
-		lcmmID.Hash    = oldState.AppHash
+		lcmmID.Hash    = oldState.AppHash*/
+
+		//os.RemoveAll(kvPath)
 	}
 
-	db, err := dbm.NewGoLevelDB("appstore", dbDir)
-	if err != nil {
-		panic(err)
-	}
+	stateDB := dbm.NewDB("state", dbm.DBBackendType(dbBackend), dbDir)
+	defer stateDB.Close()
+	state = sm.LoadState(stateDB)
+
+	db := dbm.NewDB("appstore", dbm.DBBackendType(dbBackend), dbDir)
 
 	iavlSM := NewIavlStoreMulti(db, storeLog)
 
@@ -64,14 +70,14 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		lcmmID = iavlSM.lastCommit()
 	}
 
-	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog}
+	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, state: state}
 
 	iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(AccountKey), []byte(""))
 	iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
 
-	if isKVPathExist {
+	/*if isKVPathExist {
 		iavlSApp.Prefixed(kvDB, kvPath)
-	}
+	}*/
 
 	return iavlSApp
 }
@@ -159,7 +165,15 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
     sp.lastCommitID.Version = commitID.Version
 	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, commitID.Hash...)
 
-	return types.ResponseCommit{Data: commitID.Hash}
+	rtnHash := commitID.Hash
+	if sp.state.LastBlockHeight != 0 && sp.state.LastBlockHeight == commitID.Version {
+		sp.lastCommitID.Hash = sp.state.AppHash
+		rtnHash              = sp.state.AppHash
+
+		sp.storeLog.Info("IavlStoreApp Commit", "rtnHash", fmt.Sprintf("%v", rtnHash), "state.LastBlockHeight", sp.state.LastBlockHeight)
+	}
+
+	return types.ResponseCommit{Data: rtnHash}
 }
 
 func (sp *IavlStoreApp) parsePath(path string)(storeName string, subPath string) {

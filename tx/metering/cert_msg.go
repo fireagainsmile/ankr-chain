@@ -3,16 +3,14 @@ package metering
 import (
 	"encoding/base64"
 	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	tx "github.com/Ankr-network/ankr-chain/tx"
+	"github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
+	"strconv"
 )
 
 func NewSetCertTxMsg() *tx.TxMsg {
@@ -146,9 +144,7 @@ func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
 
 
 func (rc *RemoveCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	tx := txMsg.([]byte)
-	tx = tx[len(ankrtypes.RemoveCertPrefix):]
-	trxSetCertSlices := strings.SplitN(string(tx), ":", 3)
+	trxSetCertSlices := txMsg.([]string)
 	if len(trxSetCertSlices) != 3 {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Expected trx remove cert. Got %v", trxSetCertSlices), nil
 	}
