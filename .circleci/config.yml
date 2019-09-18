@@ -108,14 +108,6 @@ jobs:
             # add colon to separate with json in annotation
             sed -i '/apiVersion:/i---' k8s/ankrchain-patched.yaml
             cat k8s/ankrchain-patched.yaml
-            kubectl apply -f k8s/ankrchain-patched.yaml
-
-            for i in 1 2 3 4; do
-              if ! kubectl rollout status statefulset/ankrchain-$i --watch=true --timeout=120s; then
-                echo "Deploy failed, roll back to previous version"
-                kubectl rollout undo statefulset/ankrchain-$i
-              fi
-            done
 
             kubectl get all
             # update load balancer cert
