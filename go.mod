@@ -2,7 +2,7 @@ module github.com/Ankr-network/ankr-chain
 
 go 1.12
 
-replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-20190915180111-98f9e8c1668c
+replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-0.20190915180111-98f9e8c1668c
 
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
