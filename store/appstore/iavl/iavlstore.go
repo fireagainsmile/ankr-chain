@@ -33,6 +33,8 @@ func NewIavlStore(db dbm.DB, cacheSize int, keepVersionNum int64, logStore log.L
 		panic("create MutableTree failed")
 	}
 
+	tree.SaveVersion()
+
 	return &IavlStore{tree:tree, keepVersionNum: keepVersionNum, log: logStore}
 }
 

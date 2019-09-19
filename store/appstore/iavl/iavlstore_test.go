@@ -19,12 +19,12 @@ func TestSaveWithLevelDB(t *testing.T) {
 	iavalStore.Set([]byte("key1"), []byte("value1"))
 	iavalStore.Set([]byte("key2"), []byte("value2"))
 
-	iavalStore.Commit()
-
 	name1, err := iavalStore.Get([]byte("key1"))
 
 	assert.Equal(t, err, nil)
 	assert.Equal(t, string(name1), "value1")
+
+	db.Close()
 }
 
 func TestLoadWithLevelDB(t *testing.T) {
@@ -41,5 +41,7 @@ func TestLoadWithLevelDB(t *testing.T) {
 
 	assert.Equal(t, err, nil)
 	assert.Equal(t, string(name1), "value1")
+
+	db.Close()
 }
 
