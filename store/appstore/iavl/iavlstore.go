@@ -46,8 +46,7 @@ func (s *IavlStore) Get(key []byte) ([]byte, error) {
 		return nil, errors.New("key is nil")
 	}
 
-	version := int64(s.tree.Version())
-	_, val := s.tree.GetVersioned(key, version)
+	_, val := s.tree.Get(key)
 
 	return val, nil
 }

@@ -73,7 +73,7 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 		lcmmID = iavlSM.lastCommit()
 	}
 
-	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, state: state}
+	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, storeLog: storeLog, state: state}
 
 	if !iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(AccountKey)) {
 		iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(AccountKey), []byte(""))
@@ -83,7 +83,7 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 		iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
 	}
 
-	if !!iavlSM.storeMap[IAvlStoreMainKey].Has([]byte(TotalTxKey)) {
+	if !iavlSM.storeMap[IAvlStoreMainKey].Has([]byte(TotalTxKey)) {
 		buf := make([]byte, binary.MaxVarintLen64)
 		n := binary.PutVarint(buf, int64(0))
 		iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
@@ -96,9 +96,18 @@ func NewIavlStoreApp(dbDir string, dbBackend string, storeLog log.Logger) *IavlS
 		}
 	}
 
+	lastHash := make([]byte, 8)
+	binary.PutVarint(lastHash, iavlSApp.totaltx)
+
+	if lcmmID.Hash != nil {
+		lcmmID.Hash = lastHash
+	}
+
+	iavlSApp.lastCommitID = lcmmID
+
 	/*if isKVPathExist {
 		iavlSApp.Prefixed(kvDB, kvPath)
-	}*/
+t	}*/
 
 	return iavlSApp
 }
@@ -220,10 +229,6 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
 
 		sp.storeLog.Info("IavlStoreApp Commit", "rtnHash", fmt.Sprintf("%v", rtnHash), "state.LastBlockHeight", sp.state.LastBlockHeight)
 	}
-
-	buf := make([]byte, binary.MaxVarintLen64)
-	n := binary.PutVarint(buf, sp.totaltx)
-	sp.iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
 
 	return types.ResponseCommit{Data: rtnHash}
 }
@@ -385,6 +390,11 @@ func (sp *IavlStoreApp) TotalTx() int64 {
 
 func (sp *IavlStoreApp) IncTotalTx() int64 {
 	sp.totaltx++
+
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutVarint(buf, sp.totaltx)
+	sp.iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
+
 	return sp.totaltx
 }
 
