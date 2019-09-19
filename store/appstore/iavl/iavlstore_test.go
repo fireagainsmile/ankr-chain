@@ -29,6 +29,8 @@ func TestSaveWithLevelDB(t *testing.T) {
 	assert.Equal(t, err, nil)
 	assert.Equal(t, string(name1), "value1")
 
+	iavalStore.Commit()
+
 	db.Close()
 }
 
@@ -42,8 +44,11 @@ func TestLoadWithLevelDB(t *testing.T) {
 
 	iavalStore.Load()
 
+	val, _ := iavalStore.Get(ankrtypes.PrefixBalanceKey([]byte("7246BCE86AC2BA9CAC1B00D229B0AE08F58E3A4A1F8BD4")))
+
 	name1, err := iavalStore.Get([]byte("key1"))
 
+	assert.Equal(t, string(val), "1000000000:10")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, string(name1), "value1")
 
