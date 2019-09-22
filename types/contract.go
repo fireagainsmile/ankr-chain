@@ -1,7 +1,7 @@
 package types
 
 type Param struct {
-	Index     uint8        `json:"index"`
+	Index     int          `json:"index"`
 	ParamType string       `json:"paramType"`
 	Value     interface{} `json:"value"`
 }

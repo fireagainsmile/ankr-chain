@@ -3,7 +3,7 @@ package module
 import (
 	"encoding/json"
 
-	"github.com/Ankr-network/ankr-chain/akvm/context"
+	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec"
 )
