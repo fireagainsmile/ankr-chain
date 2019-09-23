@@ -2,6 +2,7 @@ package ankrchain
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/tx"
 	"strings"
 
@@ -29,6 +30,7 @@ type AnkrChainApplication struct {
 	app          appstore.AppStore
 	txSerializer serializer.TxSerializer
 	logger       log.Logger
+	minGasPrice  account.Assert
 }
 
 func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
