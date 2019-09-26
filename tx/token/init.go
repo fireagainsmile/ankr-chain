@@ -8,7 +8,5 @@ import (
 
 func init() {
 	tx.TxCdc.RegisterConcrete(&TransferMsg{}, "ankr-chain/tx/tranferTxMsg", nil)
-	tx.TxCdc.RegisterConcrete(&BalanceMsg{}, "ankr-chain/tx/balanceTxMsg", nil)
 	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.TrxSendPrefix, NewTransferTxMsg())
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetBalancePrefix, NewBalanceTxMsg())
 }

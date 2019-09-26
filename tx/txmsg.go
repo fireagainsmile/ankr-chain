@@ -2,16 +2,24 @@ package tx
 
 import (
 	"fmt"
+	"math/big"
+
+	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/context"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/Workiva/go-datastructures/threadsafe/err"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
+
+
+type TxMsgCallBack interface {
+	SenderAddr() string
+}
 
 type ImplTxMsg interface {
 	SignerAddr() []string
@@ -21,13 +29,19 @@ type ImplTxMsg interface {
 	Bytes() []byte
 	SetSecretKey(sk ankrcrypto.SecretKey)
 	SecretKey() ankrcrypto.SecretKey
-	ProcessTx(appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
+	ProcessTx(context context.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
+}
+
+type TxFee struct {
+	Amount account.Amount `json:"amount"`
+	Gas    *big.Int       `json:"gas"`
 }
 
 type TxMsg struct {
 	ChID        common.ChainID          `json:"chainid"`
 	Nonce       uint64                  `json:"nonce"`
     Fee         TxFee                   `json:"fee"`
+	GasPrice    account.Amount          `json:"gasprice"`
 	Signs       []ankrcrypto.Signature  `json:"signs"`
 	Memo        string                  `json:"memo"`
 	Version     string                  `json:"version"`
@@ -35,11 +49,13 @@ type TxMsg struct {
 }
 
 type txSignMsg struct {
-	ChID  common.ChainID   `json:"chainid"`
-	Nonce uint64           `json:"nonce"`
-	Fee   []byte           `json:"fee"`
-	Memo  string           `json:"memo"`
-	Data  []byte           `json:"data"`
+	ChID     common.ChainID   `json:"chainid"`
+	Nonce    uint64           `json:"nonce"`
+	Fee      TxFee            `json:"fee"`
+	GasPrice account.Amount   `json:"gasprice"`
+	Memo     string           `json:"memo"`
+	Version  string           `json:"version"`
+	Data     []byte           `json:"data"`
 }
 
 func (ts txSignMsg) Bytes() []byte {
@@ -53,11 +69,13 @@ func (ts txSignMsg) Bytes() []byte {
 
 func (tx *TxMsg) signMsg() *txSignMsg {
 	return &txSignMsg{
-		ChID:  tx.ChID,
-		Nonce: tx.Nonce,
-		Fee:   tx.Fee.Bytes(),
-		Memo:  tx.Memo,
-		Data:  tx.ImplTxMsg.Bytes(),
+		ChID:     tx.ChID,
+		Nonce:    tx.Nonce,
+		Fee:      tx.Fee,
+		GasPrice: tx.GasPrice,
+		Memo:     tx.Memo,
+		Version:  tx.Version,
+		Data:     tx.ImplTxMsg.Bytes(),
 	}
 }
 
@@ -70,7 +88,7 @@ func (tx *TxMsg) SignAndMarshal() ([]byte, error) {
 			panic(err)
 		}
 
-		tx.Sign = *signature
+		tx.Signs = []ankrcrypto.Signature{*signature}
 
 		return TxCdc.MarshalBinaryLengthPrefixed(tx)
 	}
@@ -79,7 +97,7 @@ func (tx *TxMsg) SignAndMarshal() ([]byte, error) {
 }
 
 func (tx *TxMsg) verifySignature() (uint32, string) {
-	txMsgT := &TxMsg{tx.ChID, tx.Nonce, tx.Fee, nil, tx.Memo, tx.ImplTxMsg}
+	txMsgT := &TxMsg{tx.ChID, tx.Nonce, tx.Fee, tx.GasPrice, nil, tx.Memo, tx.Version, tx.ImplTxMsg}
 	toVerifyBytes, err := serializer.NewTxSerializer().Serialize(txMsgT)
 	if err != nil {
 		return code.CodeTypeVerifySignaError, err.Error()
@@ -105,6 +123,17 @@ func (tx *TxMsg) verifySignature() (uint32, string) {
 
 }
 
+func (tx *TxMsg) verifyMinGasPrice(context context.ContextTx) (uint32, string) {
+	minGasPrice := context.MinGasPrice()
+	if tx.GasPrice.Cur.Symbol != minGasPrice.Cur.Symbol || tx.GasPrice.Value.Cmp(minGasPrice) < -1 || tx.GasPrice.Value.Cmp(minGasPrice) == 0{
+		return code.CodeTypeGasPriceIrregular, fmt.Sprintf("irregular tx gas price: txGasSymbol=%s, txGasPriceVal=%s, minGasSymbol=%s, minGasPriceVal=%s",
+			tx.GasPrice.Cur.Symbol, tx.GasPrice.Value.String(),
+			minGasPrice.Cur.Symbol, minGasPrice.Value.String())
+	}
+
+	return code.CodeTypeOK, ""
+}
+
 func (tx *TxMsg) BasicVerify(appStore appstore.AppStore) (uint32, string) {
 	codeV, log := tx.verifySignature()
 	if codeV != code.CodeTypeOK {
@@ -122,25 +151,30 @@ func (tx *TxMsg) BasicVerify(appStore appstore.AppStore) (uint32, string) {
     return code.CodeTypeOK, ""
 }
 
-func (b *TxMsg) CheckTx(appStore appstore.AppStore) types.ResponseCheckTx {
-	codeT, log := b.BasicVerify(appStore)
+func (tx *TxMsg) CheckTx(context context.ContextTx) types.ResponseCheckTx {
+	codeT, log := tx.BasicVerify(context.AppStore())
 	if codeT != code.CodeTypeOK {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	codeT, log, _ = b.ProcessTx(appStore, true)
+	codeT, log = tx.verifyMinGasPrice(context)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
+	codeT, log, _ = tx.ProcessTx(context, true)
+	if codeT != code.CodeTypeOK {
+		return types.ResponseCheckTx{Code: codeT, Log: log}
+	}
+
+	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted()}
 }
 
-func (b *TxMsg) DeliverTx(appStore appstore.AppStore) types.ResponseDeliverTx {
-	codeT, log, tags := b.ProcessTx(appStore, false)
+func (tx *TxMsg) DeliverTx(context context.ContextTx) types.ResponseDeliverTx {
+	codeT, log, tags := tx.ProcessTx(context, false)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: b.GasWanted(), GasUsed: b.GasUsed(), Tags: tags}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted(), GasUsed: tx.GasUsed(), Tags: tags}
 }

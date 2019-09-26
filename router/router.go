@@ -3,7 +3,7 @@ package router
 import (
 	"sync"
 
-	"github.com/Ankr-network/ankr-chain/store/appstore"
+	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -15,8 +15,8 @@ var (
 )
 
 type TxMessageHandler interface {
-	CheckTx(appStore appstore.AppStore) types.ResponseCheckTx
-	DeliverTx(appStore appstore.AppStore) types.ResponseDeliverTx
+	CheckTx(context context.ContextTx) types.ResponseCheckTx
+	DeliverTx(context context.ContextTx) types.ResponseDeliverTx
 }
 
 type MsgRouter struct {

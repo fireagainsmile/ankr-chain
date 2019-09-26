@@ -48,7 +48,7 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		oldPV.Upgrade(newPrivValKey, newPrivValState)
 	}
 
-	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), ankrtypes.APPName, logger.With("tx", "AnkrChainApp"))
+	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), ankrtypes.APPName, logger.With("module", "AnkrChainApp"))
 
 	config.FilterPeers = config.AllowedPeers != ""
 
@@ -66,7 +66,7 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		return nil, err
 	}
 
-	historyDBLogger := logger.With("tx", "historydb")
+	historyDBLogger := logger.With("module", "historydb")
 	historyDBLogger.Info("historydb parameter", "dbType", config.HistoryDB.Type, "dbHost", config.HistoryDB.Host, "dbName", config.HistoryDB.Name)
 	if config.HistoryDB.Type != "" && config.HistoryDB.Host != "" && config.HistoryDB.Name != "" {
 		historyDBService := historystore.NewHistoryStorageService(config.HistoryDB.Type, config.HistoryDB.Host, config.HistoryDB.Name, tmNode.EventBus(), historyDBLogger)

@@ -1,11 +1,11 @@
 package contract
 
 import (
-	"github.com/Ankr-network/ankr-chain/contract/native"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/context"
-	"github.com/Ankr-network/ankr-chain/types"
+	"github.com/Ankr-network/ankr-chain/contract/native"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -24,7 +24,7 @@ type ContractERC20 interface {
 }
 
 type Invoker interface {
-	Invoke(contractName string, method string,  params []*types.Param) (interface{}, error)
+	Invoke(code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (interface{}, error)
 }
 
 func NewInvoker(context context.ContextContract, log log.Logger) Invoker {

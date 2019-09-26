@@ -19,7 +19,7 @@ type AnkrCoin struct {
 
 func NewAnkrCoin(context context.ContextContract, log log.Logger) *AnkrCoin {
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
-	context.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Assert{"ANKR", "10000000000000000000000000000"})
+	context.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Amount{account.Currency{"ANKR", 18},totalSup})
 	return &AnkrCoin{
 		"Ankr Network",
 		"ANKR", 18,
@@ -84,8 +84,8 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 
 	balSender = balSender.Sub(balSender, value)
 	balTo     = balTo.Add(balTo, value)
-	ac.context.SetBalance(ac.context.SenderAddr(), account.Assert{ac.symbol, balSender.String()})
-	ac.context.SetBalance(toAddr, account.Assert{ac.symbol, balTo.String()})
+	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol, 18}, balSender})
+	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo})
 
 	//emit event(to do)
 
@@ -122,8 +122,8 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	balFrom = balFrom.Sub(balFrom, value)
 	balTo   = balTo.Add(balTo, value)
-	ac.context.SetBalance(ac.context.SenderAddr(), account.Assert{ac.symbol, balFrom.String()})
-	ac.context.SetBalance(toAddr, account.Assert{ac.symbol, balTo.String()})
+	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol,18}, balFrom})
+	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo})
 
 	//emit event(to do)
 
@@ -136,7 +136,7 @@ func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
 		ac.log.Error("AnkrCoin Approve invalid amount", "isSucess", isSucess)
 	}
 
-	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, account.Assert{ac.symbol, value.String()})
+	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, account.Amount{account.Currency{ac.symbol, 18},value})
 
 	//emit event(to do)
 

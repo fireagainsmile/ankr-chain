@@ -5,20 +5,26 @@ import (
 )
 
 const (
-	CodeTypeOK                 uint32 = types.CodeTypeOK
-	CodeTypeEncodingError      uint32 = 1
-	CodeTypeDecodingError      uint32 = 2
-	CodeTypeBadNonce           uint32 = 3
-	CodeTypeUnauthorized       uint32 = 4
-	CodeTypeP2PFilterPathError uint32 = 5
-	CodeTypeP2PFilterNotPass   uint32 = 6
-	CodeQueryDataLenZero       uint32 = 7
-	CodeTypeUnknownError       uint32 = 8
-	CodeTypeMismatchChainID    uint32 = 9
-	CodeTypeGetStoreNonceError uint32 = 10
-	CodeTypeInvalidAddress     uint32 = 11
-	CodeTypeVerifySignaError   uint32 = 12
-	CodeTypeBalError           uint32 = 13
-	CodeTypeGasNotEnough       uint32 = 14
-	CodeTypeTransferNotEnough  uint32 = 15
+	CodeTypeOK                     uint32 = types.CodeTypeOK
+	CodeTypeEncodingError          uint32 = 1
+	CodeTypeDecodingError          uint32 = 2
+	CodeTypeBadNonce               uint32 = 3
+	CodeTypeUnauthorized           uint32 = 4
+	CodeTypeP2PFilterPathError     uint32 = 5
+	CodeTypeP2PFilterNotPass       uint32 = 6
+	CodeQueryDataLenZero           uint32 = 7
+	CodeTypeUnknownError           uint32 = 8
+	CodeTypeMismatchChainID        uint32 = 9
+	CodeTypeGetStoreNonceError     uint32 = 10
+	CodeTypeInvalidAddress         uint32 = 11
+	CodeTypeVerifySignaError       uint32 = 12
+	CodeTypeLoadBalError           uint32 = 13
+	CodeTypeBalNotEnough           uint32 = 14
+	CodeTypeGasNotEnough           uint32 = 15
+	CodeTypeTransferNotEnough      uint32 = 16
+	CodeTypeGasPriceIrregular      uint32 = 17
+	CodeTypeLoadContractErr        uint32 = 18
+	CodeTypeCallContractErr        uint32 = 19
+	CodeTypeInvalidStakeCurrency   uint32 = 20
+	CodeTypeInvalidValidatorPubKey uint32 = 21
 )

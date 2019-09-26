@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/Ankr-network/ankr-chain/context"
-	"github.com/Ankr-network/ankr-chain/types"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -21,7 +21,7 @@ func NewNativeInvoker(context context.ContextContract, log log.Logger) *NativeIn
 	return &NativeInvoker{nativeConracts, context, log}
 }
 
-func (invoker *NativeInvoker)Invoke(contractName string, method string,  params []*types.Param) (interface{}, error) {
+func (invoker *NativeInvoker)Invoke(code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
 	natiContractI, ok := invoker.nativeConracts[contractName]
 	if !ok {
 		invoker.log.Error("NativeInvoker Invoke, can't find the responding contract", "contractName", contractName)

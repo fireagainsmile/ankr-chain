@@ -2,27 +2,20 @@ package contract
 
 import (
 	"github.com/Ankr-network/ankr-chain/context"
-	"github.com/Ankr-network/ankr-chain/types"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-type ContractType int
-const (
-	_ ContractType = iota
-	ContractTypeNative
-	ContractTypeRuntime
-)
-
 type Contract struct {
-   contractType ContractType  `json:"contracttype"`
-   address 		string        `json:"address"`
-   name         string        `json:"name"`
-   code         []byte        `json:"code"`
+   contractType ankrtypes.ContractType  `json:"contracttype"`
+   address 		string                   `json:"address"`
+   name         string                  `json:"name"`
+   code         []byte                  `json:"code"`
 }
 
-func (c *Contract) Call(context context.ContextContract, log log.Logger, contractName string, method string, params []*types.Param) (interface{}, error) {
-	if c.contractType == ContractTypeNative {
-		return NewInvoker(context, log).Invoke(contractName, method, params)
+func Call(context context.ContextContract, log log.Logger, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
+	if conType == ankrtypes.ContractTypeNative {
+		return NewInvoker(context, log).Invoke(code, contractName, method, params, rtnType)
 	}
 
 	return nil, nil

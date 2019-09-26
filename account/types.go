@@ -1,14 +1,22 @@
 package account
 
+import "math/big"
+
 type Code struct {
 	Name      string   `json:"name"`
 	CodeBytes []byte   `json:"codebytes"`
 	CodeDescs string   `json:"codedescs"`
 }
 
-type Assert struct {
-	Symbol string    `json:"symbol"`
-	Amount string    `json:"amount"`
+
+type Currency struct {
+	Symbol  string `json:"symbol"`
+	Decimal int64  `json:"decimal"`
+}
+
+type Amount struct {
+	Cur   Currency `json:"currency"`
+	Value *big.Int  `json:"value"`
 }
 
 type AccountType int
@@ -28,7 +36,13 @@ type AccountInfo struct {
 	Nonce    uint64      `json:"nonce"`
 	Address  string      `json:"address"`
 	PubKey   string      `json:"pubkey"`
-	Asserts  []Assert    `json:"asserts"`
+	Amounts  []Amount    `json:"asserts"`
+}
+
+type AllowanceInfo struct {
+	sender  string
+	spender string
+	amount  Amount
 }
 
 type ContractInfo struct {

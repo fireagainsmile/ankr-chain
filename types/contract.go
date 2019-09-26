@@ -1,5 +1,16 @@
 package types
 
+const (
+	ContractTokenStorePrefix = "TOKEN:"
+)
+
+type ContractType int
+const (
+	_ ContractType = iota
+	ContractTypeNative  = 0x01
+	ContractTypeRuntime = 0x02
+)
+
 type Param struct {
 	Index     int          `json:"index"`
 	ParamType string       `json:"paramType"`

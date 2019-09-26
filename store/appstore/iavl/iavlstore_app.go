@@ -2,6 +2,7 @@ package iavl
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Ankr-network/ankr-chain/account"
 	"math/big"
 	"os"
@@ -101,9 +102,10 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 					sp.storeLog.Error("invalid old account store will be ignored", "keyStrList's len", len(keyStrList), "valStrList's len", len(valStrList))
 				}
 
-				nonce, err := strconv.ParseInt(valStrList[1], 10, 64)
+				_, err := strconv.ParseInt(valStrList[1], 10, 64)
 				if err == nil {
-					sp.SetBalance(keyStrList[1], account.Assert{"ANKR", valStrList[0]}, uint64(nonce))
+					valI, _ := new(big.Int).SetString(valStrList[0], 10)
+					sp.SetBalance(keyStrList[1], account.Amount{account.Currency{"ANKR", 18}, valI})
 				}else {
 					if err != nil {
 						sp.storeLog.Error("invalid old account store will be ignored: parse bal fails", "err", err)
@@ -202,7 +204,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 
 	resQuery.Key = reqQuery.Data
 	if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
-		value = sp.Balance(reqQuery.Data)
+		value = sp.Balance(reqQuery.Data, "ANKR")
 		trxGetBalanceSlices := strings.Split(string(value), ":")
 		if len(trxGetBalanceSlices) == 1 {
 			_, err := new(big.Int).SetString(string(value), 10)
@@ -282,6 +284,45 @@ func (sp *IavlStoreApp) CertKeyList() []byte {
 	}
 
 	return nil
+}
+
+func (sp *IavlStoreApp) SetValidator(valInfo *ankrtypes.ValidatorInfo) {
+	valBytes := ankrtypes.EncodeValidatorInfo(sp.cdc, valInfo)
+
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set([]byte(containValidatorPrefix(valInfo.ValAddress)), valBytes)
+}
+
+func (sp *IavlStoreApp) Validator(valAddr string) (*ankrtypes.ValidatorInfo, error) {
+	valBytes, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get([]byte(containValidatorPrefix(valAddr)))
+	if err != nil {
+		return nil, fmt.Errorf("can't get the responding validator info: valAddr=%s", valAddr)
+	}
+
+	valInfo := ankrtypes.DecodeValidatorInfo(sp.cdc, valBytes)
+
+	return  &valInfo, nil
+}
+
+func (sp *IavlStoreApp) RemoveValidator(valAddr string) {
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove([]byte(containValidatorPrefix(valAddr)))
+}
+
+func (sp *IavlStoreApp) TotalValidatorPowers() int64 {
+	valPower := int64(0)
+
+	endBytes := prefixEndBytes([]byte(StoreValidatorPrefix))
+
+	sp.iavlSM.storeMap[IAvlStoreMainKey].tree.IterateRange([]byte(StoreValidatorPrefix), endBytes, true, func(key []byte, value []byte) bool{
+		if len(key) >= len(StoreValidatorPrefix) && string(key[0:len(StoreValidatorPrefix)]) == StoreValidatorPrefix {
+			valInfo := ankrtypes.DecodeValidatorInfo(sp.cdc, value)
+
+			valPower += valInfo.Power
+		}
+
+		return false
+	})
+
+	return valPower
 }
 
 func (sp *IavlStoreApp) Get(key []byte) []byte {

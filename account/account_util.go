@@ -1,6 +1,8 @@
 package account
 
-import "github.com/tendermint/go-amino"
+import (
+	"github.com/tendermint/go-amino"
+)
 
 func RegisterCodec(cdc *amino.Codec) {
 	cdc.RegisterConcrete(AccountInfo{}, "ankr-chain/account", nil)

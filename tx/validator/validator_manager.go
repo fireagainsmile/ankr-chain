@@ -3,13 +3,13 @@ package validator
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"sync"
 
-	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 var (
@@ -17,54 +17,121 @@ var (
 	instanceVM *ValidatorManager
 )
 
+type validatorPair struct {
+	validatorAddress string
+	validatorInfo    *ankrtypes.ValidatorInfo
+}
+
+type valList []validatorPair
+
+func (l valList) Swap(i, j int) {l[i], l[j] = l[j], l[i]}
+func (l valList) Len() int {return len(l)}
+func (l valList) Less(i, j int) bool {return l[i].validatorInfo.StakeAmount.Value.Cmp(l[j].validatorInfo.StakeAmount.Value) == -1  }
+
 type ValidatorManager struct {
-	valUpdates []types.ValidatorUpdate
+	requiredValCnt int
+	valMap         map[string]*ankrtypes.ValidatorInfo
 }
 
-func (vm *ValidatorManager) InitValidator(appStore appstore.AppStore) {
-	appStore.Set([]byte(ankrtypes.SET_VAL_NONCE), []byte("0"))
-	appStore.Set(PrefixStakeKey([]byte("")), []byte("0:1"))
-	/*value := []byte("")
-	value = appStore.Get([]byte(ankrtypes.AccountStakePrefix))
-	if value == nil || string(value) == "" {
-		appStore.Set(PrefixStakeKey([]byte("")), []byte("0:1"))
-	}*/
+func (vm *ValidatorManager) Power(stakeAmount *account.Amount) int64{
+	return stakeAmount.Value.Int64()
 }
 
-// add, update, or remove a validator
-func (v *ValidatorManager) UpdateValidator(valUP types.ValidatorUpdate, appStore appstore.AppStore) (uint32, string,  []cmn.KVPair) {
-	key := []byte("val:" + string(valUP.PubKey.Data))
-	if valUP.Power == 0 {
-		// remove validator
-		if !appStore.Has(key) {
-			return code.CodeTypeUnauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), nil
+func (vm *ValidatorManager) InitValidator(valUp *types.ValidatorUpdate, appStore appstore.AppStore) error {
+	pubKeyHandler, err := ankrtypes.GetValPubKeyHandler(&ankrtypes.ValPubKey{valUp.PubKey.Type, valUp.PubKey.Data})
+	if err != nil {
+		return fmt.Errorf("can't find the respond crypto pubkey handler:type=%s, err=%v", valUp.PubKey.Type, err)
+	}
+
+	valInfo := &ankrtypes.ValidatorInfo {
+		ValAddress: pubKeyHandler.Address().String(),
+	    PubKey: ankrtypes.ValPubKey{valUp.PubKey.Type, valUp.PubKey.Data},
+		Power: valUp.Power,
+	}
+
+	appStore.SetValidator(valInfo)
+
+	vm.valMap[valInfo.ValAddress] = valInfo
+}
+
+func (vm *ValidatorManager) CreateValidator(valInfo *ankrtypes.ValidatorInfo, appStore appstore.AppStore) {
+	appStore.SetValidator(valInfo)
+
+	vm.valMap[valInfo.ValAddress] = valInfo
+}
+
+func (vm *ValidatorManager) UpdateValidator(valInfo *ankrtypes.ValidatorInfo, setFlag ankrtypes.ValidatorInfoSetFlag, appStore appstore.AppStore) error {
+	valInfoS, err := appStore.Validator(valInfo.ValAddress)
+	if err != nil {
+		return err
+	}
+
+	if setFlag & ankrtypes.ValidatorInfoSetName == 1 {
+		valInfoS.Name = valInfo.Name
+	}else if setFlag & ankrtypes.ValidatorInfoSetValAddress == 1 {
+		valInfoS.ValAddress = valInfo.ValAddress
+	}else if setFlag & ankrtypes.ValidatorInfoSetPubKey == 1 {
+		valInfoS.PubKey.Type = valInfo.PubKey.Type
+		valInfoS.PubKey.Data = valInfo.PubKey.Data
+	}else if setFlag & ankrtypes.ValidatorInfoSetStakeAddress == 1 {
+		valInfoS.StakeAddress = valInfo.StakeAddress
+	}else if setFlag & ankrtypes.ValidatorInfoSetStakeAmount == 1 {
+		if valInfoS.StakeAmount.Cur.Symbol != valInfo.StakeAmount.Cur.Symbol {
+			return fmt.Errorf("ValidatorManager UpdateValidator currency conflict: orignal symbol=%s, set symbol=%s", valInfoS.StakeAmount.Cur.Symbol, valInfo.StakeAmount.Cur.Symbol)
 		}
-		appStore.Delete(key)
+		valInfoS.StakeAmount.Cur   = valInfo.StakeAmount.Cur
+		valInfoS.StakeAmount.Value = valInfo.StakeAmount.Value
+	} else if setFlag & ankrtypes.ValidatorInfoSetValidHeight == 1 {
+		valInfoS.ValidHeight = valInfo.ValidHeight
 	} else {
-		// add or update validator
-		value := bytes.NewBuffer(make([]byte, 0))
-		if err := types.WriteMessage(&valUP, value); err != nil {
-			return code.CodeTypeEncodingError, fmt.Sprintf("Error encoding validator: %v", err), nil
-		}
-		appStore.Set(key, value.Bytes())
+		return fmt.Errorf("ValidatorManager UpdateValidator invalid set setFlag=%s", setFlag)
 	}
 
-	// we only update the changes array if we successfully updated the tree
-	ValidatorManagerInstance().valUpdates = append(ValidatorManagerInstance().valUpdates, valUP)
+	appStore.SetValidator(valInfoS)
 
-	tags := []cmn.KVPair{
-		{Key: []byte("app.type"), Value: []byte("UpdateValidator")},
-	}
+	vm.valMap[valInfoS.ValAddress] = valInfoS
 
-	return code.CodeTypeOK, "", tags
+	return nil
+}
+
+func (vm *ValidatorManager) RemoveValidator(valAddr string, appStore appstore.AppStore) {
+	appStore.RemoveValidator(valAddr)
+	delete(vm.valMap, valAddr)
 }
 
 func (vm *ValidatorManager) Reset() {
-	vm.valUpdates = make([]types.ValidatorUpdate, 0)
+	vm.valMap = make(map[string]*ankrtypes.ValidatorInfo)
+}
+
+func (vm *ValidatorManager) ValBeginBlock(req types.RequestBeginBlock, appStore appstore.AppStore) {
+	for _, byzantineVal := range req.ByzantineValidators {
+		appStore.RemoveValidator(string(byzantineVal.Validator.Address))
+		delete(vm.valMap, string(byzantineVal.Validator.Address))
+	}
 }
 
 func (vm *ValidatorManager) ValUpdates() []types.ValidatorUpdate {
-	return vm.valUpdates
+	var requiredVals valList
+	for k, v := range vm.valMap {
+		if len(requiredVals) < vm.requiredValCnt {
+			requiredVals = append(requiredVals, validatorPair{k, v})
+		} else {
+			sort.Sort(requiredVals)
+			valInfo := requiredVals[len(requiredVals) -1]
+			if v.StakeAmount.Value.Cmp(valInfo.validatorInfo.StakeAmount.Value) < -1 {
+				requiredVals[len(requiredVals) -1] = validatorPair{k, v}
+			}
+		}
+	}
+
+	vp := make([]types.ValidatorUpdate, len(requiredVals))
+	for k, valPair := range requiredVals {
+		vp[k].PubKey.Type = valPair.validatorInfo.PubKey.Type
+		vp[k].PubKey.Data = valPair.validatorInfo.PubKey.Data
+		vp[k].Power       = valPair.validatorInfo.Power
+	}
+
+	return vp
 }
 
 func (vm *ValidatorManager) Validators(appStore appstore.AppStore) (validators []types.ValidatorUpdate) {
@@ -83,32 +150,12 @@ func (vm *ValidatorManager) Validators(appStore appstore.AppStore) (validators [
 }
 
 func (vm *ValidatorManager) TotalValidatorPowers(appStore appstore.AppStore) int64 {
-	var totalValPowers int64 = 0
-	it := appStore.DB().Iterator(nil, nil)
-	if it != nil && it.Valid(){
-		it.Next()
-		for it.Valid() {
-			if isValidatorTx(it.Key()) {
-				validator := new(types.ValidatorUpdate)
-				err := types.ReadMessage(bytes.NewBuffer(it.Value()), validator)
-				if err != nil {
-					panic(err)
-				}
-
-				totalValPowers += validator.Power
-				fmt.Printf("validator = %v\n", validator)
-			}
-			it.Next()
-		}
-	}
-	it.Close()
-
-	return  totalValPowers
+	return appStore.TotalValidatorPowers()
 }
 
 func ValidatorManagerInstance() *ValidatorManager {
 	onceVM.Do(func(){
-		instanceVM = &ValidatorManager{make([]types.ValidatorUpdate, 0)}
+		instanceVM = &ValidatorManager{4, make(map[string]*ankrtypes.ValidatorInfo)}
 	})
 
 	return instanceVM

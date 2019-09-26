@@ -2,15 +2,15 @@ package ankrchain
 
 import (
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/ankr-chain/tx"
 	"strings"
 
+	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/Ankr-network/ankr-chain/router"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
+	"github.com/Ankr-network/ankr-chain/tx"
 	_ "github.com/Ankr-network/ankr-chain/tx/metering"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	_ "github.com/Ankr-network/ankr-chain/tx/token"
@@ -30,7 +30,7 @@ type AnkrChainApplication struct {
 	app          appstore.AppStore
 	txSerializer serializer.TxSerializer
 	logger       log.Logger
-	minGasPrice  account.Assert
+	minGasPrice  account.Amount
 }
 
 func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
@@ -41,9 +41,9 @@ func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
 }
 
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
-	appStore := NewAppStore(dbDir, l.With("tx", "AppStore"))
+	appStore := NewAppStore(dbDir, l.With("module", "AppStore"))
 
-	router.MsgRouterInstance().SetLogger(l.With("tx", "AnkrChainRouter"))
+	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 
 	return &AnkrChainApplication{
 		APPName:      appName,
@@ -55,6 +55,19 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 
 func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 	app.logger = l
+}
+
+
+func (app *AnkrChainApplication) MinGasPrice() account.Amount {
+	return app.minGasPrice
+}
+
+func (app *AnkrChainApplication) AppStore() appstore.AppStore {
+	return app.app
+}
+
+func (app *AnkrChainApplication) Logger() log.Logger {
+	return app.logger
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
@@ -91,7 +104,7 @@ func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	txMsg, codeVal, logStr := app.dispossTx(tx)
 	if codeVal == code.CodeTypeOK {
-		return txMsg.DeliverTx(app.app)
+		return txMsg.DeliverTx(app)
 	}
 
 	return types.ResponseDeliverTx{ Code: codeVal, Log: logStr}
@@ -100,7 +113,7 @@ func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	txMsg, codeVal, logStr := app.dispossTx(tx)
 	if codeVal == code.CodeTypeOK {
-		return txMsg.CheckTx(app.app)
+		return txMsg.CheckTx(app)
 	}
 
 	return types.ResponseCheckTx{ Code: codeVal, Log: logStr}
@@ -121,17 +134,17 @@ func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.Respon
 func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
 	var initTotalPowers int64
 	for _, v := range req.Validators {
-		codeT, _, _ := val.ValidatorManagerInstance().UpdateValidator(v, app.app)
-		if codeT != code.CodeTypeOK {
-			app.logger.Error("Error updating validators", "code", codeT)
+		initTotalPowers += v.Power
+
+		if initTotalPowers > tmCoreTypes.MaxTotalVotingPower {
+			app.logger.Error("The init total validator powers reach max %d", "maxtotalvalidatorpower", tmCoreTypes.MaxTotalVotingPower)
+			return types.ResponseInitChain{}
 		}
 
-		initTotalPowers += v.Power
-	}
-
-	if initTotalPowers > tmCoreTypes.MaxTotalVotingPower {
-		app.logger.Error("The init total validator powers reach max %d", "maxtotalvalidatorpower", tmCoreTypes.MaxTotalVotingPower)
-		return types.ResponseInitChain{}
+		err := val.ValidatorManagerInstance().InitValidator(&v, app.app)
+		if err != nil {
+			app.logger.Error("InitChain error updating validators", "err", err)
+		}
 	}
 
 	sbytes := string(req.AppStateBytes)
@@ -154,15 +167,13 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
     app.app.InitGenesisAccount()
 	app.app.InitFoundAccount()
-	val.ValidatorManagerInstance().InitValidator(app.app)
 
 	return types.ResponseInitChain{}
 }
 
 // Track the block hash and header information
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	// reset valset changes
-	val.ValidatorManagerInstance().Reset()
+	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
 	return types.ResponseBeginBlock{}
 }
 

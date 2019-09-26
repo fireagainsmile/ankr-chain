@@ -1,18 +1,24 @@
 package appstore
 
 import (
+	"math/big"
+
 	"github.com/Ankr-network/ankr-chain/account"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
-	"math/big"
+
 )
 
 type AccountStore interface {
 	InitGenesisAccount()
 	InitFoundAccount()
 	Nonce(address string) (uint64, error)
-	SetBalance(address string, amount account.Assert)
+	IncNonce(address string) (uint64, error)
+	SetBalance(address string, amount account.Amount)
 	Balance(address string, symbol string) (*big.Int, error)
+	SetAllowance(addrSender string, addrSpender string, amount account.Amount)
+	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
 }
 
 type TxStore interface {
@@ -20,6 +26,10 @@ type TxStore interface {
 	SetCertKey(key []byte, val []byte)
 	CertKey(key []byte) []byte
 	DeleteCertKey(key []byte)
+	SetValidator(valInfo *ankrtypes.ValidatorInfo)
+	Validator(valAddr string) (*ankrtypes.ValidatorInfo, error)
+	RemoveValidator(valAddr string)
+	TotalValidatorPowers() int64
 	Get(key []byte) []byte
 	Set(key []byte, val []byte)
 	Delete(key []byte)

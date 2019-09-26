@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrcontext "github.com/Ankr-network/ankr-chain/context"
+	"github.com/Ankr-network/ankr-chain/contract"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
+	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -27,138 +28,88 @@ func NewTransferTxMsg() *tx.TxMsg {
 type TransferMsg struct {
 	FromAddr string           `json:"fromaddr"`
 	ToAddr   string           `json:"toaddr"`
-	Asserts []account.Assert  `json:"asserts"`
+	Amounts  []account.Amount `json:"amounts"`
+	gasUsed  *big.Int
 }
 
-func (tr *TransferMsg) SignerAddr() []string {
-	return []string {tr.FromAddr}
+func (tf *TransferMsg) SignerAddr() []string {
+	return []string {tf.FromAddr}
 }
 
-func (tr *TransferMsg) GasWanted() int64 {
+func (tf *TransferMsg) GasWanted() int64 {
 	return 0
 }
 
-func (tr *TransferMsg) GasUsed() int64 {
+func (tf *TransferMsg) GasUsed() int64 {
 	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
 
 	return gasUsed
 }
 
 func (tr *TransferMsg) Type() string {
-	return ankrtypes.TrxSendPrefix
+	return txcmm.TxMsgTypeTransfer
 }
 
-func (tr *TransferMsg) Bytes() []byte {
+func (tf *TransferMsg) Bytes() []byte {
 	return nil
 }
-func (tr *TransferMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
+func (tf *TransferMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 
 }
 
-func (tr *TransferMsg) SecretKey() ankrcrypto.SecretKey {
+func (tf *TransferMsg) SecretKey() ankrcrypto.SecretKey {
 	return nil
 }
 
-func (tr *TransferMsg) ProcessTx(appStore appstore.AppStore, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
-	if len(tr.FromAddr) != ankrtypes.KeyAddressLen {
-		return  code.CodeTypeEncodingError, fmt.Sprintf("Unexpected from address. Got %v", tr.FromAddr), nil
+func (tf *TransferMsg) SpendGas(gas *big.Int) bool {
+      tf.gasUsed.Add(tf.gasUsed, gas)
+	return true
+}
+
+func (tf *TransferMsg) SenderAddr() string {
+	return tf.FromAddr
+}
+
+func (tf *TransferMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+	if len(tf.FromAddr) != ankrtypes.KeyAddressLen {
+		return  code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected from address. Got %s, addr len=%d", tf.FromAddr, len(tf.FromAddr)), nil
 	}
-
-	if len(tr.ToAddr) != ankrtypes.KeyAddressLen {
-		return  code.CodeTypeEncodingError, fmt.Sprintf("Unexpected to address. Got %v", tr.FromAddr), nil
-	}
-
-	ankrBal, err := appStore.Balance(tr.FromAddr, "ANKR")
-	if err != nil {
-		return code.CodeTypeBalError, err.Error(), nil
-	}
-	minGas, _ := new(big.Int).SetString(MIN_TOKEN_SEND, 10)
-	if ankrBal.Cmp(minGas) == -1 || ankrBal.Cmp(minGas) == 0 {
-		return code.CodeTypeGasNotEnough, fmt.Sprintf("not enough gas: address=%s, bal=%s", tr.FromAddr, ankrBal.String()), nil
-	}
-
-	var fromBalI *big.Int
-	for _, assert := range  tr.Asserts {
-		amountSend, ret := new(big.Int).SetString(assert.Amount, 10)
-		if !ret {
-			return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected amount. Got %v", assert.Amount), nil
-		} else {
-			zeroN, _ := new(big.Int).SetString("0", 10)
-			if amountSend.Cmp(zeroN) == -1 {
-				return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected amount, negative num. Got %v, assert=%s", assert.Amount, assert.Symbol), nil
-			}
-
-
-			if assert.Symbol == "ANKR" {
-				minN, _ := new(big.Int).SetString(MIN_TOKEN_SEND, 10)
-				if amountSend.Cmp(minN) == -1 || amountSend.Cmp(minN) == 0 {
-					return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected amount, not enough amount. Got %v", assert.Amount), nil
-				}
-
-				// check stake here. If from balance is less than stake, let it fail.
-				var isSucess bool
-				cstake, _ := new(big.Int).SetString("0", 10)
-				value := appStore.Get([]byte(ankrtypes.AccountStakePrefix))
-				if value == nil || string(value) == "" {
-					// do nothing for now
-				} else {
-					stakeNonceSlices := strings.Split(string(value), ":")
-					cstake, isSucess = new(big.Int).SetString(string(stakeNonceSlices[0]), 10)
-					if !isSucess {
-						return code.CodeTypeEncodingError, fmt.Sprintf("stake format error, %v", stakeNonceSlices[0]), nil
-					}
-				}
-
-				fromBalI = ankrBal
-				amountSendTemp, _ := new(big.Int).SetString(amountSend.String(), 10)
-				amountSendTemp.Add(amountSendTemp, minGas)
-				amountSendTemp.Add(amountSendTemp, cstake)
-				if fromBalI.Cmp(amountSendTemp) == -1 {
-					return code.CodeTypeTransferNotEnough, fmt.Sprintf("Not enough balance amount: %s, tr amount=%s, assert=%s", fromBalI.String(), amountSendTemp.String(), assert.Symbol), nil
-				}
-			} else {
-				fromBalI, err = appStore.Balance(tr.FromAddr, assert.Symbol)
-				if err != nil {
-					return code.CodeTypeBalError, err.Error(), nil
-				}
-
-				if fromBalI.Cmp(amountSend) == -1 {
-					return code.CodeTypeTransferNotEnough, fmt.Sprintf("Not enough balance amount: %s, tr amount=%s, assert=%s", fromBalI.String(), assert.Amount, assert.Symbol), nil
-				}
-			}
-
-			if !isOnlyCheck {
-				fromBalI.Sub(fromBalI, amountSend)
-
-				toBalI, err := appStore.Balance(tr.ToAddr, assert.Symbol)
-				if err != nil {
-					return code.CodeTypeBalError, err.Error(), nil
-				}
-				toBalI.Add(toBalI, amountSend)
-
-				fundBalI, err := appStore.Balance(account.AccountManagerInstance().FoundAccountAddress(), assert.Symbol)
-				if err != nil {
-					return code.CodeTypeBalError, err.Error(), nil
-				}
-				fundBalI.Add(toBalI, minGas)
-
-				appStore.SetBalance(tr.FromAddr, account.Assert{assert.Symbol, fromBalI.String()})
-				appStore.SetBalance(tr.ToAddr, account.Assert{assert.Symbol, toBalI.String()})
-				appStore.SetBalance(account.AccountManagerInstance().FoundAccountAddress(), account.Assert{assert.Symbol, fundBalI.String()})
-			}
-		}
+	if len(tf.ToAddr) != ankrtypes.KeyAddressLen {
+		return code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected to address. Got %s, addr len=%d", tf.ToAddr, len(tf.ToAddr)), nil
 	}
 
 	if isOnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
 
-	ankrBal.Sub(ankrBal, minGas)
+	trAmount := tf.Amounts[0]
+	tokenContract, err := context.AppStore().LoadContract([]byte(ankrtypes.ContractTokenStorePrefix + trAmount.Cur.Symbol))
+	if err != nil {
+		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: name = %s", ankrtypes.ContractTokenStorePrefix + trAmount.Cur.Symbol), nil
+	}
+
+	params :=  []*ankrtypes.Param{&ankrtypes.Param{0, "string", tf.FromAddr},
+		&ankrtypes.Param{1, "string", tf.ToAddr},
+		&ankrtypes.Param{2, "string", tf.Amounts[0].Value.String()},
+	}
+
+	contractType    := ankrtypes.ContractType(tokenContract[0])
+	contractContext := ankrcontext.NewContextContract(tf, tf, context.AppStore())
+    rtn, err := contract.Call(contractContext, context.Logger().With("module", "contract"), contractType, tokenContract[1:], "ANKR", "TransferFrom", params, "bool")
+    if err != nil {
+    	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
+	}
+    isCallSucess := rtn.(bool)
+    if !isCallSucess {
+		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom", tf.Amounts[0].Cur.Symbol), nil
+	}
+
+	context.AppStore().IncNonce(tf.FromAddr)
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
-		{Key: []byte("app.fromaddress"), Value: []byte(tr.FromAddr)},
-		{Key: []byte("app.toaddress"), Value: []byte(tr.ToAddr)},
+		{Key: []byte("app.fromaddress"), Value: []byte(tf.FromAddr)},
+		{Key: []byte("app.toaddress"), Value: []byte(tf.ToAddr)},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte("Send")},
 	}

@@ -7,6 +7,5 @@ import (
 
 func init() {
 	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.ValidatorSetChangePrefix, NewValidatorTxMsg())
-	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetStakePrefix, NewStakeTxMsg())
 }
 
