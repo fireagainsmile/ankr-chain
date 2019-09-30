@@ -44,6 +44,62 @@ func NewModuleEnv() *ModuleEnv {
 		Name: StrcmpFunc,
 	})
 
+	mEnv.RegisterImportedFunc(JsonObjectIndexFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonObjectIndex),
+		Name: JsonObjectIndexFunc,
+	})
+
+	mEnv.RegisterImportedFunc(JsonCreateObjectFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonCreateObject),
+		Name: JsonCreateObjectFunc,
+	})
+
+	mEnv.RegisterImportedFunc(JsonGetIntFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonGetInt),
+		Name: JsonGetIntFunc,
+	})
+
+	mEnv.RegisterImportedFunc(JsonGetStringFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonGetString),
+		Name: JsonGetStringFunc,
+	})
+
+	mEnv.RegisterImportedFunc(JsonPutIntFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonPutInt),
+		Name: JsonPutIntFunc,
+	})
+
+	mEnv.RegisterImportedFunc(JsonPutStringFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonPutString),
+		Name: JsonPutStringFunc,
+	})
+
+	mEnv.RegisterImportedFunc(JsonToStringFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(JsonToString),
+		Name: JsonToStringFunc,
+	})
+
+	mEnv.RegisterImportedFunc(TrigEventFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(TrigEvent),
+		Name: TrigEventFunc,
+	})
+
 	return mEnv
 }
 

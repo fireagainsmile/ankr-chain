@@ -12,4 +12,7 @@ const (
 type Signature struct {
 	tmcrypto.PubKey  `json:"pubkey"`
 	Signed  []byte   `json:"signed"`
+	R       string   `json:"R"`
+	S       string   `json:"S"`
+	PubPEM  string   `json:"PubPEM"`
 }

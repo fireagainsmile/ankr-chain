@@ -13,7 +13,7 @@ import (
 )
 
 type TxMsgTesting struct {
-	ToAddr  string           `json:"toaddr"`
+	ToAddr  string            `json:"toaddr"`
 	Asserts []account.Assert `json:"asserts"`
 }
 

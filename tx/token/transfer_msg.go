@@ -111,7 +111,7 @@ func (tf *TransferMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool
 		{Key: []byte("app.fromaddress"), Value: []byte(tf.FromAddr)},
 		{Key: []byte("app.toaddress"), Value: []byte(tf.ToAddr)},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
-		{Key: []byte("app.type"), Value: []byte("Send")},
+		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeTransfer)},
 	}
 
 	return code.CodeTypeOK, "", tags

@@ -17,9 +17,7 @@ import (
 )
 
 
-type TxMsgCallBack interface {
-	SenderAddr() string
-}
+
 
 type ImplTxMsg interface {
 	SignerAddr() []string

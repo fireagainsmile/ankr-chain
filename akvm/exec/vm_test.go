@@ -9,61 +9,70 @@ import (
 )
 
 func TestExecuteWithNoReturn(t *testing.T) {
-	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/cpp/example/TestContract.wasm")
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
 	if err != nil {
-		t.Errorf("can read wasm file: %s", err.Error())
+		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
 	wasmVM := NewWASMVirtualMachine(rawBytes, log.DefaultRootLogger.With("contract", "test"))
 	assert.NotEqual(t, wasmVM, nil)
 
-	arg1, _ := wasmVM.wasmVM.SetBytes([]byte("Test"))
-	fnIndex := wasmVM.ExportFnIndex("testFunc")
+	jsonArg := "{\"testStr\":\"testFunc arg\"}"
+
+	method, _ := wasmVM.wasmVM.SetBytes([]byte("testFunc"))
+	arg, _ := wasmVM.wasmVM.SetBytes([]byte(jsonArg))
+	fnIndex := wasmVM.ExportFnIndex("ContractEntry")
 	assert.NotEqual(t, fnIndex, -1)
-	_, err = wasmVM.Execute(fnIndex, "", arg1)
+	_, err = wasmVM.Execute(fnIndex, "", []uint64{method, arg}...)
 	if err != nil {
 		t.Fatalf("could not execute Main: %v", err)
 	}
 }
 
 func TestExecuteWithIntReturn(t *testing.T) {
-	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/cpp/example/TestContract.wasm")
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
 	if err != nil {
-		t.Errorf("can read wasm file: %s", err.Error())
+		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
 	wasmVM := NewWASMVirtualMachine(rawBytes, log.DefaultRootLogger.With("contract", "test"))
 	assert.NotEqual(t, wasmVM, nil)
 
-	arg1, _ := wasmVM.wasmVM.SetBytes([]byte("Test"))
-	fnIndex := wasmVM.ExportFnIndex("testFuncWithInt")
+	jsonArg := "{\"testStr\":\"testFuncWithInt arg\"}"
+
+	method, _ := wasmVM.wasmVM.SetBytes([]byte("testFuncWithInt"))
+	arg, _ := wasmVM.wasmVM.SetBytes([]byte(jsonArg))
+	fnIndex := wasmVM.ExportFnIndex("ContractEntry")
+
 	assert.NotEqual(t, fnIndex, -1)
-	rtnIndex, err := wasmVM.Execute(fnIndex, "", arg1)
+	rtnStr, err := wasmVM.Execute(fnIndex, "string", []uint64{method, arg}...)
 	if err != nil {
 		t.Fatalf("could not execute Main: %v", err)
 	}
 
-	t.Logf("testFuncWithInt rtn=%d", rtnIndex)
+	t.Logf("testFuncWithInt rtn=%s", rtnStr)
 }
 
 func TestExecuteWithStringReturn(t *testing.T) {
-	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/cpp/example/TestContract.wasm")
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
 	if err != nil {
-		t.Errorf("can read wasm file: %s", err.Error())
+		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
 	wasmVM := NewWASMVirtualMachine(rawBytes, log.DefaultRootLogger.With("contract", "test"))
 	assert.NotEqual(t, wasmVM, nil)
 
-	arg1, _ := wasmVM.wasmVM.SetBytes([]byte("Test"))
-	fnIndex := wasmVM.ExportFnIndex("testFuncWithString")
+	jsonArg := "{\"testStr\":\"testFuncWithString arg\"}"
+
+	method, _ := wasmVM.wasmVM.SetBytes([]byte("testFuncWithString"))
+	arg, _ := wasmVM.wasmVM.SetBytes([]byte(jsonArg))
+	fnIndex := wasmVM.ExportFnIndex("ContractEntry")
+
 	assert.NotEqual(t, fnIndex, -1)
-	rtnIndex, err := wasmVM.Execute(fnIndex, "string", arg1)
+	rtnStr, err := wasmVM.Execute(fnIndex, "string", []uint64{method, arg}...)
 	if err != nil {
 		t.Fatalf("could not execute Main: %v", err)
 	}
-
-	rtnStr, _ := rtnIndex.(string)
 
 	t.Logf("testFuncWithInt rtn=%s", rtnStr)
 }

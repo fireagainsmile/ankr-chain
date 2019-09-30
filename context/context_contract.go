@@ -1,13 +1,16 @@
 package context
 
 import (
-	"github.com/Ankr-network/ankr-chain/tx"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/go-interpreter/wagon/gas"
 )
+
+type TxMsgCallBack interface {
+	SenderAddr() string
+}
 
 type ContextContract interface {
 	SpendGas(gas *big.Int) bool
@@ -20,11 +23,11 @@ type ContextContract interface {
 
 type ContextContractImpl struct {
 	gas.GasMetric
-	tx.TxMsgCallBack
+	TxMsgCallBack
 	appstore.AccountStore
 }
 
-func NewContextContract(gasMetric gas.GasMetric, txCallBack tx.TxMsgCallBack, accStore appstore.AccountStore) ContextContract {
+func NewContextContract(gasMetric gas.GasMetric, txCallBack TxMsgCallBack, accStore appstore.AccountStore) ContextContract {
 	return &ContextContractImpl{gasMetric, txCallBack, accStore}
 }
 

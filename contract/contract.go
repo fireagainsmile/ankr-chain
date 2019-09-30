@@ -8,7 +8,7 @@ import (
 
 type Contract struct {
    contractType ankrtypes.ContractType  `json:"contracttype"`
-   address 		string                   `json:"address"`
+   address 		string                  `json:"address"`
    name         string                  `json:"name"`
    code         []byte                  `json:"code"`
 }

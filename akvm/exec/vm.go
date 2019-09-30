@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+
 	"github.com/Ankr-network/ankr-chain/akvm/memory"
 	"github.com/Ankr-network/ankr-chain/akvm/module"
 	"github.com/go-interpreter/wagon/exec"

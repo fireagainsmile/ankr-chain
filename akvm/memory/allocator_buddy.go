@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/go-interpreter/wagon/exec/common"
 )
 
@@ -37,7 +38,7 @@ func newAllocatorBuddy(totalSize uint) *allocatorBuddy {
 
 	for i := uint(0); i <  2 * totalSize - 1; i++ {
 		if common.IsPowOf2(i+1) {
-			nodeSizeTemp /= 1
+			nodeSizeTemp /= 2
 		}
 
 		allocBuddy.nodesSize[i] = nodeSizeTemp
@@ -77,7 +78,7 @@ func (allocator *allocatorBuddy) alloc(size uint) (uint64, error) {
     	index = parentIndex(index)
     	leftNodeSize  := allocator.nodesSize[leftChildIndex(index)]
     	rightNodeSize := allocator.nodesSize[rightChildIndex(index)]
-    	allocator.nodesSize[index] = uint(math.Float64bits(math.Max(float64(leftNodeSize), float64(rightNodeSize))))
+    	allocator.nodesSize[index] = ankrcmm.MaxUint(leftNodeSize, rightNodeSize)
 	}
 
     return offset, nil

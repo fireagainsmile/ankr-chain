@@ -10,6 +10,10 @@ import (
 	"github.com/go-interpreter/wagon/exec"
 )
 
+const (
+	ContractEntry = "ContractEntry"
+)
+
 type ContractInvoke struct {
 
 }
@@ -27,7 +31,7 @@ func (c *ContractInvoke) InvokeInternal(vmContext *exec.VMContext, code []byte, 
 
 	akvm.SetContrInvoker(c)
 
-	fnIndex := akvm.ExportFnIndex(method)
+	fnIndex := akvm.ExportFnIndex(ContractEntry)
 	if fnIndex == -1 {
 		return -1, fmt.Errorf("can't get valid fnIndex: method=%s", method)
 	}
