@@ -8,6 +8,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/contract"
 	"github.com/Ankr-network/ankr-chain/router"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
@@ -64,8 +65,9 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 func NewMockAnkrChainApplication(appName string, l log.Logger) *AnkrChainApplication {
 	appStore := NewMockAppStore()
 
-	appStore.InitGenesisAccount()
+	contract.Init(appStore, l.With("module", "contract"))
 	appStore.InitFoundAccount()
+
 
 	return &AnkrChainApplication{
 		APPName:      appName,
@@ -192,7 +194,7 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 	app.ChainId = common.ChainID(req.ChainId)
 
-    app.app.InitGenesisAccount()
+	contract.Init(app.app, app.logger.With("module", "contract"))
 	app.app.InitFoundAccount()
 
 	return types.ResponseInitChain{}

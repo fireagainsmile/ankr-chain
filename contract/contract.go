@@ -2,21 +2,26 @@ package contract
 
 import (
 	"github.com/Ankr-network/ankr-chain/context"
+	"github.com/Ankr-network/ankr-chain/contract/native"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-type Contract struct {
-   contractType ankrtypes.ContractType  `json:"contracttype"`
-   address 		string                  `json:"address"`
-   name         string                  `json:"name"`
-   code         []byte                  `json:"code"`
+var invokerMap map[ankrtypes.ContractType]Invoker
+
+func Init(store appstore.AppStore,  log log.Logger) {
+	native.Init(store, log)
+	registerInvoker(store, log)
 }
 
-func Call(context context.ContextContract, log log.Logger, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
-	if conType == ankrtypes.ContractTypeNative {
-		return NewInvoker(context, log).Invoke(code, contractName, method, params, rtnType)
-	}
+func registerInvoker(store appstore.AppStore, log log.Logger){
+	invokerMap = make(map[ankrtypes.ContractType]Invoker)
 
-	return nil, nil
+	nativeInvoker := native.NewNativeInvoker(store, log)
+	invokerMap[ankrtypes.ContractTypeNative] = nativeInvoker
+}
+
+func Call(context context.ContextContract, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
+	return invokerMap[conType].Invoke(context, code, contractName, method, params, rtnType)
 }

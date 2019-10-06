@@ -4,9 +4,7 @@ import (
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/context"
-	"github.com/Ankr-network/ankr-chain/contract/native"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 //ERC20 standard interface
@@ -24,9 +22,6 @@ type ContractERC20 interface {
 }
 
 type Invoker interface {
-	Invoke(code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (interface{}, error)
+	Invoke(context context.ContextContract, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (interface{}, error)
 }
 
-func NewInvoker(context context.ContextContract, log log.Logger) Invoker {
-	return native.NewNativeInvoker(context, log)
-}

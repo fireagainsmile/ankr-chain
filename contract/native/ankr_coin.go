@@ -1,6 +1,7 @@
 package native
 
 import (
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/account"
@@ -17,16 +18,20 @@ type AnkrCoin struct {
 	log         log.Logger
 }
 
-func NewAnkrCoin(context context.ContextContract, log log.Logger) *AnkrCoin {
+func NewAnkrCoin(store appstore.AppStore, log log.Logger) *AnkrCoin {
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
-	context.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Amount{account.Currency{"ANKR", 18},totalSup.Bytes()})
+	store.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Amount{account.Currency{"ANKR", 18},totalSup.Bytes()})
 	return &AnkrCoin{
 		"Ankr Network",
 		"ANKR", 18,
 		totalSup,
-		context,
+		nil,
 		log,
 	}
+}
+
+func (ac *AnkrCoin) SetContextContract(context context.ContextContract) {
+	ac.context = context
 }
 
 func (ac *AnkrCoin) Name() string {
@@ -78,8 +83,7 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 
 	balTo := ac.BalanceOf(toAddr)
 	if balTo == nil {
-		ac.log.Error("AnkrCoin Transfer toAddr balance nil", "toAddr", toAddr)
-		return false
+		balTo = new(big.Int).SetUint64(0)
 	}
 
 	balSender = balSender.Sub(balSender, value)
@@ -116,8 +120,7 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	balTo := ac.BalanceOf(toAddr)
 	if balTo == nil {
-		ac.log.Error("AnkrCoin Transfer toAddr balance nil", "toAddr", toAddr)
-		return false
+		balTo = new(big.Int).SetUint64(0)
 	}
 
 	balFrom = balFrom.Sub(balFrom, value)

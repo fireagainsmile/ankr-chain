@@ -167,7 +167,5 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
-	context.AppStore().IncNonce(tx.SignerAddr()[0])
-
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted(), GasUsed: tx.GasUsed(), Tags: tags}
 }

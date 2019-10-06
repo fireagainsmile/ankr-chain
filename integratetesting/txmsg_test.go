@@ -50,4 +50,7 @@ func TestTxTransfer(t *testing.T) {
 
 	respCheckTx := txM.CheckTx(txContext)
 	assert.Equal(t, respCheckTx.Code, code.CodeTypeOK)
+
+	respDeliverTx := txM.DeliverTx(txContext)
+	assert.Equal(t, respDeliverTx.Code, code.CodeTypeOK)
 }

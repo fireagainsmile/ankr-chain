@@ -2,6 +2,7 @@ package native
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"reflect"
 
 	"github.com/Ankr-network/ankr-chain/context"
@@ -11,21 +12,32 @@ import (
 
 type NativeInvoker struct {
 	nativeConracts map[string]interface{}
-	context       context.ContextContract
-	log           log.Logger
+	context        context.ContextContract
+	log            log.Logger
 }
 
-func NewNativeInvoker(context context.ContextContract, log log.Logger) *NativeInvoker {
-	nativeConracts := map[string]interface{}{"AnkrCoin" : NewAnkrCoin(context, log)}
+func NewNativeInvoker(store appstore.AppStore, log log.Logger) *NativeInvoker {
+	nativeConracts := map[string]interface{}{"ANKR" : NewAnkrCoin(store, log)}
 
-	return &NativeInvoker{nativeConracts, context, log}
+	return &NativeInvoker{nativeConracts, nil, log}
 }
 
-func (invoker *NativeInvoker)Invoke(code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
+func (invoker *NativeInvoker) SetContextContract(context context.ContextContract) {
+	invoker.context = context
+	for _, v := range invoker.nativeConracts {
+		methodValue := reflect.ValueOf(v).MethodByName("SetContextContract")
+		if methodValue.IsValid() {
+			methodValue.Call([]reflect.Value{reflect.ValueOf(context)})
+		}
+	}
+}
+
+func (invoker *NativeInvoker) Invoke(context context.ContextContract, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
+	invoker.SetContextContract(context)
 	natiContractI, ok := invoker.nativeConracts[contractName]
 	if !ok {
 		invoker.log.Error("NativeInvoker Invoke, can't find the responding contract", "contractName", contractName)
-		return nil, fmt.Errorf("NativeInvoker Invoke, can't find the responding contract, contractName=%d", contractName)
+		return nil, fmt.Errorf("NativeInvoker Invoke, can't find the responding contract, contractName=%s", contractName)
 	}
 
 	natiContract := reflect.ValueOf(natiContractI)

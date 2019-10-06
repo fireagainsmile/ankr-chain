@@ -73,7 +73,7 @@ func (tf *TransferMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (tf *TransferMsg) SpendGas(gas *big.Int) bool {
-      tf.gasUsed.Add(tf.gasUsed, gas)
+	tf.gasUsed.Add(tf.gasUsed, gas)
 	return true
 }
 
@@ -106,7 +106,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 
 	contractType    := ankrtypes.ContractType(tokenContract[0])
 	contractContext := ankrcontext.NewContextContract(tf, tf, context.AppStore())
-    rtn, err := contract.Call(contractContext, context.Logger().With("module", "contract"), contractType, tokenContract[1:], "ANKR", "TransferFrom", params, "bool")
+    rtn, err := contract.Call(contractContext, contractType, tokenContract[1:], "ANKR", "TransferFrom", params, "bool")
     if err != nil {
     	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
 	}
