@@ -21,15 +21,21 @@ const (
 	MIN_TOKEN_SEND = "5000000000000000000" // 5 tokens
 )
 
-func NewTransferTxMsg() *tx.TxMsg {
-	return &tx.TxMsg{ImplTxMsg: new(TransferMsg)}
-}
-
 type TransferMsg struct {
 	FromAddr string           `json:"fromaddr"`
 	ToAddr   string           `json:"toaddr"`
 	Amounts  []account.Amount `json:"amounts"`
 	gasUsed  *big.Int
+}
+
+type signTransferMsg struct {
+	FromAddr string           `json:"fromaddr"`
+	ToAddr   string           `json:"toaddr"`
+	Amounts  []account.Amount `json:"amounts"`
+}
+
+func (stf signTransferMsg) bytes(txSerializer tx.TxSerializer) ([]byte, error) {
+	return txSerializer.MarshalJSON(&stf)
 }
 
 func (tf *TransferMsg) SignerAddr() []string {
@@ -46,12 +52,17 @@ func (tf *TransferMsg) GasUsed() int64 {
 	return gasUsed
 }
 
-func (tr *TransferMsg) Type() string {
+func (tf *TransferMsg) Type() string {
 	return txcmm.TxMsgTypeTransfer
 }
 
-func (tf *TransferMsg) Bytes() []byte {
-	return nil
+func (tf *TransferMsg) signMsg() *signTransferMsg {
+	return &signTransferMsg{FromAddr: tf.FromAddr, ToAddr: tf.ToAddr/*, Amounts: tf.Amounts*/}
+}
+
+func (tf *TransferMsg) Bytes(txSerializer tx.TxSerializer) []byte {
+	bytes, _ :=  tf.signMsg().bytes(txSerializer)
+	return bytes
 }
 func (tf *TransferMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 
@@ -70,7 +81,7 @@ func (tf *TransferMsg) SenderAddr() string {
 	return tf.FromAddr
 }
 
-func (tf *TransferMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
 	if len(tf.FromAddr) != ankrtypes.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected from address. Got %s, addr len=%d", tf.FromAddr, len(tf.FromAddr)), nil
 	}
@@ -90,7 +101,7 @@ func (tf *TransferMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool
 
 	params :=  []*ankrtypes.Param{&ankrtypes.Param{0, "string", tf.FromAddr},
 		&ankrtypes.Param{1, "string", tf.ToAddr},
-		&ankrtypes.Param{2, "string", tf.Amounts[0].Value.String()},
+		&ankrtypes.Param{2, "string", new(big.Int).SetBytes(tf.Amounts[0].Value).String()},
 	}
 
 	contractType    := ankrtypes.ContractType(tokenContract[0])

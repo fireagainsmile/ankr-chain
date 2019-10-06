@@ -14,7 +14,7 @@ import (
 
 type TxMsgTesting struct {
 	ToAddr  string            `json:"toaddr"`
-	Asserts []account.Assert `json:"asserts"`
+	Asserts []account.Amount `json:"asserts"`
 }
 
 func (tr *TxMsgTesting) FromAddress() string {

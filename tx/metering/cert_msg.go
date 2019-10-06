@@ -1,5 +1,6 @@
 package metering
 
+/*
 import (
 	"encoding/base64"
 	"fmt"
@@ -211,3 +212,5 @@ func (rc *RemoveCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 
 	return code.CodeTypeOK, "", tags
 }
+
+*/

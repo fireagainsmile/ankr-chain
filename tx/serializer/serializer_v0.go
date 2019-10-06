@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/Ankr-network/ankr-chain/tx"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 )
 
@@ -39,15 +40,15 @@ func (txdv1 *TxSerializerV0) Deserialize(txBytes []byte) (*tx.TxMsg, error) {
 		return nil, errors.New("nil tx")
 	}
 
-	txPrefix, err := ParseTxPrefix(txBytes)
+	_, err := ParseTxPrefix(txBytes)
 	if err != nil {
-		txType = ""
-		data   = nil
-		return "", nil, err
+		//txType = ""
+		//data   = nil
+		return  nil, err
 	}
 
-	txType = txPrefix
-	data   = strings.Split(string(txBytes[len(txPrefix):]), ":")
+	//txType = txPrefix
+	//data   = strings.Split(string(txBytes[len(txPrefix):]), ":")
 
-	return
+	return nil, nil
 }

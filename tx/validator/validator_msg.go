@@ -1,33 +1,22 @@
 package validator
 
 import (
-	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
-	tx "github.com/Ankr-network/ankr-chain/tx"
+	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	tmCoreTypes "github.com/tendermint/tendermint/types"
-	"strconv"
 )
 
 const (
 	MIN_TOKEN_VALIDATOR = "0"
 )
-
-func NewValidatorTxMsg() *tx.TxMsg {
-	return &tx.TxMsg{ImplTxMsg: new(ValidatorMsg)}
-}
 
 type ValidatorMsg struct {
 	Action       uint8                          `json:"action"` //1-create; 2-update; 3-remove
@@ -39,6 +28,21 @@ type ValidatorMsg struct {
 	ValidHeight  uint64                         `json:"validheight"`
 	SetFlag      ankrtypes.ValidatorInfoSetFlag `json:"setflag"`
 	gasUsed      *big.Int                       `json:"gasused"`
+}
+
+type signValidatorMsg struct {
+	Action       uint8                          `json:"action"` //1-create; 2-update; 3-remove
+	FromAddress  string                         `json:"fromaddress"`
+	Name         string                         `json:"name"`
+	PubKey       ankrtypes.ValPubKey            `json:"pubkey"`
+	StakeAddress string                         `json:"stakeaddress"`
+	StakeAmount  account.Amount                 `json:"stakeamount"`
+	ValidHeight  uint64                         `json:"validheight"`
+	SetFlag      ankrtypes.ValidatorInfoSetFlag `json:"setflag"`
+}
+
+func (sv signValidatorMsg) bytes(txSerializer tx.TxSerializer) ([]byte, error){
+	return txSerializer.MarshalJSON(&sv)
 }
 
 func (v *ValidatorMsg) SignerAddr() []string {
@@ -64,8 +68,14 @@ func (v *ValidatorMsg) Type() string {
 	return txcmm.TxMsgTypeValidator
 }
 
-func (v *ValidatorMsg) Bytes() []byte {
-	return nil
+func (v *ValidatorMsg) signMsg() *signValidatorMsg {
+	return &signValidatorMsg{v.Action, v.FromAddress, v.Name, v.PubKey, v.StakeAddress, v.StakeAmount, v.ValidHeight, v.SetFlag}
+}
+
+func (v *ValidatorMsg) Bytes(txSerializer tx.TxSerializer) []byte {
+	bytes, _ := v.signMsg().bytes(txSerializer)
+
+	return bytes
 }
 func (v *ValidatorMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 
@@ -75,7 +85,7 @@ func (v *ValidatorMsg) SecretKey() ankrcrypto.SecretKey {
 	return nil
 }
 
-func (v *ValidatorMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
+func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
 	if len(v.FromAddress) != ankrtypes.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("ValidatorMsg ProcessTx, unexpected from address. Got %s, addr len=%d", v.FromAddress, len(v.FromAddress)), nil
 	}
@@ -94,7 +104,7 @@ func (v *ValidatorMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool
 	}
 
 	amountTemp, _ := new(big.Int).SetString(MIN_TOKEN_VALIDATOR, 10)
-	amountTemp = amountTemp.Add(amountTemp, v.StakeAmount.Value)
+	amountTemp = amountTemp.Add(amountTemp, new(big.Int).SetBytes(v.StakeAmount.Value))
 
 	if bal.Cmp(amountTemp) == 0 || bal.Cmp(amountTemp) == -1 {
 		return code.CodeTypeBalNotEnough, fmt.Sprintf("ValidatorMsg ProcessTx, balance not enough, bal=%s, expected=%s", bal.String(), amountTemp.String()), nil
@@ -104,8 +114,8 @@ func (v *ValidatorMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool
 		return code.CodeTypeOK, "", nil
 	}
 
-	bal := bal.Sub(bal, amountTemp)
-	context.AppStore().SetBalance(v.StakeAddress, account.Amount{account.Currency{"ANKR", 18}, bal})
+	bal = bal.Sub(bal, amountTemp)
+	context.AppStore().SetBalance(v.StakeAddress, account.Amount{account.Currency{"ANKR", 18}, bal.Bytes()})
 
 	pubKeyHandler, err := ankrtypes.GetValPubKeyHandler(&v.PubKey)
 	if err != nil {
@@ -125,9 +135,9 @@ func (v *ValidatorMsg) ProcessTx(context ankrcontext.ContextTx, isOnlyCheck bool
 	case 1:
 		ValidatorManagerInstance().CreateValidator(valInfo, context.AppStore())
 	case 2:
-		ValidatorManagerInstance().UpdateValidator(valInfo, context.AppStore())
+		ValidatorManagerInstance().UpdateValidator(valInfo, v.SetFlag, context.AppStore())
 	case 3:
-		ValidatorManagerInstance().RemoveValidator(valInfo.ValAddress)
+		ValidatorManagerInstance().RemoveValidator(valInfo.ValAddress, context.AppStore())
 	}
 
 	tags := []cmn.KVPair{

@@ -3,31 +3,26 @@ package tx
 import (
 	"fmt"
 	"math/big"
+	"crypto/sha256"
 
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	"github.com/Ankr-network/ankr-chain/context"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
-	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
-
-
-
 
 type ImplTxMsg interface {
 	SignerAddr() []string
 	GasWanted() int64
 	GasUsed() int64
 	Type() string
-	Bytes() []byte
+	Bytes(txSerializer TxSerializer) []byte
 	SetSecretKey(sk ankrcrypto.SecretKey)
 	SecretKey() ankrcrypto.SecretKey
-	ProcessTx(context context.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
+	ProcessTx(context ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
 }
 
 type TxFee struct {
@@ -56,8 +51,8 @@ type txSignMsg struct {
 	Data     []byte           `json:"data"`
 }
 
-func (ts txSignMsg) Bytes() []byte {
-	msgBytes, err := TxCdc.MarshalJSON(ts)
+func (ts txSignMsg) Bytes(txSerializer TxSerializer) []byte {
+	msgBytes, err := txSerializer.MarshalJSON(&ts)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +60,7 @@ func (ts txSignMsg) Bytes() []byte {
 	return msgBytes
 }
 
-func (tx *TxMsg) signMsg() *txSignMsg {
+func (tx *TxMsg) signMsg(txSerializer TxSerializer) *txSignMsg {
 	return &txSignMsg{
 		ChID:     tx.ChID,
 		Nonce:    tx.Nonce,
@@ -73,72 +68,70 @@ func (tx *TxMsg) signMsg() *txSignMsg {
 		GasPrice: tx.GasPrice,
 		Memo:     tx.Memo,
 		Version:  tx.Version,
-		Data:     tx.ImplTxMsg.Bytes(),
+		Data:     tx.ImplTxMsg.Bytes(txSerializer),
 	}
 }
 
-func (tx *TxMsg) SignAndMarshal() ([]byte, error) {
-	signMsg := tx.signMsg()
+func (tx *TxMsg) SignAndMarshal(txSerializer TxSerializer, key ankrcrypto.SecretKey) ([]byte, error) {
+	signMsg := tx.signMsg(txSerializer)
 	if signMsg != nil {
-		signMsgBytes := signMsg.Bytes()
-		signature, err := tx.SecretKey().Sign(signMsgBytes)
+		signMsgBytes := signMsg.Bytes(txSerializer)
+		signature, err := key.Sign(signMsgBytes)
 		if err != nil {
 			panic(err)
 		}
 
 		tx.Signs = []ankrcrypto.Signature{*signature}
 
-		return TxCdc.MarshalBinaryLengthPrefixed(tx)
+		return txSerializer.Serialize(tx)
 	}
 
 	return nil, nil
 }
 
-func (tx *TxMsg) verifySignature() (uint32, string) {
-	txMsgT := &TxMsg{tx.ChID, tx.Nonce, tx.Fee, tx.GasPrice, nil, tx.Memo, tx.Version, tx.ImplTxMsg}
-	toVerifyBytes, err := serializer.NewTxSerializer().Serialize(txMsgT)
-	if err != nil {
-		return code.CodeTypeVerifySignaError, err.Error()
-	}
-
+func (tx *TxMsg) verifySignature(txSerializer TxSerializer) (uint32, string) {
+	signMsg := tx.signMsg(txSerializer)
+	toVerifyBytes := signMsg.Bytes(txSerializer)
 	for i, signerAddr := range tx.SignerAddr() {
 		if len(signerAddr) != ankrtypes.KeyAddressLen {
 			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer address. Got %v, len=%d", signerAddr, len(signerAddr))
 		}
 
 		addr := tx.Signs[i].PubKey.Address()
-		if len(addr) != ankrtypes.KeyAddressLen {
-			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer. Got %v, addr len=%d", addr, len(addr))
+		if len(addr.String()) != ankrtypes.KeyAddressLen {
+			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer. Got %v, addr len=%d", addr, len(addr.String()))
 		}
 
-		isOk := tx.Signs[i].PubKey.VerifyBytes(toVerifyBytes, tx.Signs[i].Signed)
+		sum := sha256.Sum256(toVerifyBytes)
+		isOk := tx.Signs[i].PubKey.VerifyBytes(sum[:32], tx.Signs[i].Signed)
 		if !isOk {
-			return code.CodeTypeVerifySignaError, fmt.Sprintf("can't pass sign verifying for signer: pubKey=%s", string(sign.PubKey.Bytes()))
+			return code.CodeTypeVerifySignaError, fmt.Sprintf("can't pass sign verifying for signer: pubKey=%v", tx.Signs[i].PubKey.Bytes())
 		}
 	}
 
 	return code.CodeTypeOK, ""
-
 }
 
-func (tx *TxMsg) verifyMinGasPrice(context context.ContextTx) (uint32, string) {
+func (tx *TxMsg) verifyMinGasPrice(context ContextTx) (uint32, string) {
 	minGasPrice := context.MinGasPrice()
-	if tx.GasPrice.Cur.Symbol != minGasPrice.Cur.Symbol || tx.GasPrice.Value.Cmp(minGasPrice) < -1 || tx.GasPrice.Value.Cmp(minGasPrice) == 0{
+	gasPriceVal := new(big.Int).SetBytes(tx.GasPrice.Value)
+	minGasPriceVal :=  new(big.Int).SetBytes(minGasPrice.Value)
+	if tx.GasPrice.Cur.Symbol != minGasPrice.Cur.Symbol || gasPriceVal.Cmp(minGasPriceVal) < -1 || gasPriceVal.Cmp(minGasPriceVal) == 0{
 		return code.CodeTypeGasPriceIrregular, fmt.Sprintf("irregular tx gas price: txGasSymbol=%s, txGasPriceVal=%s, minGasSymbol=%s, minGasPriceVal=%s",
-			tx.GasPrice.Cur.Symbol, tx.GasPrice.Value.String(),
-			minGasPrice.Cur.Symbol, minGasPrice.Value.String())
+			tx.GasPrice.Cur.Symbol, gasPriceVal.String(),
+			minGasPrice.Cur.Symbol, minGasPriceVal.String())
 	}
 
 	return code.CodeTypeOK, ""
 }
 
-func (tx *TxMsg) BasicVerify(appStore appstore.AppStore) (uint32, string) {
-	codeV, log := tx.verifySignature()
+func (tx *TxMsg) BasicVerify(context ContextTx) (uint32, string) {
+	codeV, log := tx.verifySignature(context.TxSerializer())
 	if codeV != code.CodeTypeOK {
 		return codeV, log
 	}
 
-	onceStore, err := appStore.Nonce(tx.SignerAddr()[0])
+	onceStore, err := context.AppStore().Nonce(tx.SignerAddr()[0])
 	if err != nil {
 		return code.CodeTypeGetStoreNonceError, err.Error()
 	}
@@ -149,8 +142,8 @@ func (tx *TxMsg) BasicVerify(appStore appstore.AppStore) (uint32, string) {
     return code.CodeTypeOK, ""
 }
 
-func (tx *TxMsg) CheckTx(context context.ContextTx) types.ResponseCheckTx {
-	codeT, log := tx.BasicVerify(context.AppStore())
+func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
+	codeT, log := tx.BasicVerify(context)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
@@ -168,11 +161,13 @@ func (tx *TxMsg) CheckTx(context context.ContextTx) types.ResponseCheckTx {
 	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted()}
 }
 
-func (tx *TxMsg) DeliverTx(context context.ContextTx) types.ResponseDeliverTx {
+func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	codeT, log, tags := tx.ProcessTx(context, false)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
+
+	context.AppStore().IncNonce(tx.SignerAddr()[0])
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted(), GasUsed: tx.GasUsed(), Tags: tags}
 }

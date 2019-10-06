@@ -2,6 +2,7 @@ package ankrchain
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/Ankr-network/ankr-chain/account"
@@ -28,7 +29,7 @@ type AnkrChainApplication struct {
 	ChainId      common.ChainID
 	APPName      string
 	app          appstore.AppStore
-	txSerializer serializer.TxSerializer
+	txSerializer tx.TxSerializer
 	logger       log.Logger
 	minGasPrice  account.Amount
 }
@@ -40,16 +41,38 @@ func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
 	return  appStore
 }
 
+func NewMockAppStore() appstore.AppStore {
+	appStore := iavl.NewMockIavlStoreApp()
+	router.QueryRouterInstance().AddQueryHandler("store", appStore)
+
+	return  appStore
+}
+
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
 	appStore := NewAppStore(dbDir, l.With("module", "AppStore"))
 
-	router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
+	//router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 
 	return &AnkrChainApplication{
 		APPName:      appName,
 		app:          appStore,
-		txSerializer: serializer.NewTxSerializer(),
+		txSerializer: serializer.NewTxSerializerCDC(),
 		logger:  l,
+	}
+}
+
+func NewMockAnkrChainApplication(appName string, l log.Logger) *AnkrChainApplication {
+	appStore := NewMockAppStore()
+
+	appStore.InitGenesisAccount()
+	appStore.InitFoundAccount()
+
+	return &AnkrChainApplication{
+		APPName:      appName,
+		app:          appStore,
+		txSerializer: serializer.NewTxSerializerCDC(),
+		logger:  l,
+		minGasPrice: account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
 	}
 }
 
@@ -68,6 +91,10 @@ func (app *AnkrChainApplication) AppStore() appstore.AppStore {
 
 func (app *AnkrChainApplication) Logger() log.Logger {
 	return app.logger
+}
+
+func (app *AnkrChainApplication) TxSerializer() tx.TxSerializer {
+	return app.txSerializer
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {

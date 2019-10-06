@@ -1,5 +1,6 @@
 package router
 
+/*
 import (
 	"sync"
 
@@ -60,6 +61,7 @@ func MsgRouterInstance() *MsgRouter {
 	return instanceMR
 }
 
+*/
 
 
 

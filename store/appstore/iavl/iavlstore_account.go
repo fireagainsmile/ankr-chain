@@ -41,7 +41,7 @@ func (sp *IavlStoreApp) InitGenesisAccount() {
 	accInfo.Nonce   = 0
 	accInfo.Address = addr
 	accInfo.PubKey  = ""
-	accInfo.Amounts = []account.Amount{account.Amount{account.Currency{"ANKR",18}, totalSupply}}
+	accInfo.Amounts = []account.Amount{account.Amount{account.Currency{"ANKR",18}, totalSupply.Bytes()}}
 
 
 	sp.addAccount(&accInfo)
@@ -54,7 +54,7 @@ func (sp *IavlStoreApp) InitFoundAccount() {
 	accInfo.Nonce   = 0
 	accInfo.Address = addr
 	accInfo.PubKey  = ""
-	accInfo.Amounts = []account.Amount{{account.Currency{Symbol: "ANKR"}, new(big.Int).SetUint64(0)}}
+	accInfo.Amounts = []account.Amount{{account.Currency{Symbol: "ANKR"}, new(big.Int).SetUint64(0).Bytes()}}
 
 	sp.addAccount(&accInfo)
 }
@@ -202,13 +202,13 @@ func (sp *IavlStoreApp) Balance(address string, symbol string) (*big.Int, error)
 		return nil, err
 	}
 
-	return assert.Value, nil
+	return new(big.Int).SetBytes(assert.Value), nil
 }
 
 func (sp *IavlStoreApp) SetAllowance(addrSender string, addrSpender string, amount account.Amount) {
 	key := containAccountAllowPrefix(addrSender, addrSpender, amount.Cur.Symbol)
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(key)) {
-		sp.iavlSM.IavlStore(IavlStoreAccountKey).Set([]byte(key), []byte(amount.Value.String()))
+		sp.iavlSM.IavlStore(IavlStoreAccountKey).Set([]byte(key), amount.Value)
 	}
 }
 

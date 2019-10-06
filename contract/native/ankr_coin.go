@@ -19,7 +19,7 @@ type AnkrCoin struct {
 
 func NewAnkrCoin(context context.ContextContract, log log.Logger) *AnkrCoin {
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
-	context.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Amount{account.Currency{"ANKR", 18},totalSup})
+	context.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Amount{account.Currency{"ANKR", 18},totalSup.Bytes()})
 	return &AnkrCoin{
 		"Ankr Network",
 		"ANKR", 18,
@@ -84,8 +84,8 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 
 	balSender = balSender.Sub(balSender, value)
 	balTo     = balTo.Add(balTo, value)
-	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol, 18}, balSender})
-	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo})
+	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol, 18}, balSender.Bytes()})
+	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo.Bytes()})
 
 	//emit event(to do)
 
@@ -122,8 +122,8 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	balFrom = balFrom.Sub(balFrom, value)
 	balTo   = balTo.Add(balTo, value)
-	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol,18}, balFrom})
-	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo})
+	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol,18}, balFrom.Bytes()})
+	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo.Bytes()})
 
 	//emit event(to do)
 
@@ -136,7 +136,7 @@ func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
 		ac.log.Error("AnkrCoin Approve invalid amount", "isSucess", isSucess)
 	}
 
-	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, account.Amount{account.Currency{ac.symbol, 18},value})
+	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, account.Amount{account.Currency{ac.symbol, 18},value.Bytes()})
 
 	//emit event(to do)
 

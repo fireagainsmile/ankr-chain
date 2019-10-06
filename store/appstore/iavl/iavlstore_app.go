@@ -105,7 +105,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 				_, err := strconv.ParseInt(valStrList[1], 10, 64)
 				if err == nil {
 					valI, _ := new(big.Int).SetString(valStrList[0], 10)
-					sp.SetBalance(keyStrList[1], account.Amount{account.Currency{"ANKR", 18}, valI})
+					sp.SetBalance(keyStrList[1], account.Amount{account.Currency{"ANKR", 18}, valI.Bytes()})
 				}else {
 					if err != nil {
 						sp.storeLog.Error("invalid old account store will be ignored: parse bal fails", "err", err)
@@ -204,7 +204,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 
 	resQuery.Key = reqQuery.Data
 	if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
-		value = sp.Balance(reqQuery.Data, "ANKR")
+		value = []byte{} //sp.Balance(reqQuery.Data, "ANKR")
 		trxGetBalanceSlices := strings.Split(string(value), ":")
 		if len(trxGetBalanceSlices) == 1 {
 			_, err := new(big.Int).SetString(string(value), 10)

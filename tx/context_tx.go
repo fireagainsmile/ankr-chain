@@ -1,4 +1,4 @@
-package context
+package tx
 
 import (
 	"github.com/Ankr-network/ankr-chain/account"
@@ -9,5 +9,6 @@ import (
 type ContextTx interface {
 	MinGasPrice() account.Amount
 	AppStore() appstore.AppStore
+	TxSerializer() TxSerializer
 	Logger() log.Logger
 }

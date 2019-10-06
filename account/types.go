@@ -1,7 +1,5 @@
 package account
 
-import "math/big"
-
 type Code struct {
 	Name      string   `json:"name"`
 	CodeBytes []byte   `json:"codebytes"`
@@ -16,7 +14,7 @@ type Currency struct {
 
 type Amount struct {
 	Cur   Currency `json:"currency"`
-	Value *big.Int  `json:"value"`
+	Value []byte  `json:"value"`
 }
 
 type AccountType int

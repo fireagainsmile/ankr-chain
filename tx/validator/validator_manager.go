@@ -3,6 +3,7 @@ package validator
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"sort"
 	"sync"
 
@@ -26,7 +27,11 @@ type valList []validatorPair
 
 func (l valList) Swap(i, j int) {l[i], l[j] = l[j], l[i]}
 func (l valList) Len() int {return len(l)}
-func (l valList) Less(i, j int) bool {return l[i].validatorInfo.StakeAmount.Value.Cmp(l[j].validatorInfo.StakeAmount.Value) == -1  }
+func (l valList) Less(i, j int) bool {
+	valIStakeV := new(big.Int).SetBytes(l[i].validatorInfo.StakeAmount.Value)
+	valJStakeV := new(big.Int).SetBytes(l[j].validatorInfo.StakeAmount.Value)
+	return valIStakeV.Cmp(valJStakeV) == -1
+}
 
 type ValidatorManager struct {
 	requiredValCnt int
@@ -34,7 +39,7 @@ type ValidatorManager struct {
 }
 
 func (vm *ValidatorManager) Power(stakeAmount *account.Amount) int64{
-	return stakeAmount.Value.Int64()
+	return new(big.Int).SetBytes(stakeAmount.Value).Int64()
 }
 
 func (vm *ValidatorManager) InitValidator(valUp *types.ValidatorUpdate, appStore appstore.AppStore) error {
@@ -52,6 +57,8 @@ func (vm *ValidatorManager) InitValidator(valUp *types.ValidatorUpdate, appStore
 	appStore.SetValidator(valInfo)
 
 	vm.valMap[valInfo.ValAddress] = valInfo
+
+	return nil
 }
 
 func (vm *ValidatorManager) CreateValidator(valInfo *ankrtypes.ValidatorInfo, appStore appstore.AppStore) {
@@ -118,7 +125,7 @@ func (vm *ValidatorManager) ValUpdates() []types.ValidatorUpdate {
 		} else {
 			sort.Sort(requiredVals)
 			valInfo := requiredVals[len(requiredVals) -1]
-			if v.StakeAmount.Value.Cmp(valInfo.validatorInfo.StakeAmount.Value) < -1 {
+			if new(big.Int).SetBytes(v.StakeAmount.Value).Cmp(new(big.Int).SetBytes(valInfo.validatorInfo.StakeAmount.Value)) < -1 {
 				requiredVals[len(requiredVals) -1] = validatorPair{k, v}
 			}
 		}

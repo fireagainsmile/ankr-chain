@@ -2,14 +2,25 @@ package serializer
 
 import (
 	"errors"
+
 	"github.com/Ankr-network/ankr-chain/tx"
+	"github.com/tendermint/go-amino"
 )
 
 type TxSerializerCDC struct {
+	txCDC *amino.Codec
+}
+
+func NewTxSerializerCDC() *TxSerializerCDC {
+	return &TxSerializerCDC {CreateTxCDC()}
 }
 
 func (txs *TxSerializerCDC) Serialize(txMsg *tx.TxMsg) ([]byte, error) {
-	return  tx.TxCdc.MarshalBinaryLengthPrefixed(txMsg)
+	return txs.txCDC.MarshalBinaryLengthPrefixed(txMsg)
+}
+
+func (txs *TxSerializerCDC) MarshalJSON(msg interface{}) ([]byte, error) {
+	return txs.txCDC.MarshalJSON(msg)
 }
 
 func (txs *TxSerializerCDC) Deserialize(txBytes []byte) (*tx.TxMsg, error) {
@@ -19,7 +30,7 @@ func (txs *TxSerializerCDC) Deserialize(txBytes []byte) (*tx.TxMsg, error) {
 		return nil, errors.New("nil tx")
 	}
 
-	err := tx.TxCdc.UnmarshalBinaryLengthPrefixed(txBytes, &txMsg)
+	err := txs.txCDC.UnmarshalBinaryLengthPrefixed(txBytes, &txMsg)
 	if err == nil {
 		return &txMsg, nil
 	} else {

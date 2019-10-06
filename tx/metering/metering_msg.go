@@ -1,5 +1,6 @@
 package metering
 
+/*
 import (
 	"encoding/base64"
 	"fmt"
@@ -71,7 +72,7 @@ func (m *MeteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, i
 		return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected nonce8. Got %v", nonceS), nil
 	}
 
-	/* verify nonce */
+	//verify nonce
 	var nonceOld int64 = 0
 	meteringRec := appStore.Get(m.prefixSetMeteringKey([]byte(dcS + ":" + nsS)))
 	if meteringRec == nil || string(meteringRec) == "" {
@@ -92,7 +93,7 @@ func (m *MeteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, i
 		return  code.CodeTypeEncodingError, fmt.Sprintf("nonce should be one more than last nonce. Got %v", nonceS), nil
 	}
 
-	/* verify sig */
+	// verify sig
 	pemB64Byte := appStore.Get(prefixCertKey([]byte(dcS)))
 	if len(pemB64Byte) == 0 {
 		return  code.CodeTypeEncodingError, fmt.Sprintf("can not find cert file of %s", dcS), nil
@@ -125,3 +126,5 @@ func (m *MeteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore, i
 
 	return code.CodeTypeOK, "", tags
 }
+
+*/
