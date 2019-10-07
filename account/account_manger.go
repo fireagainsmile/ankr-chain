@@ -13,7 +13,7 @@ var (
 
 type AdminAccountType int
 const (
-	_ AdminAccountType = AdminAccountType(AccountAdminOP-1)
+	_ AdminAccountType = iota//AdminAccountType(AccountAdminOP-1)
 	AdminAccountOP
 	AdminAccountValidator
 	AdminAccountFound
@@ -56,7 +56,6 @@ func AccountManagerInstance() *AccountManager{
 				AdminAccountValidator : "trwr09Y8sqIdg2H7vhJFsf4aBowBzqkMOjzAGu2ZF6E=",
 				AdminAccountFound : "dBCzB+l/WYxqk+i54a4addy1XhiIK5t0IAZ5OKtegWY=",
 				AdminAccountMetering : "wvHG3EddBbXQHcyJal0CS/YQcNYtEbFYxejnqf9OhM4=",
-
 			}}
 		} else if common.RM == common.RunModeProd {
 			instanceAM = &AccountManager{map[AdminAccountType]string{
@@ -64,7 +63,6 @@ func AccountManagerInstance() *AccountManager{
 				AdminAccountValidator : "cGSgVIfAsXWbuWImGxJlNzfqruzuGA+4JXv5gfB0FyY=",
 				AdminAccountFound : "sasRoTNPFzpJIHkTILaJaBnhcoC78zJk1Jy3s1/xvAE=",
 				AdminAccountMetering : "cOKct2+weTftBpTvhvFKqzg9tBkN7gG/gtFVuoE53e0=",
-
 			}}
 		}
 	})

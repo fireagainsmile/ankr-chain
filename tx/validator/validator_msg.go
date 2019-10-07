@@ -76,9 +76,9 @@ func (v *ValidatorMsg) signMsg() *signValidatorMsg {
 }
 
 func (v *ValidatorMsg) Bytes(txSerializer tx.TxSerializer) []byte {
-	bytes, _ := v.signMsg().bytes(txSerializer)
+	bytesSign, _ := v.signMsg().bytes(txSerializer)
 
-	return bytes
+	return bytesSign
 }
 func (v *ValidatorMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 
@@ -134,7 +134,7 @@ func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 	bal = bal.Sub(bal, amountTemp)
 	context.AppStore().SetBalance(v.StakeAddress, account.Amount{account.Currency{"ANKR", 18}, bal.Bytes()})
 
-	pubKeyHandler, err := ankrtypes.GetValPubKeyHandler(&v.PubKey)
+	pubKeyHandler, err := ankrcrypto.GetValPubKeyHandler(&v.PubKey)
 	if err != nil {
 		return code.CodeTypeInvalidValidatorPubKey, fmt.Sprintf("can't find the respond crypto pubkey handler:type=%s", v.PubKey.Type), nil
 	}

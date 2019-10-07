@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/Ankr-network/ankr-chain/account"
+	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
@@ -43,7 +44,7 @@ func (vm *ValidatorManager) Power(stakeAmount *account.Amount) int64{
 }
 
 func (vm *ValidatorManager) InitValidator(valUp *types.ValidatorUpdate, appStore appstore.AppStore) error {
-	pubKeyHandler, err := ankrtypes.GetValPubKeyHandler(&ankrtypes.ValPubKey{valUp.PubKey.Type, valUp.PubKey.Data})
+	pubKeyHandler, err := ankrcrypto.GetValPubKeyHandler(&ankrtypes.ValPubKey{valUp.PubKey.Type, valUp.PubKey.Data})
 	if err != nil {
 		return fmt.Errorf("can't find the respond crypto pubkey handler:type=%s, err=%v", valUp.PubKey.Type, err)
 	}
