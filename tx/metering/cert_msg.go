@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/account"
 
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
@@ -55,7 +56,7 @@ func (sc *SetCertMsg) SecretKey() ankrcrypto.SecretKey {
 func (sc *SetCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(defaultAdminPubKeyOfMetering())
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AdminAccountMetering))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
@@ -77,8 +78,10 @@ func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32,
 
 	context.AppStore().SetCertKey(sc.DCName, sc.NSName, sc.PemBase64)
 
+	context.AppStore().IncNonce(sc.FromAddr)
+
 	tags := []cmn.KVPair{
-		{Key: []byte("app.type"), Value: []byte("SetCertMsg")},
+		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeSetCertMsg)},
 	}
 
 	return code.CodeTypeOK, "", tags
@@ -123,7 +126,7 @@ func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
 func (sc *RemoveCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(defaultAdminPubKeyOfMetering())
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AdminAccountMetering))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
@@ -145,8 +148,10 @@ func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint
 
 	context.AppStore().DeleteCertKey(rc.DCName, rc.NSName)
 
+	context.AppStore().IncNonce(rc.FromAddr)
+
 	tags := []cmn.KVPair{
-		{Key: []byte("app.type"), Value: []byte("RemoveCert")},
+		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeRemoveCertMsg)},
 	}
 
 	return code.CodeTypeOK, "", tags

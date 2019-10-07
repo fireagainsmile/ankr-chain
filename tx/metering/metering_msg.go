@@ -64,11 +64,13 @@ func (m *MeteringMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32,
 
 	context.AppStore().SetMetering(m.DCName, m.NSName, m.Value)
 
+	context.AppStore().IncNonce(m.FromAddr)
+
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
 		{Key: []byte("app.metering"), Value: []byte(m.DCName + ":" + m.NSName)},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
-		{Key: []byte("app.type"), Value: []byte("SetMetering")},
+		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeMeteringMsg)},
 	}
 
 	return code.CodeTypeOK, "", tags

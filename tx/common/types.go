@@ -7,4 +7,5 @@ const (
 	TxMsgTypeSetCertMsg    = "SetCertMsg"
 	TxMsgTypeRemoveCertMsg = "RemoveCertMsg"
 	TxMsgTypeMeteringMsg   = "MeteringMsg"
+	TxMsgTypeKeyMsg        = "KeyMsg"
 )

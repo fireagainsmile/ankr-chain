@@ -21,6 +21,7 @@ const (
 )
 
 type AccountManager struct {
+	adminAccMap map[AdminAccountType]string
 }
 
 func (am *AccountManager) GenesisAccountAddress() string {
@@ -43,15 +44,29 @@ func (am *AccountManager) FoundAccountAddress() string {
 	return ""
 }
 
-func (am *AccountManager) AdminOpAccount() map[AdminAccountType]string {
-	adminAccMap := make(map[AdminAccountType]string, 4)
-
-	return adminAccMap
+func (am *AccountManager) AdminOpAccount(opType AdminAccountType) string {
+	return am.adminAccMap[opType]
 }
 
 func AccountManagerInstance() *AccountManager{
 	onceAM.Do(func(){
-		instanceAM = new(AccountManager)
+		if common.RM == common.RunModeTesting {
+			instanceAM = &AccountManager{map[AdminAccountType]string{
+				AdminAccountOP : "sxhP4F6OLZKNPQ2lG13WcHzitNX9++h56cppBDhwMlI=",
+				AdminAccountValidator : "trwr09Y8sqIdg2H7vhJFsf4aBowBzqkMOjzAGu2ZF6E=",
+				AdminAccountFound : "dBCzB+l/WYxqk+i54a4addy1XhiIK5t0IAZ5OKtegWY=",
+				AdminAccountMetering : "wvHG3EddBbXQHcyJal0CS/YQcNYtEbFYxejnqf9OhM4=",
+
+			}}
+		} else if common.RM == common.RunModeProd {
+			instanceAM = &AccountManager{map[AdminAccountType]string{
+				AdminAccountOP : "j90knB4tx3d6xi9KefyCl2FwS/hd/jpEj+cbHdzFcqM=",
+				AdminAccountValidator : "cGSgVIfAsXWbuWImGxJlNzfqruzuGA+4JXv5gfB0FyY=",
+				AdminAccountFound : "sasRoTNPFzpJIHkTILaJaBnhcoC78zJk1Jy3s1/xvAE=",
+				AdminAccountMetering : "cOKct2+weTftBpTvhvFKqzg9tBkN7gG/gtFVuoE53e0=",
+
+			}}
+		}
 	})
 
 	return instanceAM

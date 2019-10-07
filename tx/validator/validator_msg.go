@@ -1,7 +1,10 @@
 package validator
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"math/big"
 	"strconv"
 
@@ -82,7 +85,21 @@ func (v *ValidatorMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 }
 
 func (v *ValidatorMsg) SecretKey() ankrcrypto.SecretKey {
-	return nil
+	return &ankrcrypto.SecretKeyEd25519{}
+}
+
+func (v *ValidatorMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
+	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME))
+	if len(adminPubkey) == 0 {
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AdminAccountValidator))
+	}
+
+	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
+	if err != nil {
+		return false
+	}
+
+	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
 func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {

@@ -65,6 +65,7 @@ func (tf *TransferMsg) Bytes(txSerializer tx.TxSerializer) []byte {
 	bytes, _ :=  tf.signMsg().bytes(txSerializer)
 	return bytes
 }
+
 func (tf *TransferMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 
 }

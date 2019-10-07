@@ -1,5 +1,6 @@
-package account
+package key
 
+/*
 import (
 	"github.com/Ankr-network/ankr-chain/router"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
@@ -8,3 +9,5 @@ import (
 func init() {
 	router.MsgRouterInstance().AddTxMessageHandler(ankrtypes.SetOpPrefix, NewAdminAccountMsgTxMsg())
 }
+
+*/
