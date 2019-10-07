@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	AccountKey = "acckey"
-	CertKey    = "certkey"
+	StoreCertKeyPrefix = "certkey:"
+	StoreMeteringPrefix = "merting:"
 )
 
 type IavlStoreApp struct {
@@ -33,6 +33,18 @@ type IavlStoreApp struct {
 	cdc             *amino.Codec
 	accStoreLocker  sync.RWMutex
 	certStoreLocker sync.RWMutex
+}
+
+func containCertKeyPrefix(dcnsName string) string {
+	return containPrefix(dcnsName, StoreCertKeyPrefix)
+}
+
+func containMeteringPrefix(dcnsName string) string {
+	return containPrefix(dcnsName, StoreCertKeyPrefix)
+}
+
+func stripCertKeyPrefix(key string) (string, error) {
+	return stripKeyPrefix(key, StoreCertKeyPrefix)
 }
 
 func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
@@ -68,7 +80,6 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog}
 
-	iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(AccountKey), []byte(""))
 	iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
 
 	if isKVPathExist {
@@ -129,19 +140,6 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 	err := os.RemoveAll(kvPath)
 
 	return err
-}
-
-func (sp* IavlStoreApp) updateAccount(addr string) {
-	sp.accStoreLocker.Lock()
-	defer sp.accStoreLocker.Unlock()
-
-	accs, err := sp.iavlSM.IavlStore(IavlStoreAccountKey).Get([]byte(AccountKey))
-	if err == nil {
-		accs = append(accs, []byte(";" + addr)...)
-		sp.iavlSM.IavlStore(IavlStoreAccountKey).Set([]byte(AccountKey), accs)
-	}else {
-		sp.storeLog.Error("can't get the AccountKey value", "err",  err)
-	}
 }
 
 func (sp *IavlStoreApp) LastCommit() *ankrtypes.CommitID{
@@ -227,7 +225,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
 		value, _ = sp.AccountList()
 	} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
-		value = sp.CertKeyList()
+		value, _ = sp.CertKeyList()
 	} else {
 		value, _ = sp.iavlSM.IavlStore(storeName).Get(reqQuery.Data)
 	}
@@ -241,49 +239,58 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	return
 }
 
-func (sp *IavlStoreApp) updateCertKey(dcS string){
-	sp.certStoreLocker.Lock()
-	defer sp.certStoreLocker.Unlock()
-
-	certs, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get([]byte(CertKey))
-	if err == nil {
-		certs = append(certs, []byte(";" + dcS)...)
-		sp.iavlSM.IavlStore(IAvlStoreMainKey).Set([]byte(CertKey), certs)
-	}else {
-		sp.storeLog.Error("can't get the CertKey value", "err",  err)
-	}
+func (sp *IavlStoreApp) SetCertKey(dcName string, nsName string, pemBase64 string)  {
+	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, []byte(pemBase64))
 }
 
-func (sp *IavlStoreApp) SetCertKey(key []byte, val []byte) {
-	if !sp.iavlSM.IavlStore(IAvlStoreMainKey).Has(key) {
-		dcS := strings.Split(string(key), ":")[1]
-		sp.updateCertKey(dcS)
-	}
-
-	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, val)
-}
-
-func (sp *IavlStoreApp) CertKey(key []byte) []byte {
+func (sp *IavlStoreApp) CertKey(dcName string, nsName string) string {
+	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
 	valBytes, err :=  sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(key)
 	if err != nil {
-		sp.storeLog.Error("can't get the key's value", "key", key)
-		valBytes = nil
+		sp.storeLog.Error("can't get the key's value", "dcName", dcName)
+		return ""
 	}
 
-	return valBytes
+	return string(valBytes)
 }
 
-func (sp *IavlStoreApp) DeleteCertKey(key []byte) {
+func (sp *IavlStoreApp) DeleteCertKey(dcName string, nsName string) {
+	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove(key)
 }
 
-func (sp *IavlStoreApp) CertKeyList() []byte {
-	certs, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get([]byte(CertKey))
-	if err == nil {
-		return certs
-	}
+func (sp *IavlStoreApp) CertKeyList() ([]byte, uint64) {
+	certKeyCount := uint64(0)
+	certKeyList  := ""
 
-	return nil
+	endBytes := prefixEndBytes([]byte(StoreCertKeyPrefix))
+
+	sp.iavlSM.storeMap[IAvlStoreMainKey].tree.IterateRange([]byte(StoreCertKeyPrefix), endBytes, true, func(key []byte, value []byte) bool{
+		if len(key) >= len(StoreAccountPrefix) && string(key[0:len(StoreCertKeyPrefix)]) == StoreCertKeyPrefix {
+			dcnsName, err := stripCertKeyPrefix(string(key))
+			if err != nil {
+				sp.storeLog.Error("stripCertKeyPrefix error", "err", err)
+			}else {
+				certKeyCount++
+				certKeyList += certKeyList + ";" + dcnsName + ":" + string(value)
+			}
+		}
+
+		return false
+	})
+
+	if certKeyCount > 0 {
+		certKeyList = certKeyList[1:]
+		return []byte(certKeyList), certKeyCount
+	}else {
+		return nil, certKeyCount
+	}
+}
+
+func (sp *IavlStoreApp) SetMetering(dcName string, nsName string, value string) {
+	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, []byte(value))
 }
 
 func (sp *IavlStoreApp) SetValidator(valInfo *ankrtypes.ValidatorInfo) {

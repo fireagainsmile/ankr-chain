@@ -2,6 +2,7 @@ package token
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"math/big"
 	"strconv"
 	"time"
@@ -69,7 +70,11 @@ func (tf *TransferMsg) SetSecretKey(sk ankrcrypto.SecretKey) {
 }
 
 func (tf *TransferMsg) SecretKey() ankrcrypto.SecretKey {
-	return nil
+	return &ankrcrypto.SecretKeyEd25519{}
+}
+
+func (tf *TransferMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
+	return true
 }
 
 func (tf *TransferMsg) SpendGas(gas *big.Int) bool {
@@ -99,9 +104,9 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: name = %s", ankrtypes.ContractTokenStorePrefix + trAmount.Cur.Symbol), nil
 	}
 
-	params :=  []*ankrtypes.Param{&ankrtypes.Param{0, "string", tf.FromAddr},
-		&ankrtypes.Param{1, "string", tf.ToAddr},
-		&ankrtypes.Param{2, "string", new(big.Int).SetBytes(tf.Amounts[0].Value).String()},
+	params :=  []*ankrtypes.Param{{0, "string", tf.FromAddr},
+		{1, "string", tf.ToAddr},
+		{2, "string", new(big.Int).SetBytes(tf.Amounts[0].Value).String()},
 	}
 
 	contractType    := ankrtypes.ContractType(tokenContract[0])

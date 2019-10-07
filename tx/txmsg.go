@@ -3,12 +3,12 @@ package tx
 import (
 	"fmt"
 	"math/big"
-	"crypto/sha256"
 
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -22,6 +22,7 @@ type ImplTxMsg interface {
 	Bytes(txSerializer TxSerializer) []byte
 	SetSecretKey(sk ankrcrypto.SecretKey)
 	SecretKey() ankrcrypto.SecretKey
+	PermitKey(store appstore.AppStore, pubKey []byte) bool
 	ProcessTx(context ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
 }
 
@@ -89,7 +90,7 @@ func (tx *TxMsg) SignAndMarshal(txSerializer TxSerializer, key ankrcrypto.Secret
 	return nil, nil
 }
 
-func (tx *TxMsg) verifySignature(txSerializer TxSerializer) (uint32, string) {
+func (tx *TxMsg) verifySignature(store appstore.AppStore, txSerializer TxSerializer) (uint32, string) {
 	signMsg := tx.signMsg(txSerializer)
 	toVerifyBytes := signMsg.Bytes(txSerializer)
 	for i, signerAddr := range tx.SignerAddr() {
@@ -97,13 +98,11 @@ func (tx *TxMsg) verifySignature(txSerializer TxSerializer) (uint32, string) {
 			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer address. Got %v, len=%d", signerAddr, len(signerAddr))
 		}
 
-		addr := tx.Signs[i].PubKey.Address()
-		if len(addr.String()) != ankrtypes.KeyAddressLen {
-			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer. Got %v, addr len=%d", addr, len(addr.String()))
+		if !tx.PermitKey(store, tx.Signs[i].PubKey.Bytes()) {
+			return code.CodeTypeNotPermitPubKey, fmt.Sprintf("not permit public key: %v", tx.Signs[i].PubKey.Bytes())
 		}
 
-		sum := sha256.Sum256(toVerifyBytes)
-		isOk := tx.Signs[i].PubKey.VerifyBytes(sum[:32], tx.Signs[i].Signed)
+		isOk := tx.SecretKey().Verify(toVerifyBytes, &tx.Signs[i])
 		if !isOk {
 			return code.CodeTypeVerifySignaError, fmt.Sprintf("can't pass sign verifying for signer: pubKey=%v", tx.Signs[i].PubKey.Bytes())
 		}
@@ -126,7 +125,7 @@ func (tx *TxMsg) verifyMinGasPrice(context ContextTx) (uint32, string) {
 }
 
 func (tx *TxMsg) BasicVerify(context ContextTx) (uint32, string) {
-	codeV, log := tx.verifySignature(context.TxSerializer())
+	codeV, log := tx.verifySignature(context.AppStore(), context.TxSerializer())
 	if codeV != code.CodeTypeOK {
 		return codeV, log
 	}

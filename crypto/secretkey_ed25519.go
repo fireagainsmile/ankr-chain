@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 
 	"github.com/Ankr-network/ankr-chain/common"
+	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
@@ -91,6 +92,11 @@ func (sked *SecretKeyEd25519) Sign(msg []byte) (*Signature, error) {
 
 func (sked *SecretKeyEd25519) Verify(msg []byte, signature *Signature) bool {
 	if signature == nil {
+		return false
+	}
+
+	addr := signature.PubKey.Address()
+	if len(addr.String()) != ankrtypes.KeyAddressLen {
 		return false
 	}
 

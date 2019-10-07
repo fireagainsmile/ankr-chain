@@ -23,9 +23,10 @@ type AccountStore interface {
 
 type TxStore interface {
 	Commit() types.ResponseCommit
-	SetCertKey(key []byte, val []byte)
-	CertKey(key []byte) []byte
-	DeleteCertKey(key []byte)
+	SetCertKey(dcName string, nsName string, pemBase64 string)
+	CertKey(dcName string, nsName string) string
+	DeleteCertKey(dcName string, nsName string)
+	SetMetering(dcName string, nsName string, value string)
 	SetValidator(valInfo *ankrtypes.ValidatorInfo)
 	Validator(valAddr string) (*ankrtypes.ValidatorInfo, error)
 	RemoveValidator(valAddr string)

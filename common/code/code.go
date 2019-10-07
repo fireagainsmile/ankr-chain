@@ -27,4 +27,5 @@ const (
 	CodeTypeCallContractErr        uint32 = 19
 	CodeTypeInvalidStakeCurrency   uint32 = 20
 	CodeTypeInvalidValidatorPubKey uint32 = 21
+	CodeTypeNotPermitPubKey        uint32 = 22
 )
