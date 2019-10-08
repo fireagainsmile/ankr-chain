@@ -38,8 +38,11 @@ type TxStore interface {
 }
 
 type ContractStore interface {
-	SaveContract(key []byte, val []byte) error
-	LoadContract(key []byte) ([]byte, error)
+	IsExist(cAddr string) bool
+	BuildCurrencyCAddrMap(symbol string, cAddr string)
+	ContractAddrBySymbol(symbol string) (string, error)
+	SaveContract(cAddr string, cInfo *ankrtypes.ContractInfo) error
+	LoadContract(cAddr string) (*ankrtypes.ContractInfo, error)
 }
 
 type QueryHandler interface {

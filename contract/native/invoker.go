@@ -1,6 +1,7 @@
 package native
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"reflect"
@@ -32,7 +33,7 @@ func (invoker *NativeInvoker) SetContextContract(context context.ContextContract
 	}
 }
 
-func (invoker *NativeInvoker) Invoke(context context.ContextContract, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
+func (invoker *NativeInvoker) Invoke(context context.ContextContract, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
 	invoker.SetContextContract(context)
 	natiContractI, ok := invoker.nativeConracts[contractName]
 	if !ok {
@@ -53,10 +54,14 @@ func (invoker *NativeInvoker) Invoke(context context.ContextContract, code []byt
 
 	rtnValues := methodValue.Call(args)
 	if len(rtnValues) > 0 {
-		return rtnValues[0].Interface(), nil
+		if rtnValues[0].Type().Name() == rtnType {
+		  	return &ankrtypes.ContractResult{true, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
+		}else {
+			return &ankrtypes.ContractResult{false, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
+		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("invalid native contract call: contractName=%s, method=%s", contractName, method)
 }
 
 

@@ -22,6 +22,6 @@ func registerInvoker(store appstore.AppStore, log log.Logger){
 	invokerMap[ankrtypes.ContractTypeNative] = nativeInvoker
 }
 
-func Call(context context.ContextContract, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (interface{}, error) {
+func Call(context context.ContextContract, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
 	return invokerMap[conType].Invoke(context, code, contractName, method, params, rtnType)
 }

@@ -22,6 +22,6 @@ type ContractERC20 interface {
 }
 
 type Invoker interface {
-	Invoke(context context.ContextContract, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (interface{}, error)
+	Invoke(context context.ContextContract, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error)
 }
 

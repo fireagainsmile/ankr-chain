@@ -42,8 +42,3 @@ type AllowanceInfo struct {
 	spender string
 	amount  Amount
 }
-
-type ContractInfo struct {
-	Address  string  `json:"address"`
-	Codes    []Code  `json:"codes"`
-}

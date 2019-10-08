@@ -72,11 +72,13 @@ type ValidatorInfo struct {
 }
 
 func EncodeValidatorInfo(cdc *amino.Codec, valInfo *ValidatorInfo) []byte {
-	return cdc.MustMarshalBinaryBare(valInfo)
+	jsonBytes, _ := cdc.MarshalJSON(valInfo)
+
+	return jsonBytes
 }
 
 func DecodeValidatorInfo(cdc *amino.Codec, bytes []byte) (valInfo ValidatorInfo) {
-	cdc.MustUnmarshalBinaryBare(bytes, &valInfo)
+	cdc.UnmarshalJSON(bytes, &valInfo)
 	return
 }
 

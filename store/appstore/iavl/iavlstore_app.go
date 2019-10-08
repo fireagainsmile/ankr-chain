@@ -24,6 +24,8 @@ import (
 const (
 	StoreCertKeyPrefix = "certkey:"
 	StoreMeteringPrefix = "merting:"
+	StoreContractInfoPrefix = "continfo:"
+	StoreContractCurrencyPrefix = "contcur:"
 )
 
 type IavlStoreApp struct {
@@ -40,7 +42,15 @@ func containCertKeyPrefix(dcnsName string) string {
 }
 
 func containMeteringPrefix(dcnsName string) string {
-	return containPrefix(dcnsName, StoreCertKeyPrefix)
+	return containPrefix(dcnsName, StoreMeteringPrefix)
+}
+
+func containContractInfoPrefix(cAddr string) string {
+	return containPrefix(cAddr, StoreContractInfoPrefix)
+}
+
+func containContractCurrencyPrefix(symbol string) string {
+	return containPrefix(symbol, StoreContractCurrencyPrefix)
 }
 
 func stripCertKeyPrefix(key string) (string, error) {
@@ -79,8 +89,6 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	}
 
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog}
-
-	iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(CertKey), []byte(""))
 
 	if isKVPathExist {
 		iavlSApp.Prefixed(kvDB, kvPath)
@@ -366,24 +374,57 @@ func (sp *IavlStoreApp) DB() dbm.DB {
 	return sp.iavlSM.db
 }
 
-func (sp *IavlStoreApp) SaveContract(key []byte, val []byte) error {
-	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has(key) {
+func (sp *IavlStoreApp) IsExist(cAddr string) bool {
+	return sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(cAddr))
+}
+
+func (sp *IavlStoreApp) BuildCurrencyCAddrMap(symbol string, cAddr string) error {
+	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(containContractCurrencyPrefix(symbol))) {
 		return errors.New("the contract name has existed")
 	}
 
-	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set(key, val)
+	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containContractCurrencyPrefix(symbol)), []byte(cAddr))
 
 	return nil
 }
 
-func (sp *IavlStoreApp) LoadContract(key []byte) ([]byte, error) {
-	val, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get(key)
+func (sp *IavlStoreApp) ContractAddrBySymbol(symbol string) (string, error) {
+	cAddrBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractCurrencyPrefix(symbol)))
 	if err != nil {
-		sp.storeLog.Error("can't get the contract", "key", string(key))
-		val = nil
+		sp.storeLog.Error("can't get the contract addr", "symbol", symbol)
+		return "", err
 	}
 
-	return val, err
+	if cAddrBytes != nil {
+		return string(cAddrBytes), nil
+	}
+
+	return "", nil
+
+}
+
+func (sp *IavlStoreApp) SaveContract(cAddr string, cInfo *ankrtypes.ContractInfo) error{
+	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(containContractInfoPrefix(cAddr))) {
+		return errors.New("the contract name has existed")
+	}
+
+	cInfoBytes := ankrtypes.EncodeContractInfo(sp.cdc, cInfo)
+
+	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containContractInfoPrefix(cAddr)), cInfoBytes)
+
+	return nil
+}
+
+func (sp *IavlStoreApp) LoadContract(cAddr string) (*ankrtypes.ContractInfo, error) {
+	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
+	if err != nil {
+		sp.storeLog.Error("can't get the contract", "addr", cAddr)
+		return nil, err
+	}
+
+	cInfo := ankrtypes.DecodeContractInfo(sp.cdc, cInfoBytes)
+
+	return &cInfo, nil
 }
 
 

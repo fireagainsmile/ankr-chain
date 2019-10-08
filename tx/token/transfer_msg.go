@@ -100,7 +100,12 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 	}
 
 	trAmount := tf.Amounts[0]
-	tokenContract, err := context.AppStore().LoadContract([]byte(ankrtypes.ContractTokenStorePrefix + trAmount.Cur.Symbol))
+	contractAddr, err := context.AppStore().ContractAddrBySymbol(trAmount.Cur.Symbol)
+	if contractAddr == "" {
+		return code.CodeTypeContractCantFound, fmt.Sprintf("TransferMsg ProcessTx, can't find the currency contract, symbol=%s", trAmount.Cur.Symbol), nil
+	}
+
+	tokenContract, err := context.AppStore().LoadContract(contractAddr)
 	if err != nil {
 		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: name = %s", ankrtypes.ContractTokenStorePrefix + trAmount.Cur.Symbol), nil
 	}
@@ -110,14 +115,14 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 		{2, "string", new(big.Int).SetBytes(tf.Amounts[0].Value).String()},
 	}
 
-	contractType    := ankrtypes.ContractType(tokenContract[0])
+	contractType    := ankrtypes.ContractType(tokenContract.Codes[0])
 	contractContext := ankrcontext.NewContextContract(tf, tf, context.AppStore())
-    rtn, err := contract.Call(contractContext, contractType, tokenContract[1:], "ANKR", "TransferFrom", params, "bool")
+    rtn, err := contract.Call(contractContext, contractType, tokenContract.Codes[ankrtypes.CodePrefixLen:], "ANKR", "TransferFrom", params, "bool")
     if err != nil {
     	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
 	}
-    isCallSucess := rtn.(bool)
-    if !isCallSucess {
+
+    if !rtn.IsSuccess {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom", tf.Amounts[0].Cur.Symbol), nil
 	}
 
