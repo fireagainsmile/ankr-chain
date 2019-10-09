@@ -111,7 +111,7 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (
 
 	contractType    := ankrtypes.ContractType(cInfo.Codes[0])
 	contractContext := ankrcontext.NewContextContract(ci, ci, context.AppStore())
-	rtn, err := context.Contract().Call(contractContext, contractType, cInfo.Codes[ankrtypes.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
+	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, cInfo.Codes[ankrtypes.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
 	if err != nil {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=%s, err=%v", ci.ContractAddr, ci.Method, err), nil
 	}

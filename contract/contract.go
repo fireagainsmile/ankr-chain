@@ -10,13 +10,14 @@ import (
 )
 
 type Contract interface {
-	Call(context context.ContextContract,
-		conType ankrtypes.ContractType,
-		code []byte,
+	Call(context     context.ContextContract,
+		appStore     appstore.AppStore,
+		conType      ankrtypes.ContractType,
+		code         []byte,
 		contractName string,
-		method string,
-		params []*ankrtypes.Param,
-		rtnType string) (*ankrtypes.ContractResult, error)
+		method       string,
+		params       []*ankrtypes.Param,
+		rtnType      string) (*ankrtypes.ContractResult, error)
 }
 
 type ContractImpl struct {
@@ -44,6 +45,6 @@ func (c *ContractImpl) registerInvoker(store appstore.AppStore, log log.Logger){
 	c.invokerMap[ankrtypes.ContractTypeRuntime] = runtimeInvoker
 }
 
-func (c *ContractImpl) Call(context context.ContextContract, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
-	return c.invokerMap[conType].Invoke(context, code, contractName, method, params, rtnType)
+func (c *ContractImpl) Call(context context.ContextContract, appStore appstore.AppStore, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
+	return c.invokerMap[conType].Invoke(context, appStore, code, contractName, method, params, rtnType)
 }

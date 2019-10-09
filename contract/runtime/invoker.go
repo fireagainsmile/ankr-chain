@@ -6,8 +6,9 @@ import (
 	"reflect"
 
 	akexe "github.com/Ankr-network/ankr-chain/akvm/exec"
-	"github.com/Ankr-network/ankr-chain/context"
+	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/log"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec"
 )
@@ -17,7 +18,7 @@ const (
 )
 
 type RuntimeInvoke struct {
-	context context.ContextContract
+	context ankrcontext.ContextAKVM
 	log     log.Logger
 }
 
@@ -73,8 +74,8 @@ func (r *RuntimeInvoke) InvokeInternal(vmContext *exec.VMContext, code []byte, c
 	return akvm.Execute(fnIndex, rtnType, args...)
 }
 
-func (r *RuntimeInvoke) Invoke(context context.ContextContract, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
-	r.context = context
+func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
+	r.context = ankrcontext.CreateContextAKVM(context, appStore)
 	akvm := akexe.NewWASMVirtualMachine(code, r.log)
 	if akvm == nil {
 		return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)

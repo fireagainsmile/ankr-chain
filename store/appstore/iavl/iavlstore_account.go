@@ -226,7 +226,6 @@ func (sp *IavlStoreApp) Allowance(addrSender string, addrSpender string, symbol 
 	rtnI, _ :=  new(big.Int).SetString(string(val), 10)
 
 	return rtnI, nil
-
 }
 
 func (sp *IavlStoreApp) AccountList() ([]byte, uint64) {

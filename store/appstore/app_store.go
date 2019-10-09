@@ -21,6 +21,10 @@ type AccountStore interface {
 	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
 }
 
+type BCStore interface {
+	Height() int64
+}
+
 type TxStore interface {
 	Commit() types.ResponseCommit
 	SetCertKey(dcName string, nsName string, pemBase64 string)
@@ -54,7 +58,7 @@ type AppStore interface {
 	TxStore
 	QueryHandler
 	ContractStore
-	Height() int64
+	BCStore
 	APPHash() []byte
     DB() dbm.DB
 }
