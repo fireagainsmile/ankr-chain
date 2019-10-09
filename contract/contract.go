@@ -3,25 +3,47 @@ package contract
 import (
 	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/contract/native"
+	"github.com/Ankr-network/ankr-chain/contract/runtime"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-var invokerMap map[ankrtypes.ContractType]Invoker
-
-func Init(store appstore.AppStore,  log log.Logger) {
-	native.Init(store, log)
-	registerInvoker(store, log)
+type Contract interface {
+	Call(context context.ContextContract,
+		conType ankrtypes.ContractType,
+		code []byte,
+		contractName string,
+		method string,
+		params []*ankrtypes.Param,
+		rtnType string) (*ankrtypes.ContractResult, error)
 }
 
-func registerInvoker(store appstore.AppStore, log log.Logger){
-	invokerMap = make(map[ankrtypes.ContractType]Invoker)
+type ContractImpl struct {
+	invokerMap map[ankrtypes.ContractType]Invoker
+}
+
+func NewContract(store appstore.AppStore,  log log.Logger) Contract {
+	cImpl := &ContractImpl{make(map[ankrtypes.ContractType]Invoker)}
+	cImpl.init(store, log)
+
+	return cImpl
+}
+
+func (c *ContractImpl) init(store appstore.AppStore,  log log.Logger) {
+	native.Init(store, log)
+	c.registerInvoker(store, log)
+}
+
+func (c *ContractImpl) registerInvoker(store appstore.AppStore, log log.Logger){
 
 	nativeInvoker := native.NewNativeInvoker(store, log)
-	invokerMap[ankrtypes.ContractTypeNative] = nativeInvoker
+	c.invokerMap[ankrtypes.ContractTypeNative] = nativeInvoker
+
+	runtimeInvoker := runtime.NewRuntimeInvoke(log)
+	c.invokerMap[ankrtypes.ContractTypeRuntime] = runtimeInvoker
 }
 
-func Call(context context.ContextContract, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
-	return invokerMap[conType].Invoke(context, code, contractName, method, params, rtnType)
+func (c *ContractImpl) Call(context context.ContextContract, conType ankrtypes.ContractType, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
+	return c.invokerMap[conType].Invoke(context, code, contractName, method, params, rtnType)
 }

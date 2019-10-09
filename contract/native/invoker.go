@@ -1,7 +1,6 @@
 package native
 
 import (
-	"errors"
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"reflect"

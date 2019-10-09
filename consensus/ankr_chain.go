@@ -31,6 +31,7 @@ type AnkrChainApplication struct {
 	APPName      string
 	app          appstore.AppStore
 	txSerializer tx.TxSerializer
+	contract     contract.Contract
 	logger       log.Logger
 	minGasPrice  account.Amount
 }
@@ -58,23 +59,24 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 		APPName:      appName,
 		app:          appStore,
 		txSerializer: serializer.NewTxSerializerCDC(),
-		logger:  l,
+		contract:     contract.NewContract(appStore, l.With("module", "contract")),
+		logger:       l,
+		minGasPrice:  account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
 	}
 }
 
 func NewMockAnkrChainApplication(appName string, l log.Logger) *AnkrChainApplication {
 	appStore := NewMockAppStore()
 
-	contract.Init(appStore, l.With("module", "contract"))
 	appStore.InitFoundAccount()
-
 
 	return &AnkrChainApplication{
 		APPName:      appName,
 		app:          appStore,
 		txSerializer: serializer.NewTxSerializerCDC(),
-		logger:  l,
-		minGasPrice: account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
+		contract:     contract.NewContract(appStore, l.With("module", "contract")),
+		logger:       l,
+		minGasPrice:  account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
 	}
 }
 
@@ -97,6 +99,10 @@ func (app *AnkrChainApplication) Logger() log.Logger {
 
 func (app *AnkrChainApplication) TxSerializer() tx.TxSerializer {
 	return app.txSerializer
+}
+
+func (app *AnkrChainApplication) Contract() contract.Contract {
+	return app.contract
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
@@ -194,7 +200,6 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 	app.ChainId = common.ChainID(req.ChainId)
 
-	contract.Init(app.app, app.logger.With("module", "contract"))
 	app.app.InitFoundAccount()
 
 	return types.ResponseInitChain{}
