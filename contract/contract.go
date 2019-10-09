@@ -32,7 +32,6 @@ func NewContract(store appstore.AppStore,  log log.Logger) Contract {
 }
 
 func (c *ContractImpl) init(store appstore.AppStore,  log log.Logger) {
-	native.Init(store, log)
 	c.registerInvoker(store, log)
 }
 

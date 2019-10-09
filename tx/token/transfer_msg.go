@@ -106,7 +106,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 
 	tokenContract, err := context.AppStore().LoadContract(contractAddr)
 	if err != nil {
-		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: name = %s", ankrtypes.ContractTokenStorePrefix + trAmount.Cur.Symbol), nil
+		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: contractAddr = %s", contractAddr), nil
 	}
 
 	params :=  []*ankrtypes.Param{{0, "string", tf.FromAddr},

@@ -5,10 +5,6 @@ import (
 )
 
 const (
-	ContractTokenStorePrefix = "TOKEN:"
-)
-
-const (
 	CodePrefixLen = 10
 )
 
