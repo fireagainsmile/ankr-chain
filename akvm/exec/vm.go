@@ -16,15 +16,15 @@ type WASMVirtualMachine struct {
 	log          log.Logger
 }
 
-func NewWASMVirtualMachine(code []byte, log log.Logger) *WASMVirtualMachine {
+func NewWASMVirtualMachine(contractAddr string, ownerAddr string, callerAddr string, code []byte, log log.Logger) *WASMVirtualMachine {
 	wasmVM :=  &WASMVirtualMachine{ envModule: module.NewModuleEnv()}
 	wasmVM.log = log
-	wasmVM.loadAndInstantiateModule(code)
+	wasmVM.loadAndInstantiateModule(contractAddr, ownerAddr, callerAddr, code)
 
 	return wasmVM
 }
 
-func (wvm *WASMVirtualMachine) loadAndInstantiateModule(code []byte) {
+func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, ownerAddr string, callerAddr string, code []byte) {
 	if wvm.envModule == nil {
 		panic("WASMVirtualMachine envModle nil")
 	}
@@ -42,7 +42,7 @@ func (wvm *WASMVirtualMachine) loadAndInstantiateModule(code []byte) {
 		panic(err)
 	}*/
 
-	vm, err := exec.NewVM(m)
+	vm, err := exec.NewVM(contractAddr, ownerAddr, callerAddr, m)
 	if err != nil {
 		panic(err)
 	}

@@ -110,7 +110,7 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (
 	json.Unmarshal([]byte(ci.Args), &params)
 
 	contractType    := ankrtypes.ContractType(cInfo.Codes[0])
-	contractContext := ankrcontext.NewContextContract(ci, ci, context.AppStore())
+	contractContext := ankrcontext.NewContextContract(ci, ci, cInfo, context.AppStore())
 	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, cInfo.Codes[ankrtypes.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
 	if err != nil {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=%s, err=%v", ci.ContractAddr, ci.Method, err), nil

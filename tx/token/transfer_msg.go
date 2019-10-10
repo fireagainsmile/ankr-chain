@@ -115,7 +115,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 	}
 
 	contractType    := ankrtypes.ContractType(tokenContract.Codes[0])
-	contractContext := ankrcontext.NewContextContract(tf, tf, context.AppStore())
+	contractContext := ankrcontext.NewContextContract(tf, tf, tokenContract, context.AppStore())
     rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, tokenContract.Codes[ankrtypes.CodePrefixLen:], "ANKR", "TransferFrom", params, "bool")
     if err != nil {
     	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil

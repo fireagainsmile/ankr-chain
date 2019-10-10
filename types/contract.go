@@ -29,6 +29,11 @@ func (p ParamSort) Less(i, j int) bool {
 	return p[i].Index < p[j].Index
 }
 
+type ContractInterface interface {
+	OwnerAddr() string
+	ContractAddr() string
+}
+
 type ContractResult struct {
 	IsSuccess bool          `json:"issuccess"`
 	ResultType string       `json:"resultType"`
@@ -38,9 +43,18 @@ type ContractResult struct {
 type ContractInfo struct {
 	Addr      string   `json:"addr"`
 	Name      string   `json:"name"`
+	Owner     string   `json:"owneraddr"`
 	Codes     []byte   `json:"codes"`
 	CodesDesc string   `json:"codesdesc"`
 	//TxHashs   []string `json:"txhashs"`
+}
+
+func (c *ContractInfo) OwnerAddr() string {
+	return c.Owner
+}
+
+func (c *ContractInfo) ContractAddr() string {
+	return c.Addr
 }
 
 func EncodeContractInfo(cdc *amino.Codec, cInfo *ContractInfo) []byte {

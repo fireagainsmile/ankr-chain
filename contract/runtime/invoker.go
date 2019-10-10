@@ -26,13 +26,13 @@ func NewRuntimeInvoke(log log.Logger) *RuntimeInvoke {
 	return &RuntimeInvoke{nil, log}
 }
 
-func (r *RuntimeInvoke) InvokeInternal(vmContext *exec.VMContext, code []byte, contractName string, method string, params interface{}, rtnType string) (interface{}, error) {
+func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, callerAddr string, vmContext *exec.VMContext, code []byte, contractName string, method string, params interface{}, rtnType string) (interface{}, error) {
 	paramValues := params.([]*ankrtypes.Param)
 	if paramValues == nil && len(paramValues) == 0 {
 		return nil, errors.New("invalid params")
 	}
 
-	akvm := akexe.NewWASMVirtualMachine(code, log.DefaultRootLogger.With("conract", contractName))
+	akvm := akexe.NewWASMVirtualMachine(contractAddr, ownerAddr, callerAddr, code, log.DefaultRootLogger.With("conract", contractName))
 	if akvm == nil {
 		return -1, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
 	}
@@ -75,8 +75,8 @@ func (r *RuntimeInvoke) InvokeInternal(vmContext *exec.VMContext, code []byte, c
 }
 
 func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
-	r.context = ankrcontext.CreateContextAKVM(context, appStore)
-	akvm := akexe.NewWASMVirtualMachine(code, r.log)
+	r.context = ankrcontext.CreateContextAKVM(context,appStore)
+	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), code, r.log)
 	if akvm == nil {
 		return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
 	}

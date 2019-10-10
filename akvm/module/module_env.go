@@ -93,6 +93,20 @@ func NewModuleEnv() *ModuleEnv {
 		Name: JsonToStringFunc,
 	})
 
+	mEnv.RegisterImportedFunc(ContractCallFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(ContractCall),
+		Name: JsonToStringFunc,
+	})
+
+	mEnv.RegisterImportedFunc(ContractDelegateCallFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(ContractDelegateCall),
+		Name: ContractDelegateCallFunc,
+	})
+
 	mEnv.RegisterImportedFunc(TrigEventFunc, &wasm.Function{
 		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
 		Body: &wasm.FunctionBody{},

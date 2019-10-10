@@ -12,18 +12,20 @@ import (
 )
 
 const (
-	PrintSFunc           = "print_s"
-	PrintIFunc           = "print_i"
-	StrlenFunc           = "strlen"
-	StrcmpFunc           = "strcmp"
-	JsonObjectIndexFunc  = "JsonObjectIndex"
-	JsonCreateObjectFunc = "JsonCreateObject"
-	JsonGetIntFunc       = "JsonGetInt"
-	JsonGetStringFunc    = "JsonGetString"
-	JsonPutIntFunc       = "JsonPutInt"
-	JsonPutStringFunc    = "JsonPutString"
-	JsonToStringFunc     = "JsonToString"
-	TrigEventFunc        = "TrigEvent"
+	PrintSFunc               = "print_s"
+	PrintIFunc               = "print_i"
+	StrlenFunc               = "strlen"
+	StrcmpFunc               = "strcmp"
+	JsonObjectIndexFunc      = "JsonObjectIndex"
+	JsonCreateObjectFunc     = "JsonCreateObject"
+	JsonGetIntFunc           = "JsonGetInt"
+	JsonGetStringFunc        = "JsonGetString"
+	JsonPutIntFunc           = "JsonPutInt"
+	JsonPutStringFunc        = "JsonPutString"
+	JsonToStringFunc         = "JsonToString"
+	ContractCallFunc         = "ContractCall"
+	ContractDelegateCallFunc = "ContractDelegateCall"
+	TrigEventFunc            = "TrigEvent"
 )
 
 func Print_s(proc *exec.Process, strIdx int32) {
@@ -206,11 +208,10 @@ func JsonToString (proc *exec.Process, jsonObjectIndex int32) uint64{
 	}
 
 	return pointer
-
 }
 
 func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, paramJsonIndex int32, rtnType int32) int64 {
-	toReadContractName, err := proc.ReadString(int64(contractIndex))
+	toReadContractAddr, err := proc.ReadString(int64(contractIndex))
 	if err != nil {
 		proc.VM().Logger().Error("ContractCall read ContractName err", "err", err)
 		return -1
@@ -234,7 +235,11 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
 		return -1
 	}
 
-	code, err := context.GetBCContext().LoadContract([]byte(toReadContractName))
+	cInfo, err := context.GetBCContext().LoadContract(toReadContractAddr)
+	if err != nil {
+		proc.VM().Logger().Error("ContractCall LoadContract err", "err", err)
+		return -1
+	}
 
 	params := make([]*types.Param, 0)
     err =  json.Unmarshal([]byte(toReadJsonParam), params)
@@ -246,7 +251,7 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
     contrInvoker := proc.VM().ContrInvoker()
     if contrInvoker == nil {
 		proc.VMContext().PushVM(proc.VM())
-		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(proc.VMContext(), code, toReadContractName, toReadMethodName, params, toReadRTNType)
+		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(cInfo.Addr, cInfo.Owner, proc.VM().OwnerAddr(), proc.VMContext(), cInfo.Codes[types.CodePrefixLen:], cInfo.Name, toReadMethodName, params, toReadRTNType)
 		lastVM, _:= proc.VMContext().PopVM()
 		proc.VMContext().SetRunningVM(lastVM)
 		switch rtnIndex.(type) {
@@ -260,50 +265,54 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
 			return -1
 		}
 	}else {
-		proc.VM().Logger().Error("there is no contrInvoker set")
+		proc.VM().Logger().Error("ContractCall there is no contrInvoker set")
 	}
 
     return -1
 }
 
 func ContractDelegateCall(proc *exec.Process, contractIndex int32, methodIndex int32, paramJsonIndex int32, rtnType int32) int64 {
-	toReadContractName, err := proc.ReadString(int64(contractIndex))
+	toReadContractAddr, err := proc.ReadString(int64(contractIndex))
 	if err != nil {
-		proc.VM().Logger().Error("ContractCall read ContractName err", "err", err)
+		proc.VM().Logger().Error("ContractDelegateCall read ContractName err", "err", err)
 		return -1
 	}
 
 	toReadMethodName, err := proc.ReadString(int64(methodIndex))
 	if err != nil {
-		proc.VM().Logger().Error("ContractCall read MethodName err", "err", err)
+		proc.VM().Logger().Error("ContractDelegateCall read MethodName err", "err", err)
 		return -1
 	}
 
 	toReadJsonParam, err := proc.ReadString(int64(paramJsonIndex))
 	if err != nil {
-		proc.VM().Logger().Error("ContractCall read jsonParam err", "err", err)
+		proc.VM().Logger().Error("ContractDelegateCall read jsonParam err", "err", err)
 		return -1
 	}
 
 	toReadRTNType, err := proc.ReadString(int64(rtnType))
 	if err != nil {
-		proc.VM().Logger().Error("ContractCall read rtnType err", "err", err)
+		proc.VM().Logger().Error("ContractDelegateCall read rtnType err", "err", err)
 		return -1
 	}
 
-	code, err := context.GetBCContext().LoadContract([]byte(toReadContractName))
+	cInfo, err := context.GetBCContext().LoadContract(toReadContractAddr)
+	if err != nil {
+		proc.VM().Logger().Error("ContractDelegateCall LoadContract err", "err", err)
+		return -1
+	}
 
 	params := make([]*types.Param, 0)
 	err =  json.Unmarshal([]byte(toReadJsonParam), params)
 	if err != nil {
-		proc.VM().Logger().Error("ContractCall json.Unmarshal err", "JsonParam", toReadJsonParam, "err", err)
+		proc.VM().Logger().Error("ContractDelegateCall json.Unmarshal err", "JsonParam", toReadJsonParam, "err", err)
 		return -1
 	}
 
 	contrInvoker := proc.VM().ContrInvoker()
 	if contrInvoker == nil {
 		proc.VMContext().PushVM(proc.VM())
-		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(proc.VMContext(), code, toReadContractName, toReadMethodName, params, toReadRTNType)
+		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(cInfo.Addr, cInfo.Owner, proc.VM().CallerAddr(), proc.VMContext(), cInfo.Codes[types.CodePrefixLen:], cInfo.Name, toReadMethodName, params, toReadRTNType)
 		lastVM, _:= proc.VMContext().PopVM()
 		proc.VMContext().SetRunningVM(lastVM)
 		switch rtnIndex.(type) {
@@ -317,7 +326,7 @@ func ContractDelegateCall(proc *exec.Process, contractIndex int32, methodIndex i
 			return -1
 		}
 	}else {
-		proc.VM().Logger().Error("there is no contrInvoker set")
+		proc.VM().Logger().Error("ContractDelegateCall there is no contrInvoker set")
 	}
 
 	return -1

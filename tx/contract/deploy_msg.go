@@ -104,7 +104,7 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (
 		return code.CodeTypeContractAddrTakenUp, fmt.Sprintf("ContractDeployMsg ProcessTx, the contract adress has been taken up:contractAddr=%s", contractAddr), nil
 	}
 
-    cInfo = &ankrtypes.ContractInfo{contractAddr, cd.Name, cd.Codes, cd.CodesDesc}
+    cInfo = &ankrtypes.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
     context.AppStore().SaveContract(contractAddr, cInfo)
 
 	if isOnlyCheck {
