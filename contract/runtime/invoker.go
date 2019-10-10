@@ -32,7 +32,7 @@ func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, ca
 		return nil, errors.New("invalid params")
 	}
 
-	akvm := akexe.NewWASMVirtualMachine(contractAddr, ownerAddr, callerAddr, code, log.DefaultRootLogger.With("conract", contractName))
+	akvm := akexe.NewWASMVirtualMachine(contractAddr, ownerAddr, callerAddr, code, r.log)
 	if akvm == nil {
 		return -1, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
 	}

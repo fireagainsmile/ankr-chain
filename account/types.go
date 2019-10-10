@@ -20,12 +20,13 @@ type Amount struct {
 type AccountType int
 const (
 	_ AccountType = iota
-	AccountGeneral
 	AccountGenesis
+	AccountFound
 	AccountAdminOP
 	AccountAdminValidator
 	AccountAdminFound
 	AccountAdminMetering
+	AccountGeneral
 	AccountContract
 )
 

@@ -11,10 +11,9 @@ import (
 )
 
 type AccountStore interface {
-	InitGenesisAccount()
-	InitFoundAccount()
 	Nonce(address string) (uint64, error)
 	IncNonce(address string) (uint64, error)
+	AddAccount(address string, accType account.AccountType)
 	SetBalance(address string, amount account.Amount)
 	Balance(address string, symbol string) (*big.Int, error)
 	SetAllowance(addrSender string, addrSpender string, amount account.Amount)
@@ -43,7 +42,7 @@ type TxStore interface {
 
 type ContractStore interface {
 	IsExist(cAddr string) bool
-	BuildCurrencyCAddrMap(symbol string, cAddr string)
+	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	ContractAddrBySymbol(symbol string) (string, error)
 	SaveContract(cAddr string, cInfo *ankrtypes.ContractInfo) error
 	LoadContract(cAddr string) (*ankrtypes.ContractInfo, error)

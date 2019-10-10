@@ -68,7 +68,7 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 func NewMockAnkrChainApplication(appName string, l log.Logger) *AnkrChainApplication {
 	appStore := NewMockAppStore()
 
-	appStore.InitFoundAccount()
+	account.AccountManagerInstance().Init(appStore)
 
 	return &AnkrChainApplication{
 		APPName:      appName,
@@ -200,7 +200,7 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 	app.ChainId = common.ChainID(req.ChainId)
 
-	app.app.InitFoundAccount()
+	account.AccountManagerInstance().Init(app.app)
 
 	return types.ResponseInitChain{}
 }

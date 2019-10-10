@@ -38,28 +38,30 @@ func (sp *IavlStoreApp) InitGenesisAccount() {
 	totalSupply, _ := new(big.Int).SetString("100000000000000000000000000000", 10)
 
 	var accInfo account.AccountInfo
+	accInfo.AccType = account.AccountGenesis
 	accInfo.Nonce   = 0
 	accInfo.Address = addr
 	accInfo.PubKey  = ""
 	accInfo.Amounts = []account.Amount{account.Amount{account.Currency{"ANKR",18}, totalSupply.Bytes()}}
 
 
-	sp.addAccount(&accInfo)
+	sp.addAccountInfo(&accInfo)
 }
 
 func (sp *IavlStoreApp) InitFoundAccount() {
 	addr := account.AccountManagerInstance().FoundAccountAddress()
 
 	var accInfo account.AccountInfo
+	accInfo.AccType = account.AccountFound
 	accInfo.Nonce   = 0
 	accInfo.Address = addr
 	accInfo.PubKey  = ""
 	accInfo.Amounts = []account.Amount{{account.Currency{Symbol: "ANKR"}, new(big.Int).SetUint64(0).Bytes()}}
 
-	sp.addAccount(&accInfo)
+	sp.addAccountInfo(&accInfo)
 }
 
-func (sp *IavlStoreApp) addAccount(accInfo *account.AccountInfo) {
+func (sp *IavlStoreApp) addAccountInfo(accInfo *account.AccountInfo) {
 	if sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(accInfo.Address))) {
 		return
 	}
@@ -182,15 +184,29 @@ func (sp *IavlStoreApp) IncNonce(address string) (uint64, error) {
 	return accInfo.Nonce, nil
 }
 
+func (sp *IavlStoreApp) AddAccount(address string, accType account.AccountType) {
+	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
+		var accInfo account.AccountInfo
+		accInfo.AccType = accType
+		accInfo.Nonce   = 0
+		accInfo.Address = address
+		accInfo.PubKey  = ""
+		accInfo.Amounts= []account.Amount{account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
+
+		sp.addAccountInfo(&accInfo)
+	}
+}
+
 func (sp *IavlStoreApp) SetBalance(address string, amount account.Amount) {
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
 		var accInfo account.AccountInfo
+		accInfo.AccType = account.AccountGeneral
 		accInfo.Nonce   = 0
 		accInfo.Address = address
 		accInfo.PubKey  = ""
 		accInfo.Amounts= []account.Amount{amount}
 
-		sp.addAccount(&accInfo)
+		sp.addAccountInfo(&accInfo)
 	}else {
 		sp.updateBalance(address, amount)
 	}

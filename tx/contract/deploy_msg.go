@@ -2,6 +2,7 @@ package contract
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/account"
 	"math/big"
 	"strconv"
 	"time"
@@ -104,12 +105,14 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (
 		return code.CodeTypeContractAddrTakenUp, fmt.Sprintf("ContractDeployMsg ProcessTx, the contract adress has been taken up:contractAddr=%s", contractAddr), nil
 	}
 
-    cInfo = &ankrtypes.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
-    context.AppStore().SaveContract(contractAddr, cInfo)
-
 	if isOnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
+
+	cInfo = &ankrtypes.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
+	context.AppStore().SaveContract(contractAddr, cInfo)
+
+	context.AppStore().AddAccount(contractAddr, account.AccountContract)
 
 	context.AppStore().IncNonce(cd.FromAddr)
 
