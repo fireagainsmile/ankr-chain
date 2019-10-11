@@ -12,15 +12,6 @@ var (
 	instanceAM *AccountManager
 )
 
-type AdminAccountType int
-const (
-	_ AdminAccountType = iota//AdminAccountType(AccountAdminOP-1)
-	AdminAccountOP
-	AdminAccountValidator
-	AdminAccountFound
-	AdminAccountMetering
-)
-
 type AccountManager struct {
 	adminAccMap map[AccountType]string
 }

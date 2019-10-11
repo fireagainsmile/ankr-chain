@@ -56,7 +56,7 @@ func (sc *SetCertMsg) SecretKey() ankrcrypto.SecretKey {
 func (sc *SetCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AdminAccountMetering))
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AccountAdminMetering))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
@@ -126,7 +126,7 @@ func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
 func (sc *RemoveCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AdminAccountMetering))
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AccountAdminMetering))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))

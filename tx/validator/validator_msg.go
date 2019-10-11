@@ -91,7 +91,7 @@ func (v *ValidatorMsg) SecretKey() ankrcrypto.SecretKey {
 func (v *ValidatorMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AdminAccountValidator))
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AccountAdminValidator))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))

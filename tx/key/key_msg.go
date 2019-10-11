@@ -56,7 +56,7 @@ func (k *KeyMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (k *KeyMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := account.AccountManagerInstance().AdminOpAccount(account.AdminAccountOP)
+	adminPubkey := account.AccountManagerInstance().AdminOpAccount(account.AccountAdminOP)
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(adminPubkey)
 	if err != nil {
 		return false
