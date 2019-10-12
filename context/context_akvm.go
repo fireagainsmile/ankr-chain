@@ -17,7 +17,7 @@ type ContextAKVM interface {
 	Balance(address string, symbol string) (*big.Int, error)
 	SetAllowance(addrSender string, addrSpender string, amount account.Amount)
 	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
-	BuildCurrencyCAddrMap(symbol string, cAddr string)
+	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	LoadContract(cAddr string) (*ankrtypes.ContractInfo, error)
 	Height() int64
 }

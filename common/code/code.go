@@ -21,7 +21,7 @@ const (
 	CodeTypeLoadBalError            uint32 = 13
 	CodeTypeBalNotEnough            uint32 = 14
 	CodeTypeGasNotEnough            uint32 = 15
-	CodeTypeTransferNotEnough       uint32 = 16
+	CodeTypeFeeNotEnough            uint32 = 16
 	CodeTypeGasPriceIrregular       uint32 = 17
 	CodeTypeLoadContractErr         uint32 = 18
 	CodeTypeCallContractErr         uint32 = 19

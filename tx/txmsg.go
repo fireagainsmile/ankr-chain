@@ -10,20 +10,19 @@ import (
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/Ankr-network/wagon/exec/gas"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type ImplTxMsg interface {
 	SignerAddr() []string
-	GasWanted() int64
-	GasUsed() int64
 	Type() string
 	Bytes(txSerializer TxSerializer) []byte
 	SetSecretKey(sk ankrcrypto.SecretKey)
 	SecretKey() ankrcrypto.SecretKey
 	PermitKey(store appstore.AppStore, pubKey []byte) bool
-	ProcessTx(context ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
+	ProcessTx(context ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
 }
 
 type TxFee struct {
@@ -36,6 +35,7 @@ type TxMsg struct {
 	Nonce       uint64                  `json:"nonce"`
     Fee         TxFee                   `json:"fee"`
 	GasPrice    account.Amount          `json:"gasprice"`
+	GasUsed     *big.Int                 `json:"gasused"`
 	Signs       []ankrcrypto.Signature  `json:"signs"`
 	Memo        string                  `json:"memo"`
 	Version     string                  `json:"version"`
@@ -88,6 +88,25 @@ func (tx *TxMsg) SignAndMarshal(txSerializer TxSerializer, key ankrcrypto.Secret
 	}
 
 	return nil, nil
+}
+
+func (tx *TxMsg) SpendGas(gas *big.Int) bool {
+    if tx.GasUsed == nil {
+		tx.GasUsed = new(big.Int).SetUint64(0)
+	}
+
+    gasUsedT := new(big.Int).SetUint64(tx.GasUsed.Uint64())
+	gasUsedT = new(big.Int).Add(gasUsedT, gas)
+
+	subGas := new(big.Int).Sub(gasUsedT, tx.Fee.Gas)
+
+	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
+		return false
+	}
+
+	tx.GasUsed.SetUint64(gasUsedT.Uint64())
+
+	return true
 }
 
 func (tx *TxMsg) verifySignature(store appstore.AppStore, txSerializer TxSerializer) (uint32, string) {
@@ -152,19 +171,38 @@ func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	codeT, log, _ = tx.ProcessTx(context, true)
+	codeT, log, _ = tx.ProcessTx(context, tx, true)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted()}
+	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: tx.Fee.Gas.Int64()}
 }
 
 func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
-	codeT, log, tags := tx.ProcessTx(context, false)
+	codeT, log, tags := tx.ProcessTx(context, tx, false)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.GasWanted(), GasUsed: tx.GasUsed(), Tags: tags}
+	subGas := new(big.Int).Sub(tx.GasUsed, tx.Fee.Gas)
+	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
+		return types.ResponseDeliverTx{Code: code.CodeTypeGasNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, gas not enough, got %s", tx.GasUsed.String())}
+	}
+
+	usedFee := new(big.Int).Mul(tx.GasUsed, new(big.Int).SetBytes(tx.GasPrice.Value))
+	leftFee := new(big.Int).Sub(new(big.Int).SetBytes(tx.Fee.Amount.Value), usedFee)
+	if leftFee.Cmp(big.NewInt(0)) > 1 || leftFee.Cmp(big.NewInt(0)) == 0 {
+		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), new(big.Int).SetBytes(tx.Fee.Amount.Value).String())}
+	}
+
+	balFrom, err := context.AppStore().Balance(tx.SignerAddr()[0], "ANKR")
+	if err != nil {
+		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), tx.SignerAddr()[0])}
+	}
+
+	balRtn := new(big.Int).Add(balFrom, leftFee)
+	context.AppStore().SetBalance(tx.SignerAddr()[0], account.Amount{account.Currency{"ANKR", 18}, balRtn})
+
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.Fee.Gas.Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
 }

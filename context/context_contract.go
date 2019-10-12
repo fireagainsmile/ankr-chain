@@ -6,7 +6,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/go-interpreter/wagon/gas"
+	"github.com/go-interpreter/wagon/exec/gas"
 )
 
 type TxMsgCallBack interface {

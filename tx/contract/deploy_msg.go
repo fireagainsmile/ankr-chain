@@ -3,6 +3,7 @@ package contract
 import (
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/account"
+	"github.com/Ankr-network/wagon/exec/gas"
 	"math/big"
 	"strconv"
 	"time"
@@ -25,44 +26,18 @@ type ContractDeployMsg struct {
 	Name     string   `json:"name"`
 	Codes    []byte   `json:"codes"`
 	CodesDesc string  `json:"codesdesc"`
-	gasUsed  *big.Int
-}
-
-type signContractDeployMsg struct {
-	FromAddr  string   `json:"fromaddr"`
-	Name      string   `json:"name"`
-	Codes     []byte   `json:"codes"`
-	CodesDesc string  `json:"codesdesc"`
-}
-
-func (sc signContractDeployMsg) bytes(txSerializer tx.TxSerializer) ([]byte, error) {
-	return txSerializer.MarshalJSON(&sc)
 }
 
 func (cd *ContractDeployMsg) SignerAddr() []string {
 	return []string {cd.FromAddr}
 }
 
-func (cd *ContractDeployMsg) GasWanted() int64 {
-	return 0
-}
-
-func (cd *ContractDeployMsg) GasUsed() int64 {
-	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
-
-	return gasUsed
-}
-
 func (cd *ContractDeployMsg) Type() string {
 	return txcmm.TxMsgTypeContractDeployMsg
 }
 
-func (cd *ContractDeployMsg) signMsg() *signContractDeployMsg {
-	return &signContractDeployMsg{FromAddr: cd.FromAddr, Name: cd.Name, Codes: cd.Codes}
-}
-
 func (cd *ContractDeployMsg) Bytes(txSerializer tx.TxSerializer) []byte {
-	bytes, _ :=  cd.signMsg().bytes(txSerializer)
+	bytes, _ :=  txSerializer.MarshalJSON(cd)
 	return bytes
 }
 
@@ -78,16 +53,11 @@ func (cd *ContractDeployMsg) PermitKey(store appstore.AppStore, pubKey []byte) b
 	return true
 }
 
-func (cd *ContractDeployMsg) SpendGas(gas *big.Int) bool {
-	cd.gasUsed.Add(cd.gasUsed, gas)
-	return true
-}
-
 func (cd *ContractDeployMsg) SenderAddr() string {
 	return cd.FromAddr
 }
 
-func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
 	if len(cd.FromAddr) != ankrtypes.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("ContractDeployMsg ProcessTx, unexpected from address. Got %s, addr len=%d", cd.FromAddr, len(cd.FromAddr)), nil
 	}
@@ -107,6 +77,11 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (
 
 	if isOnlyCheck {
 		return code.CodeTypeOK, "", nil
+	}
+
+    gasUsed := uint64(len(cd.Codes)) * gas.GasContractByte
+    if !metric.SpendGas(new(big.Int).SetUint64(gasUsed)) {
+    	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %s", ), nil
 	}
 
 	cInfo = &ankrtypes.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}

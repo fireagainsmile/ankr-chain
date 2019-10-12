@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"github.com/Ankr-network/wagon/gas"
 
 	"github.com/Ankr-network/ankr-chain/akvm/memory"
 	"github.com/Ankr-network/ankr-chain/akvm/module"
@@ -16,15 +17,15 @@ type WASMVirtualMachine struct {
 	log          log.Logger
 }
 
-func NewWASMVirtualMachine(contractAddr string, ownerAddr string, callerAddr string, code []byte, log log.Logger) *WASMVirtualMachine {
+func NewWASMVirtualMachine(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, code []byte, log log.Logger) *WASMVirtualMachine {
 	wasmVM :=  &WASMVirtualMachine{ envModule: module.NewModuleEnv()}
 	wasmVM.log = log
-	wasmVM.loadAndInstantiateModule(contractAddr, ownerAddr, callerAddr, code)
+	wasmVM.loadAndInstantiateModule(contractAddr, ownerAddr, callerAddr, metric, code)
 
 	return wasmVM
 }
 
-func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, ownerAddr string, callerAddr string, code []byte) {
+func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, code []byte) {
 	if wvm.envModule == nil {
 		panic("WASMVirtualMachine envModle nil")
 	}
@@ -42,7 +43,7 @@ func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, own
 		panic(err)
 	}*/
 
-	vm, err := exec.NewVM(contractAddr, ownerAddr, callerAddr, m)
+	vm, err := exec.NewVM(contractAddr, ownerAddr, callerAddr, metric,  m)
 	if err != nil {
 		panic(err)
 	}

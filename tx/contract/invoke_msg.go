@@ -3,7 +3,6 @@ package contract
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strconv"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/Ankr-network/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -23,45 +23,18 @@ type ContractInvokeMsg struct {
 	Method       string  `json:"name"`
 	Args         string  `json:"args"`
 	RtnType      string  `json:"rtnType"`
-	gasUsed      *big.Int
-}
-
-type signContractInvokeMsg struct {
-	FromAddr     string  `json:"fromaddr"`
-	ContractAddr string  `json:"contractaddr"`
-	Method       string  `json:"name"`
-	Args         string  `json:"args"`
-	RtnType      string  `json:"rtnType"`
-}
-
-func (sc signContractInvokeMsg) bytes(txSerializer tx.TxSerializer) ([]byte, error) {
-	return txSerializer.MarshalJSON(&sc)
 }
 
 func (cd *ContractInvokeMsg) SignerAddr() []string {
 	return []string {cd.FromAddr}
 }
 
-func (cd *ContractInvokeMsg) GasWanted() int64 {
-	return 0
-}
-
-func (cd *ContractInvokeMsg) GasUsed() int64 {
-	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
-
-	return gasUsed
-}
-
 func (cd *ContractInvokeMsg) Type() string {
 	return txcmm.TxMsgTypeContractInvokeMsg
 }
 
-func (ci *ContractInvokeMsg) signMsg() *signContractInvokeMsg {
-	return &signContractInvokeMsg{FromAddr: ci.FromAddr, ContractAddr: ci.ContractAddr, Method: ci.Method, Args: ci.Args}
-}
-
 func (ci *ContractInvokeMsg) Bytes(txSerializer tx.TxSerializer) []byte {
-	bytes, _ :=  ci.signMsg().bytes(txSerializer)
+	bytes, _ := txSerializer.MarshalJSON(ci)
 	return bytes
 }
 
@@ -77,16 +50,11 @@ func (ci *ContractInvokeMsg) PermitKey(store appstore.AppStore, pubKey []byte) b
 	return true
 }
 
-func (ci *ContractInvokeMsg) SpendGas(gas *big.Int) bool {
-	ci.gasUsed.Add(ci.gasUsed, gas)
-	return true
-}
-
 func (ci *ContractInvokeMsg) SenderAddr() string {
 	return ci.FromAddr
 }
 
-func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
 	if len(ci.FromAddr) != ankrtypes.KeyAddressLen {
 		return code.CodeTypeInvalidAddress, fmt.Sprintf("ContractInvokeMsg ProcessTx, unexpected from address. Got %s, addr len=%d", ci.FromAddr, len(ci.FromAddr)), nil
 	}
@@ -110,7 +78,7 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (
 	json.Unmarshal([]byte(ci.Args), &params)
 
 	contractType    := ankrtypes.ContractType(cInfo.Codes[0])
-	contractContext := ankrcontext.NewContextContract(ci, ci, cInfo, context.AppStore())
+	contractContext := ankrcontext.NewContextContract(metric, ci, cInfo, context.AppStore())
 	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, cInfo.Codes[ankrtypes.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
 	if err != nil {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=%s, err=%v", ci.ContractAddr, ci.Method, err), nil

@@ -2,7 +2,6 @@ package token
 
 import (
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"math/big"
 	"strconv"
 	"time"
@@ -11,9 +10,11 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/Ankr-network/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -25,17 +26,6 @@ type TransferMsg struct {
 	FromAddr string           `json:"fromaddr"`
 	ToAddr   string           `json:"toaddr"`
 	Amounts  []account.Amount `json:"amounts"`
-	gasUsed  *big.Int
-}
-
-type signTransferMsg struct {
-	FromAddr string           `json:"fromaddr"`
-	ToAddr   string           `json:"toaddr"`
-	Amounts  []account.Amount `json:"amounts"`
-}
-
-func (stf signTransferMsg) bytes(txSerializer tx.TxSerializer) ([]byte, error) {
-	return txSerializer.MarshalJSON(&stf)
 }
 
 func (tf *TransferMsg) SignerAddr() []string {
@@ -46,22 +36,12 @@ func (tf *TransferMsg) GasWanted() int64 {
 	return 0
 }
 
-func (tf *TransferMsg) GasUsed() int64 {
-	gasUsed, _ := strconv.ParseInt(MIN_TOKEN_SEND, 0, 64)
-
-	return gasUsed
-}
-
 func (tf *TransferMsg) Type() string {
 	return txcmm.TxMsgTypeTransfer
 }
 
-func (tf *TransferMsg) signMsg() *signTransferMsg {
-	return &signTransferMsg{FromAddr: tf.FromAddr, ToAddr: tf.ToAddr/*, Amounts: tf.Amounts*/}
-}
-
 func (tf *TransferMsg) Bytes(txSerializer tx.TxSerializer) []byte {
-	bytes, _ :=  tf.signMsg().bytes(txSerializer)
+	bytes, _ :=  txSerializer.MarshalJSON(tf)
 	return bytes
 }
 
@@ -77,16 +57,11 @@ func (tf *TransferMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return true
 }
 
-func (tf *TransferMsg) SpendGas(gas *big.Int) bool {
-	tf.gasUsed.Add(tf.gasUsed, gas)
-	return true
-}
-
 func (tf *TransferMsg) SenderAddr() string {
 	return tf.FromAddr
 }
 
-func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
 	if len(tf.FromAddr) != ankrtypes.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected from address. Got %s, addr len=%d", tf.FromAddr, len(tf.FromAddr)), nil
 	}
@@ -115,7 +90,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 	}
 
 	contractType    := ankrtypes.ContractType(tokenContract.Codes[0])
-	contractContext := ankrcontext.NewContextContract(tf, tf, tokenContract, context.AppStore())
+	contractContext := ankrcontext.NewContextContract(metric, tf, tokenContract, context.AppStore())
     rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, tokenContract.Codes[ankrtypes.CodePrefixLen:], "ANKR", "TransferFrom", params, "bool")
     if err != nil {
     	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
