@@ -47,7 +47,7 @@ func NewMockAppStore() appstore.AppStore {
 	appStore := iavl.NewMockIavlStoreApp()
 	router.QueryRouterInstance().AddQueryHandler("store", appStore)
 
-	return  appStore
+	return appStore
 }
 
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {

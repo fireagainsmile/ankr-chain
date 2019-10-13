@@ -30,6 +30,7 @@ type TxStore interface {
 	CertKey(dcName string, nsName string) string
 	DeleteCertKey(dcName string, nsName string)
 	SetMetering(dcName string, nsName string, value string)
+	Metering(dcName string, nsName string) string
 	SetValidator(valInfo *ankrtypes.ValidatorInfo)
 	Validator(valAddr string) (*ankrtypes.ValidatorInfo, error)
 	RemoveValidator(valAddr string)

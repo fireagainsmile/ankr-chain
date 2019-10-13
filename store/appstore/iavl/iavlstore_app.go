@@ -3,15 +3,17 @@ package iavl
 import (
 	"errors"
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/account"
 	"math/big"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/common"
+	"github.com/Ankr-network/ankr-chain/common/code"
 	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/go-amino"
@@ -28,11 +30,14 @@ const (
 	StoreContractCurrencyPrefix = "contcur:"
 )
 
+type storeQueryHandler func(store *IavlStoreApp, reqData []byte) (resQuery types.ResponseQuery)
+
 type IavlStoreApp struct {
 	iavlSM          *IavlStoreMulti
 	lastCommitID    ankrtypes.CommitID
 	storeLog        log.Logger
 	cdc             *amino.Codec
+	queryHandleMap map[string] storeQueryHandler
 	accStoreLocker  sync.RWMutex
 	certStoreLocker sync.RWMutex
 }
@@ -94,6 +99,14 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		iavlSApp.Prefixed(kvDB, kvPath)
 	}
 
+	iavlSApp.queryHandleMap = make(map[string]storeQueryHandler)
+
+	iavlSApp.registerQueryHandlerWapper("balance",   common.BalanceQueryReq{},  iavlSApp.Balance)
+	iavlSApp.registerQueryHandlerWapper("certkey",   common.CertKeyQueryReq{},  iavlSApp.CertKey)
+	iavlSApp.registerQueryHandlerWapper("metering",  common.MeteringQueryReq{}, iavlSApp.Metering)
+	iavlSApp.registerQueryHandlerWapper("validator", common.ValidatorQueryReq{},iavlSApp.Validator)
+	iavlSApp.registerQueryHandlerWapper("contract",  common.ContractQueryReq{}, iavlSApp.LoadContract)
+
 	return iavlSApp
 }
 
@@ -104,7 +117,57 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 	iavlSM := NewIavlStoreMulti(db, storeLog)
 	lcmmID := iavlSM.lastCommit()
 
+	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
+
+	iavlSApp.queryHandleMap = make(map[string]storeQueryHandler)
+
+	iavlSApp.registerQueryHandlerWapper("balance",   common.BalanceQueryReq{},  iavlSApp.Balance)
+	iavlSApp.registerQueryHandlerWapper("certkey",   common.CertKeyQueryReq{},  iavlSApp.CertKey)
+	iavlSApp.registerQueryHandlerWapper("metering",  common.MeteringQueryReq{}, iavlSApp.Metering)
+	iavlSApp.registerQueryHandlerWapper("validator", common.ValidatorQueryReq{},iavlSApp.Validator)
+	iavlSApp.registerQueryHandlerWapper("contract",  common.ContractQueryReq{}, iavlSApp.LoadContract)
+
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
+}
+
+
+func (sp* IavlStoreApp) registerQueryHandlerWapper(queryKey string, req interface{}, callFunc interface{}) {
+	sp.queryHandleMap[queryKey] = func(store *IavlStoreApp, reqData []byte) (resQuery types.ResponseQuery) {
+		err := store.cdc.UnmarshalJSON(reqData, req)
+		if err != nil {
+			resQuery.Code = code.CodeTypeQueryInvalidQueryReqData
+			resQuery.Log  = fmt.Sprintf("invalid %s query req data, err=%s", queryKey, err.Error())
+			return
+		}
+
+		v := reflect.ValueOf(callFunc)
+		var paramVals [] reflect.Value
+		reqVals := reflect.ValueOf(req)
+		for i := 0; i < reqVals.NumField(); i++ {
+			paramVals = append(paramVals, reqVals.Field(i))
+		}
+		respVals := v.Call(paramVals)
+
+		for j := 0; j < len(respVals); j++ {
+			if respVals[j].Interface() != nil && respVals[j].Type().Name() == reflect.TypeOf(errors.New("")).Name() {
+				err :=  respVals[j].Interface().(error)
+				resQuery.Code = code.CodeTypeLoadBalError
+				resQuery.Log  = fmt.Sprintf("load %s query err, err=%s", queryKey, err.Error())
+				return
+			}
+
+			if respVals[j].Interface() != nil {
+				resQDataBytes, _ := store.cdc.MarshalJSON(respVals[0].Interface())
+				resQuery.Code  = code.CodeTypeOK
+				resQuery.Value = resQDataBytes
+			}
+
+		}
+
+		resQuery.Code  = code.CodeTypeUnknownError
+
+		return
+	}
 }
 
 func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
@@ -183,10 +246,10 @@ func (sp *IavlStoreApp) parsePath(path string)(storeName string, subPath string)
 func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
 	var value []byte
 	resQuery.Log = "exists"
-
-	storeName, _ := sp.parsePath(reqQuery.Path)
 	if reqQuery.Path == "" {
-		storeName = IAvlStoreMainKey
+		resQuery.Log = "blank store name"
+		resQuery.Code = code.CodeTypeQueryInvalidStoreName
+		return
 	}
 
 	if reqQuery.Prove {
@@ -201,12 +264,14 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 			infoBytes := cdc.MustMarshalBinaryLengthPrefixed(commInfo)
 			pOP := merkle.ProofOp{
 				Type: ProofOpMultiStore,
-				Key:  []byte(storeName),
+				Key:  []byte(reqQuery.Path),
 				Data: infoBytes,
 			}
 			resQuery.Proof.Ops = append(resQuery.Proof.Ops, pOP)
 		}
 	}
+
+    return sp.queryHandleMap[reqQuery.Path](sp, reqQuery.Data)
 
 	resQuery.Key = reqQuery.Data
 	if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
@@ -299,6 +364,17 @@ func (sp *IavlStoreApp) CertKeyList() ([]byte, uint64) {
 func (sp *IavlStoreApp) SetMetering(dcName string, nsName string, value string) {
 	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, []byte(value))
+}
+
+func (sp *IavlStoreApp) Metering(dcName string, nsName string) string {
+	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+	valueBytes, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(key)
+	if err != nil {
+		sp.storeLog.Error("can't get the responding metering value", "dcName", dcName, "nsName", nsName, "err", err)
+		return ""
+	}
+
+	return string(valueBytes)
 }
 
 func (sp *IavlStoreApp) SetValidator(valInfo *ankrtypes.ValidatorInfo) {
