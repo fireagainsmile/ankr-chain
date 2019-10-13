@@ -196,7 +196,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 			}else {
 				iavlStore = sp.iavlSM.IavlStore(IAvlStoreMainKey)
 				if len(it.Key()) >= len(ankrtypes.CertPrefix) && string(it.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
-					sp.SetCertKey(it.Key(), it.Value())
+					//sp.SetCertKey(it.Key(), it.Value())
 				} else {
 					iavlStore.Set(it.Key(), it.Value())
 				}
@@ -244,7 +244,6 @@ func (sp *IavlStoreApp) parsePath(path string)(storeName string, subPath string)
 }
 
 func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
-	var value []byte
 	resQuery.Log = "exists"
 	if reqQuery.Path == "" {
 		resQuery.Log = "blank store name"
@@ -272,44 +271,6 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 	}
 
     return sp.queryHandleMap[reqQuery.Path](sp, reqQuery.Data)
-
-	resQuery.Key = reqQuery.Data
-	if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
-		value = []byte{} //sp.Balance(reqQuery.Data, "ANKR")
-		trxGetBalanceSlices := strings.Split(string(value), ":")
-		if len(trxGetBalanceSlices) == 1 {
-			_, err := new(big.Int).SetString(string(value), 10)
-			if !err {
-				resQuery.Log = "internal error, value format incorrect, single value"
-			}
-		}else if len(trxGetBalanceSlices) == 2 {
-			_, berr := new(big.Int).SetString(trxGetBalanceSlices[0], 10)
-			if !berr {
-				resQuery.Log = "internal error, value format incorrect, first value"
-			} else {
-				_, err := strconv.ParseInt(string(trxGetBalanceSlices[1]), 10, 64)
-				if err != nil {
-					resQuery.Log = "internal error, value format incorrect, second value"
-				}
-			}
-		} else {
-			resQuery.Log = "internal error, value format incorrect, extra value"
-		}
-	} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
-		value, _ = sp.AccountList()
-	} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
-		value, _ = sp.CertKeyList()
-	} else {
-		value, _ = sp.iavlSM.IavlStore(storeName).Get(reqQuery.Data)
-	}
-
-	resQuery.Value = value
-
-	if value == nil {
-		resQuery.Log = "does not exist"
-	}
-
-	return
 }
 
 func (sp *IavlStoreApp) SetCertKey(dcName string, nsName string, pemBase64 string)  {

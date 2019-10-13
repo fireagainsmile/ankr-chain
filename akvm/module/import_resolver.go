@@ -2,6 +2,7 @@ package module
 
 import (
 	"errors"
+
 	"github.com/go-interpreter/wagon/wasm"
 )
 

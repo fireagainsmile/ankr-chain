@@ -14,7 +14,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/Ankr-network/wagon/exec/gas"
+	"github.com/go-interpreter/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 

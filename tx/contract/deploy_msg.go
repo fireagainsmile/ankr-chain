@@ -3,7 +3,7 @@ package contract
 import (
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/wagon/exec/gas"
+	"github.com/go-interpreter/wagon/exec/gas"
 	"math/big"
 	"strconv"
 	"time"

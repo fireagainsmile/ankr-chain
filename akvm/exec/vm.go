@@ -5,10 +5,10 @@ import (
 
 	"github.com/Ankr-network/ankr-chain/akvm/memory"
 	"github.com/Ankr-network/ankr-chain/akvm/module"
-	"github.com/Ankr-network/wagon/exec"
-	"github.com/Ankr-network/wagon/exec/gas"
-	"github.com/Ankr-network/wagon/log"
-	"github.com/Ankr-network/wagon/wasm"
+	"github.com/go-interpreter/wagon/exec"
+	"github.com/go-interpreter/wagon/exec/gas"
+	"github.com/go-interpreter/wagon/log"
+	"github.com/go-interpreter/wagon/wasm"
 )
 
 type WASMVirtualMachine struct {

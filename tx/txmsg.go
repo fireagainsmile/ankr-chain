@@ -10,7 +10,7 @@ import (
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-	"github.com/Ankr-network/wagon/exec/gas"
+	"github.com/go-interpreter/wagon/exec/gas"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
