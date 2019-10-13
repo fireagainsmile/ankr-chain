@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"reflect"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -32,7 +32,7 @@ func (invoker *NativeInvoker) SetContextContract(context context.ContextContract
 	}
 }
 
-func (invoker *NativeInvoker) Invoke(context context.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, params []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
+func (invoker *NativeInvoker) Invoke(context context.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, params []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
 	invoker.SetContextContract(context)
 	natiContractI, ok := invoker.nativeConracts[contractName]
 	if !ok {
@@ -54,9 +54,9 @@ func (invoker *NativeInvoker) Invoke(context context.ContextContract, appStore a
 	rtnValues := methodValue.Call(args)
 	if len(rtnValues) > 0 {
 		if rtnValues[0].Type().Name() == rtnType {
-		  	return &ankrtypes.ContractResult{true, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
+		  	return &ankrcmm.ContractResult{true, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
 		}else {
-			return &ankrtypes.ContractResult{false, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
+			return &ankrcmm.ContractResult{false, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
 		}
 	}
 

@@ -1,7 +1,7 @@
 package tx
 
 import (
-	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/contract"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/tendermint/tendermint/libs/log"
@@ -9,7 +9,7 @@ import (
 )
 
 type ContextTx interface {
-	MinGasPrice() account.Amount
+	MinGasPrice() ankrcmm.Amount
 	AppStore() appstore.AppStore
 	TxSerializer() TxSerializer
 	Contract() contract.Contract

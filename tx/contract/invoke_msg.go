@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"time"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
@@ -55,11 +55,11 @@ func (ci *ContractInvokeMsg) SenderAddr() string {
 }
 
 func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	if len(ci.FromAddr) != ankrtypes.KeyAddressLen {
+	if len(ci.FromAddr) != ankrcmm.KeyAddressLen {
 		return code.CodeTypeInvalidAddress, fmt.Sprintf("ContractInvokeMsg ProcessTx, unexpected from address. Got %s, addr len=%d", ci.FromAddr, len(ci.FromAddr)), nil
 	}
 
-	if len(ci.ContractAddr) != ankrtypes.KeyAddressLen {
+	if len(ci.ContractAddr) != ankrcmm.KeyAddressLen {
 		return code.CodeTypeContractInvalidAddr, fmt.Sprintf("ContractInvokeMsg ProcessTx, unexpected contract address. Got %s, addr len=%d", ci.ContractAddr, len(ci.ContractAddr)), nil
 	}
 
@@ -74,12 +74,12 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 		return code.CodeTypeOK, "", nil
 	}
 
-	var params []*ankrtypes.Param
+	var params []*ankrcmm.Param
 	json.Unmarshal([]byte(ci.Args), &params)
 
-	contractType    := ankrtypes.ContractType(cInfo.Codes[0])
+	contractType    := ankrcmm.ContractType(cInfo.Codes[0])
 	contractContext := ankrcontext.NewContextContract(metric, ci, cInfo, context.AppStore(), context.PubSubServer())
-	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, cInfo.Codes[ankrtypes.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
+	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, cInfo.Codes[ankrcmm.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
 	if err != nil {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=%s, err=%v", ci.ContractAddr, ci.Method, err), nil
 	}

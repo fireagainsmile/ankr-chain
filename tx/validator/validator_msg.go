@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"math/big"
 	"strconv"
 
 	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/go-interpreter/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -25,11 +26,11 @@ type ValidatorMsg struct {
 	Action       uint8                          `json:"action"` //1-create; 2-update; 3-remove
 	FromAddress  string                         `json:"fromaddress"`
 	Name         string                         `json:"name"`
-	PubKey       ankrtypes.ValPubKey            `json:"pubkey"`
+	PubKey       ankrcmm.ValPubKey            `json:"pubkey"`
 	StakeAddress string                         `json:"stakeaddress"`
-	StakeAmount  account.Amount                 `json:"stakeamount"`
+	StakeAmount  ankrcmm.Amount                 `json:"stakeamount"`
 	ValidHeight  uint64                         `json:"validheight"`
-	SetFlag      ankrtypes.ValidatorInfoSetFlag `json:"setflag"`
+	SetFlag      ankrcmm.ValidatorInfoSetFlag `json:"setflag"`
 	gasUsed      *big.Int                       `json:"gasused"`
 }
 
@@ -37,11 +38,11 @@ type signValidatorMsg struct {
 	Action       uint8                          `json:"action"` //1-create; 2-update; 3-remove
 	FromAddress  string                         `json:"fromaddress"`
 	Name         string                         `json:"name"`
-	PubKey       ankrtypes.ValPubKey            `json:"pubkey"`
+	PubKey       ankrcmm.ValPubKey            `json:"pubkey"`
 	StakeAddress string                         `json:"stakeaddress"`
-	StakeAmount  account.Amount                 `json:"stakeamount"`
+	StakeAmount  ankrcmm.Amount                 `json:"stakeamount"`
 	ValidHeight  uint64                         `json:"validheight"`
-	SetFlag      ankrtypes.ValidatorInfoSetFlag `json:"setflag"`
+	SetFlag      ankrcmm.ValidatorInfoSetFlag `json:"setflag"`
 }
 
 func (sv signValidatorMsg) bytes(txSerializer tx.TxSerializer) ([]byte, error){
@@ -89,9 +90,9 @@ func (v *ValidatorMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (v *ValidatorMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME))
+	adminPubkey := store.Get([]byte(ankrcmm.ADMIN_OP_VAL_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AccountAdminValidator))
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminValidator))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
@@ -102,12 +103,12 @@ func (v *ValidatorMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
-func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
-	if len(v.FromAddress) != ankrtypes.KeyAddressLen {
+func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
+	if len(v.FromAddress) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("ValidatorMsg ProcessTx, unexpected from address. Got %s, addr len=%d", v.FromAddress, len(v.FromAddress)), nil
 	}
 
-	if len(v.StakeAddress) != ankrtypes.KeyAddressLen {
+	if len(v.StakeAddress) != ankrcmm.KeyAddressLen {
 		return code.CodeTypeInvalidAddress, fmt.Sprintf("ValidatorMsg ProcessTx, unexpected stake address. Got %s, addr len=%d", v.StakeAddress, len(v.StakeAddress)), nil
 	}
 
@@ -132,14 +133,14 @@ func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32
 	}
 
 	bal = bal.Sub(bal, amountTemp)
-	context.AppStore().SetBalance(v.StakeAddress, account.Amount{account.Currency{"ANKR", 18}, bal.Bytes()})
+	context.AppStore().SetBalance(v.StakeAddress, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, bal.Bytes()})
 
 	pubKeyHandler, err := ankrcrypto.GetValPubKeyHandler(&v.PubKey)
 	if err != nil {
 		return code.CodeTypeInvalidValidatorPubKey, fmt.Sprintf("can't find the respond crypto pubkey handler:type=%s", v.PubKey.Type), nil
 	}
 
-	valInfo := &ankrtypes.ValidatorInfo {v.Name,
+	valInfo := &ankrcmm.ValidatorInfo {v.Name,
 		pubKeyHandler.Address().String(),
 		v.PubKey,
 		ValidatorManagerInstance().Power(&v.StakeAmount),

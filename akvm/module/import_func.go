@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	ankrcontext "github.com/Ankr-network/ankr-chain/context"
-	"github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec"
 )
 
@@ -243,7 +243,7 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
 		return -1
 	}
 
-	params := make([]*types.Param, 0)
+	params := make([]*ankrcmm.Param, 0)
     err =  json.Unmarshal([]byte(toReadJsonParam), params)
     if err != nil {
 		proc.VM().Logger().Error("ContractCall json.Unmarshal err", "JsonParam", toReadJsonParam, "err", err)
@@ -253,7 +253,7 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
     contrInvoker := proc.VM().ContrInvoker()
     if contrInvoker == nil {
 		proc.VMContext().PushVM(proc.VM())
-		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(cInfo.Addr, cInfo.Owner, proc.VM().OwnerAddr(), proc.VMContext(), cInfo.Codes[types.CodePrefixLen:], cInfo.Name, toReadMethodName, params, toReadRTNType)
+		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(cInfo.Addr, cInfo.Owner, proc.VM().OwnerAddr(), proc.VMContext(), cInfo.Codes[ankrcmm.CodePrefixLen:], cInfo.Name, toReadMethodName, params, toReadRTNType)
 		lastVM, _:= proc.VMContext().PopVM()
 		proc.VMContext().SetRunningVM(lastVM)
 		switch rtnIndex.(type) {
@@ -304,7 +304,7 @@ func ContractDelegateCall(proc *exec.Process, contractIndex int32, methodIndex i
 		return -1
 	}
 
-	params := make([]*types.Param, 0)
+	params := make([]*ankrcmm.Param, 0)
 	err =  json.Unmarshal([]byte(toReadJsonParam), params)
 	if err != nil {
 		proc.VM().Logger().Error("ContractDelegateCall json.Unmarshal err", "JsonParam", toReadJsonParam, "err", err)
@@ -314,7 +314,7 @@ func ContractDelegateCall(proc *exec.Process, contractIndex int32, methodIndex i
 	contrInvoker := proc.VM().ContrInvoker()
 	if contrInvoker == nil {
 		proc.VMContext().PushVM(proc.VM())
-		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(cInfo.Addr, cInfo.Owner, proc.VM().CallerAddr(), proc.VMContext(), cInfo.Codes[types.CodePrefixLen:], cInfo.Name, toReadMethodName, params, toReadRTNType)
+		rtnIndex, _ := proc.VM().ContrInvoker().InvokeInternal(cInfo.Addr, cInfo.Owner, proc.VM().CallerAddr(), proc.VMContext(), cInfo.Codes[ankrcmm.CodePrefixLen:], cInfo.Name, toReadMethodName, params, toReadRTNType)
 		lastVM, _:= proc.VMContext().PopVM()
 		proc.VMContext().SetRunningVM(lastVM)
 		switch rtnIndex.(type) {
@@ -363,7 +363,7 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 	//argStr := strings.TrimRight(evSrcSegs[1], ")")
 	//argTyps := strings.Split(argStr, ",")
 
-	params := make([]*types.Param, 0)
+	params := make([]*ankrcmm.Param, 0)
 	err =  json.Unmarshal([]byte(evData), params)
 	if err != nil {
 		proc.VM().Logger().Error("TrigEvent event json.Unmarshal err", "evData", evData, "err", err)

@@ -9,6 +9,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
+	"github.com/go-interpreter/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -25,14 +26,6 @@ type MeteringMsg struct {
 
 func (m *MeteringMsg) SignerAddr() []string {
 	return []string {m.FromAddr}
-}
-
-func (m *MeteringMsg) GasWanted() int64 {
-	return 0
-}
-
-func (m *MeteringMsg) GasUsed() int64 {
-	return 0
 }
 
 func (m *MeteringMsg) Type() string {
@@ -57,7 +50,7 @@ func (m *MeteringMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return true
 }
 
-func (m *MeteringMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (m *MeteringMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
 	if isOnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}

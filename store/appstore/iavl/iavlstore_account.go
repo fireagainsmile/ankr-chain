@@ -2,8 +2,10 @@ package iavl
 
 import (
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/account"
 	"math/big"
+
+	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 )
 
 const (
@@ -37,12 +39,12 @@ func (sp *IavlStoreApp) InitGenesisAccount() {
 
 	totalSupply, _ := new(big.Int).SetString("100000000000000000000000000000", 10)
 
-	var accInfo account.AccountInfo
-	accInfo.AccType = account.AccountGenesis
+	var accInfo ankrcmm.AccountInfo
+	accInfo.AccType = ankrcmm.AccountGenesis
 	accInfo.Nonce   = 0
 	accInfo.Address = addr
 	accInfo.PubKey  = ""
-	accInfo.Amounts = []account.Amount{account.Amount{account.Currency{"ANKR",18}, totalSupply.Bytes()}}
+	accInfo.Amounts = []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR",18}, totalSupply.Bytes()}}
 
 
 	sp.addAccountInfo(&accInfo)
@@ -51,17 +53,17 @@ func (sp *IavlStoreApp) InitGenesisAccount() {
 func (sp *IavlStoreApp) InitFoundAccount() {
 	addr := account.AccountManagerInstance().FoundAccountAddress()
 
-	var accInfo account.AccountInfo
-	accInfo.AccType = account.AccountFound
+	var accInfo ankrcmm.AccountInfo
+	accInfo.AccType = ankrcmm.AccountFound
 	accInfo.Nonce   = 0
 	accInfo.Address = addr
 	accInfo.PubKey  = ""
-	accInfo.Amounts = []account.Amount{{account.Currency{Symbol: "ANKR"}, new(big.Int).SetUint64(0).Bytes()}}
+	accInfo.Amounts = []ankrcmm.Amount{{ankrcmm.Currency{Symbol: "ANKR"}, new(big.Int).SetUint64(0).Bytes()}}
 
 	sp.addAccountInfo(&accInfo)
 }
 
-func (sp *IavlStoreApp) addAccountInfo(accInfo *account.AccountInfo) {
+func (sp *IavlStoreApp) addAccountInfo(accInfo *ankrcmm.AccountInfo) {
 	if sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(accInfo.Address))) {
 		return
 	}
@@ -111,7 +113,7 @@ func (sp *IavlStoreApp) updatePubKey(address string, pubKey string) error {
 	return nil
 }
 
-func (sp *IavlStoreApp) updateBalance(address string, assert account.Amount) error {
+func (sp *IavlStoreApp) updateBalance(address string, assert ankrcmm.Amount) error {
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		return fmt.Errorf("can't find the respond account from store: address=%s", address)
 	}
@@ -141,7 +143,7 @@ func (sp *IavlStoreApp) updateBalance(address string, assert account.Amount) err
 	return nil
 }
 
-func (sp *IavlStoreApp) GetAssert(address string, symbol string) (*account.Amount, error) {
+func (sp *IavlStoreApp) GetAssert(address string, symbol string) (*ankrcmm.Amount, error) {
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		return nil, fmt.Errorf("can't find the respond account from store: address=%s", address)
 	}
@@ -184,27 +186,27 @@ func (sp *IavlStoreApp) IncNonce(address string) (uint64, error) {
 	return accInfo.Nonce, nil
 }
 
-func (sp *IavlStoreApp) AddAccount(address string, accType account.AccountType) {
+func (sp *IavlStoreApp) AddAccount(address string, accType ankrcmm.AccountType) {
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
-		var accInfo account.AccountInfo
+		var accInfo ankrcmm.AccountInfo
 		accInfo.AccType = accType
 		accInfo.Nonce   = 0
 		accInfo.Address = address
 		accInfo.PubKey  = ""
-		accInfo.Amounts= []account.Amount{account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
+		accInfo.Amounts= []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
 
 		sp.addAccountInfo(&accInfo)
 	}
 }
 
-func (sp *IavlStoreApp) SetBalance(address string, amount account.Amount) {
+func (sp *IavlStoreApp) SetBalance(address string, amount ankrcmm.Amount) {
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
-		var accInfo account.AccountInfo
-		accInfo.AccType = account.AccountGeneral
+		var accInfo ankrcmm.AccountInfo
+		accInfo.AccType = ankrcmm.AccountGeneral
 		accInfo.Nonce   = 0
 		accInfo.Address = address
 		accInfo.PubKey  = ""
-		accInfo.Amounts= []account.Amount{amount}
+		accInfo.Amounts= []ankrcmm.Amount{amount}
 
 		sp.addAccountInfo(&accInfo)
 	}else {
@@ -221,7 +223,7 @@ func (sp *IavlStoreApp) Balance(address string, symbol string) (*big.Int, error)
 	return new(big.Int).SetBytes(assert.Value), nil
 }
 
-func (sp *IavlStoreApp) SetAllowance(addrSender string, addrSpender string, amount account.Amount) {
+func (sp *IavlStoreApp) SetAllowance(addrSender string, addrSpender string, amount ankrcmm.Amount) {
 	key := containAccountAllowPrefix(addrSender, addrSpender, amount.Cur.Symbol)
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(key)) {
 		sp.iavlSM.IavlStore(IavlStoreAccountKey).Set([]byte(key), amount.Value)

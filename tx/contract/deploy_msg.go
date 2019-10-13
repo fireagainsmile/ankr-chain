@@ -2,18 +2,17 @@ package contract
 
 import (
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/go-interpreter/wagon/exec/gas"
 	"math/big"
 	"strconv"
 	"time"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -58,11 +57,11 @@ func (cd *ContractDeployMsg) SenderAddr() string {
 }
 
 func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
-	if len(cd.FromAddr) != ankrtypes.KeyAddressLen {
+	if len(cd.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("ContractDeployMsg ProcessTx, unexpected from address. Got %s, addr len=%d", cd.FromAddr, len(cd.FromAddr)), nil
 	}
 
-	if len(cd.Codes) <= ankrtypes.CodePrefixLen {
+	if len(cd.Codes) <= ankrcmm.CodePrefixLen {
 		return code.CodeTypeContractInvalidCodeSize, fmt.Sprintf("ContractDeployMsg ProcessTx, invalid code size, Got %v, code size=%d", cd.Codes, len(cd.Codes)), nil
 	}
 
@@ -84,10 +83,10 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
     	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %s", ), nil
 	}
 
-	cInfo = &ankrtypes.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
+	cInfo = &ankrcmm.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
 	context.AppStore().SaveContract(contractAddr, cInfo)
 
-	context.AppStore().AddAccount(contractAddr, account.AccountContract)
+	context.AppStore().AddAccount(contractAddr, ankrcmm.AccountContract)
 
 	context.AppStore().IncNonce(cd.FromAddr)
 

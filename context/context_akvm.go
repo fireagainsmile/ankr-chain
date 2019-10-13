@@ -4,9 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 )
 
 var bcContext ContextAKVM
@@ -14,12 +13,12 @@ var bcContext ContextAKVM
 type ContextAKVM interface {
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
-	SetBalance(address string, amount account.Amount)
+	SetBalance(address string, amount ankrcmm.Amount)
 	Balance(address string, symbol string) (*big.Int, error)
-	SetAllowance(addrSender string, addrSpender string, amount account.Amount)
+	SetAllowance(addrSender string, addrSpender string, amount ankrcmm.Amount)
 	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
-	LoadContract(cAddr string) (*ankrtypes.ContractInfo, error)
+	LoadContract(cAddr string) (*ankrcmm.ContractInfo, error)
 	Height() int64
 	Publish(ctx context.Context, msg interface{}) error
 	PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error

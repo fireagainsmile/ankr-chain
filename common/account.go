@@ -1,11 +1,10 @@
-package account
+package common
 
 type Code struct {
 	Name      string   `json:"name"`
 	CodeBytes []byte   `json:"codebytes"`
 	CodeDescs string   `json:"codedescs"`
 }
-
 
 type Currency struct {
 	Symbol  string `json:"symbol"`

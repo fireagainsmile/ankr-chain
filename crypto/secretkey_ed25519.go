@@ -4,8 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 
-	"github.com/Ankr-network/ankr-chain/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
@@ -66,13 +65,13 @@ func (sked *SecretKeyEd25519) PriKey() (string, error) {
 	return sked.PrivKey, nil
 }
 
-func (sked *SecretKeyEd25519) Address() (common.Address, error) {
+func (sked *SecretKeyEd25519) Address() (ankrcmm.Address, error) {
 	privKeyObj, err := DeserilizePrivKey(sked.PrivKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return common.Address(privKeyObj.PubKey().Address()), nil
+	return ankrcmm.Address(privKeyObj.PubKey().Address()), nil
 }
 
 func (sked *SecretKeyEd25519) Sign(msg []byte) (*Signature, error) {
@@ -96,7 +95,7 @@ func (sked *SecretKeyEd25519) Verify(msg []byte, signature *Signature) bool {
 	}
 
 	addr := signature.PubKey.Address()
-	if len(addr.String()) != ankrtypes.KeyAddressLen {
+	if len(addr.String()) != ankrcmm.KeyAddressLen {
 		return false
 	}
 

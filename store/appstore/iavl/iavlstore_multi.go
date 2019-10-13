@@ -2,7 +2,7 @@ package iavl
 
 import (
 	"fmt"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -36,7 +36,7 @@ type IavlStoreMulti struct {
 
 type storeCommitID struct {
 	Name string
-	CID  ankrtypes.CommitID
+	CID  ankrcmm.CommitID
 }
 
 type commitInfo struct {
@@ -128,10 +128,10 @@ func (ms *IavlStoreMulti) setLatestVersion(batch dbm.Batch, version int64) {
 	batch.Set([]byte(LatestVerKey), latestVerBtest)
 }
 
-func (ms *IavlStoreMulti) lastCommit() ankrtypes.CommitID {
+func (ms *IavlStoreMulti) lastCommit() ankrcmm.CommitID {
 	latestVer := ms.latestVersion()
 	if latestVer == 0 {
-		return ankrtypes.CommitID{}
+		return ankrcmm.CommitID{}
 	}
 
     cmmInfos :=  ms.commitInfo(latestVer)
@@ -146,15 +146,15 @@ func (ms *IavlStoreMulti) lastCommit() ankrtypes.CommitID {
 		}
 		reHash := merkle.SimpleHashFromMap(hashM)
 
-		return ankrtypes.CommitID{latestVer, reHash}
+		return ankrcmm.CommitID{latestVer, reHash}
 	}else {
 		ms.log.Error("can't get the latest commitinfo", "latestVer", latestVer)
 	}
 
-    return ankrtypes.CommitID{}
+    return ankrcmm.CommitID{}
 }
 
-func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
+func (ms *IavlStoreMulti) Commit(version int64) ankrcmm.CommitID {
 	var cmmInfo commitInfo
 
 	version += 1
@@ -181,7 +181,7 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 
 	batch.Write()
 
-	return ankrtypes.CommitID{version, reHash}
+	return ankrcmm.CommitID{version, reHash}
 }
 
 

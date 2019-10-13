@@ -3,8 +3,7 @@ package crypto
 import (
 	"fmt"
 
-	"github.com/Ankr-network/ankr-chain/common"
-    ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	tmcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -13,12 +12,12 @@ import (
 type SecretKey interface {
 	PubKey() (string, error)
 	PriKey() (string, error)
-	Address() (common.Address, error)
+	Address() (ankrcmm.Address, error)
 	Sign(msg []byte) (*Signature, error)
 	Verify(msg []byte, signature *Signature) bool
 }
 
-func GetValPubKeyHandler(valPubkey *ankrtypes.ValPubKey) (tmcrypto.PubKey, error) {
+func GetValPubKeyHandler(valPubkey *ankrcmm.ValPubKey) (tmcrypto.PubKey, error) {
 	switch valPubkey.Type {
 	case CryptoED25519:
 		if len(valPubkey.Data) != ed25519.PubKeyEd25519Size {

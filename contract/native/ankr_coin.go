@@ -1,12 +1,12 @@
 package native
 
 import (
-	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/context"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -20,12 +20,12 @@ type AnkrCoin struct {
 }
 
 func NewAnkrCoin(store appstore.AppStore, log log.Logger) *AnkrCoin {
-	addrBytes := make([]byte, ankrtypes.KeyAddressLen/2)
-	addrBytes[ankrtypes.KeyAddressLen/2-1] = 0x01
+	addrBytes := make([]byte, ankrcmm.KeyAddressLen/2)
+	addrBytes[ankrcmm.KeyAddressLen/2-1] = 0x01
 	store.BuildCurrencyCAddrMap("ANKR", string(addrBytes))
-	store.SaveContract(string(addrBytes), &ankrtypes.ContractInfo{"string(addrBytes)", "ANKR", []byte{ankrtypes.ContractTypeNative}, ""})
+	store.SaveContract(string(addrBytes), &ankrcmm.ContractInfo{string(addrBytes), "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), []byte{ankrcmm.ContractTypeNative}, ""})
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
-	store.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), account.Amount{account.Currency{"ANKR", 18},totalSup.Bytes()})
+	store.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},totalSup.Bytes()})
 	return &AnkrCoin{
 		"Ankr Network",
 		"ANKR", 18,
@@ -93,8 +93,8 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 
 	balSender = balSender.Sub(balSender, value)
 	balTo     = balTo.Add(balTo, value)
-	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol, 18}, balSender.Bytes()})
-	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo.Bytes()})
+	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balSender.Bytes()})
+	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
 	//emit event(to do)
 
@@ -130,8 +130,8 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	balFrom = balFrom.Sub(balFrom, value)
 	balTo   = balTo.Add(balTo, value)
-	ac.context.SetBalance(ac.context.SenderAddr(), account.Amount{account.Currency{ac.symbol,18}, balFrom.Bytes()})
-	ac.context.SetBalance(toAddr, account.Amount{account.Currency{ac.symbol, 18}, balTo.Bytes()})
+	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol,18}, balFrom.Bytes()})
+	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
 	//emit event(to do)
 
@@ -144,7 +144,7 @@ func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
 		ac.log.Error("AnkrCoin Approve invalid amount", "isSucess", isSucess)
 	}
 
-	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, account.Amount{account.Currency{ac.symbol, 18},value.Bytes()})
+	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18},value.Bytes()})
 
 	//emit event(to do)
 

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	ankrconfig "github.com/Ankr-network/ankr-chain/config"
 	"github.com/Ankr-network/ankr-chain/consensus"
 	ankrp2p "github.com/Ankr-network/ankr-chain/p2p"
 	"github.com/Ankr-network/ankr-chain/store/historystore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	tmcorelog "github.com/tendermint/tendermint/libs/log"
 	tmcorenode "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -48,7 +48,7 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		oldPV.Upgrade(newPrivValKey, newPrivValState)
 	}
 
-	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), ankrtypes.APPName, logger.With("module", "AnkrChainApp"))
+	ankrChainApp := ankrchain.NewAnkrChainApplication(config.DBDir(), ankrcmm.APPName, logger.With("module", "AnkrChainApp"))
 
 	config.FilterPeers = config.AllowedPeers != ""
 

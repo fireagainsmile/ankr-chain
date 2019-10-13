@@ -3,9 +3,9 @@ package contract
 import (
 	"math/big"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 )
 
 //ERC20 standard interface
@@ -23,6 +23,6 @@ type ContractERC20 interface {
 }
 
 type Invoker interface {
-	Invoke(context context.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error)
+	Invoke(context context.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error)
 }
 

@@ -5,14 +5,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/account"
 
+	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/go-interpreter/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -25,14 +26,6 @@ type SetCertMsg struct {
 
 func (sc *SetCertMsg) SignerAddr() []string {
 	return []string {sc.FromAddr}
-}
-
-func (sc *SetCertMsg) GasWanted() int64 {
-	return 0
-}
-
-func (sc *SetCertMsg) GasUsed() int64 {
-	return 0
 }
 
 func (sc *SetCertMsg) Type() string {
@@ -54,9 +47,9 @@ func (sc *SetCertMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (sc *SetCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
+	adminPubkey := store.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AccountAdminMetering))
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
@@ -67,8 +60,8 @@ func (sc *SetCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
-func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	if len(sc.FromAddr) != ankrtypes.KeyAddressLen {
+func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	if len(sc.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("SetCertMsg ProcessTx, unexpected from address. Got %s, addr len=%d", sc.FromAddr, len(sc.FromAddr)), nil
 	}
 
@@ -124,9 +117,9 @@ func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (sc *RemoveCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := store.Get([]byte(ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME))
+	adminPubkey := store.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(account.AccountAdminMetering))
+		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering))
 	}
 
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
@@ -137,8 +130,8 @@ func (sc *RemoveCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool 
 	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
-func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	if len(rc.FromAddr) != ankrtypes.KeyAddressLen {
+func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	if len(rc.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("RemoveCertMsg ProcessTx, unexpected from address. Got %s, addr len=%d", rc.FromAddr, len(rc.FromAddr)), nil
 	}
 

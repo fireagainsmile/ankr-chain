@@ -1,15 +1,16 @@
 package tx
 
 import (
-	"github.com/Ankr-network/ankr-chain/account"
 	"testing"
+
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/stretchr/testify/assert"
 )
 
 
 func TestTxCodec(t *testing.T) {
 
-	txansferTxMsg := &TxMsg{ImplTxMsg: &TxMsgTesting{ToAddr: "ToAddr", Asserts: []account.Assert{{"ANKR","100"}}}}
+	txansferTxMsg := &TxMsg{ImplTxMsg: &TxMsgTesting{ToAddr: "ToAddr", Asserts: []ankrcmm.Assert{{"ANKR","100"}}}}
 
 	txansferTxMsg.ChID = "ankrchain"
 

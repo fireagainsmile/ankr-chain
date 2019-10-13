@@ -3,20 +3,18 @@ package appstore
 import (
 	"math/big"
 
-	"github.com/Ankr-network/ankr-chain/account"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
-
 )
 
 type AccountStore interface {
 	Nonce(address string) (uint64, error)
 	IncNonce(address string) (uint64, error)
-	AddAccount(address string, accType account.AccountType)
-	SetBalance(address string, amount account.Amount)
+	AddAccount(address string, accType ankrcmm.AccountType)
+	SetBalance(address string, amount ankrcmm.Amount)
 	Balance(address string, symbol string) (*big.Int, error)
-	SetAllowance(addrSender string, addrSpender string, amount account.Amount)
+	SetAllowance(addrSender string, addrSpender string, amount ankrcmm.Amount)
 	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
 }
 
@@ -31,8 +29,8 @@ type TxStore interface {
 	DeleteCertKey(dcName string, nsName string)
 	SetMetering(dcName string, nsName string, value string)
 	Metering(dcName string, nsName string) string
-	SetValidator(valInfo *ankrtypes.ValidatorInfo)
-	Validator(valAddr string) (*ankrtypes.ValidatorInfo, error)
+	SetValidator(valInfo *ankrcmm.ValidatorInfo)
+	Validator(valAddr string) (*ankrcmm.ValidatorInfo, error)
 	RemoveValidator(valAddr string)
 	TotalValidatorPowers() int64
 	Get(key []byte) []byte
@@ -45,8 +43,8 @@ type ContractStore interface {
 	IsExist(cAddr string) bool
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	ContractAddrBySymbol(symbol string) (string, error)
-	SaveContract(cAddr string, cInfo *ankrtypes.ContractInfo) error
-	LoadContract(cAddr string) (*ankrtypes.ContractInfo, error)
+	SaveContract(cAddr string, cInfo *ankrcmm.ContractInfo) error
+	LoadContract(cAddr string) (*ankrcmm.ContractInfo, error)
 }
 
 type QueryHandler interface {

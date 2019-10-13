@@ -48,9 +48,9 @@ func newTransactionHandler(DBType string, DBHost string, DBName string, txEventC
 	tranHandler.logHis     = logHis
 
 	if tranHandler.txHisStore != nil {
-		acc, err := tranHandler.txHisStore.GetAccount(account.AccountManagerInstance().InitAccountAddress())
+		acc, err := tranHandler.txHisStore.GetAccount(account.AccountManagerInstance().GenesisAccountAddress())
 		if err != nil || acc == nil {
-			tranHandler.txHisStore.AddAccount(&types.Account{account.AccountManagerInstance().InitAccountAddress(), "1000000000000000000000000"})
+			tranHandler.txHisStore.AddAccount(&types.Account{account.AccountManagerInstance().GenesisAccountAddress(), "1000000000000000000000000"})
 		}
 	}
 

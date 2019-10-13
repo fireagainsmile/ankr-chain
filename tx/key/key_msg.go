@@ -6,12 +6,13 @@ import (
 	"fmt"
 
 	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
 	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/go-interpreter/wagon/exec/gas"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -27,14 +28,6 @@ type KeyMsg struct {
 
 func (k *KeyMsg) SignerAddr() []string {
 	return []string {k.FromAddr}
-}
-
-func (k *KeyMsg) GasWanted() int64 {
-	return 1
-}
-
-func (k *KeyMsg) GasUsed() int64 {
-	return 0
 }
 
 func (s *KeyMsg) Type() string {
@@ -56,7 +49,7 @@ func (k *KeyMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (k *KeyMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := account.AccountManagerInstance().AdminOpAccount(account.AccountAdminOP)
+	adminPubkey := account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminOP)
 	adminPubKeyStr, err := base64.StdEncoding.DecodeString(adminPubkey)
 	if err != nil {
 		return false
@@ -65,9 +58,9 @@ func (k *KeyMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
-func (k *KeyMsg) ProcessTx(context tx.ContextTx, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	if k.KeyName != ankrtypes.ADMIN_OP_VAL_PUBKEY_NAME && k.KeyName != ankrtypes.ADMIN_OP_FUND_PUBKEY_NAME &&
-		k.KeyName != ankrtypes.ADMIN_OP_METERING_PUBKEY_NAME {
+func (k *KeyMsg) ProcessTx(context tx.ContextTx,  metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+	if k.KeyName != ankrcmm.ADMIN_OP_VAL_PUBKEY_NAME && k.KeyName != ankrcmm.ADMIN_OP_FUND_PUBKEY_NAME &&
+		k.KeyName != ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected keyname. Got %v", k.KeyName), nil
 	}
 

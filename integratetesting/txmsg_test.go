@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/Ankr-network/ankr-chain/account"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/Ankr-network/ankr-chain/consensus"
 	"github.com/Ankr-network/ankr-chain/crypto"
@@ -19,10 +19,10 @@ import (
 func TestTxTransfer(t *testing.T) {
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
 		ToAddr:  "454D92DC842F532683E820DF6C3784473AD9CCF222D8FB",
-		Amounts: []account.Amount{account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
 	}
 
-	txMsg := &tx.TxMsg{ChID: "ankr-chain", Nonce: 0, GasPrice: account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(1000000000000000000).Bytes()}, Memo: "transfermsg testing", ImplTxMsg: tfMsg}
+	txMsg := &tx.TxMsg{ChID: "ankr-chain", Nonce: 0, GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(1000000000000000000).Bytes()}, Memo: "transfermsg testing", ImplTxMsg: tfMsg}
 	t.Logf("txMsg:%v", txMsg)
 
 	txSerializer := serializer.NewTxSerializerCDC()

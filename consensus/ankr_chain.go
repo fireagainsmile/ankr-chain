@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/ankr-chain/common"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/Ankr-network/ankr-chain/contract"
 	"github.com/Ankr-network/ankr-chain/router"
@@ -28,14 +28,14 @@ import (
 var _ types.Application = (*AnkrChainApplication)(nil)
 
 type AnkrChainApplication struct {
-	ChainId      common.ChainID
+	ChainId      ankrcmm.ChainID
 	APPName      string
 	app          appstore.AppStore
 	txSerializer tx.TxSerializer
 	contract     contract.Contract
 	pubsubServer *tmpubsub.Server
 	logger       log.Logger
-	minGasPrice  account.Amount
+	minGasPrice  ankrcmm.Amount
 }
 
 func NewAppStore(dbDir string, l log.Logger) appstore.AppStore {
@@ -63,7 +63,7 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 		txSerializer: serializer.NewTxSerializerCDC(),
 		contract:     contract.NewContract(appStore, l.With("module", "contract")),
 		logger:       l,
-		minGasPrice:  account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
+		minGasPrice:  ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
 	}
 }
 
@@ -78,7 +78,7 @@ func NewMockAnkrChainApplication(appName string, l log.Logger) *AnkrChainApplica
 		txSerializer: serializer.NewTxSerializerCDC(),
 		contract:     contract.NewContract(appStore, l.With("module", "contract")),
 		logger:       l,
-		minGasPrice:  account.Amount{account.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
+		minGasPrice:  ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()},
 	}
 }
 
@@ -87,7 +87,7 @@ func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 }
 
 
-func (app *AnkrChainApplication) MinGasPrice() account.Amount {
+func (app *AnkrChainApplication) MinGasPrice() ankrcmm.Amount {
 	return app.minGasPrice
 }
 
@@ -208,7 +208,7 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 		//app.app.Commit()
 	}
 
-	app.ChainId = common.ChainID(req.ChainId)
+	app.ChainId = ankrcmm.ChainID(req.ChainId)
 
 	account.AccountManagerInstance().Init(app.app)
 

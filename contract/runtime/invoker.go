@@ -6,10 +6,10 @@ import (
 	"reflect"
 
 	akexe "github.com/Ankr-network/ankr-chain/akvm/exec"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/log"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec"
 )
 
@@ -27,7 +27,7 @@ func NewRuntimeInvoke(log log.Logger) *RuntimeInvoke {
 }
 
 func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, callerAddr string, vmContext *exec.VMContext, code []byte, contractName string, method string, params interface{}, rtnType string) (interface{}, error) {
-	paramValues := params.([]*ankrtypes.Param)
+	paramValues := params.([]*ankrcmm.Param)
 	if paramValues == nil && len(paramValues) == 0 {
 		return nil, errors.New("invalid params")
 	}
@@ -74,23 +74,23 @@ func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, ca
 	return akvm.Execute(fnIndex, rtnType, args...)
 }
 
-func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
+func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
 	r.context = ankrcontext.CreateContextAKVM(context,appStore)
 	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, context, code, r.log)
 	if akvm == nil {
-		return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
+		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
 	}
 
 	akvm.SetContrInvoker(r)
 
 	fnIndex := akvm.ExportFnIndex(method)
 	if fnIndex == -1 {
-		return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("can't get valid fnIndex: method=%s", method)
+		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("can't get valid fnIndex: method=%s", method)
 	}
 
 	fSig := akvm.FuncSig(fnIndex)
 	if len(fSig.Sig.ParamTypes) != len(param){
-		return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("input params' len invlid: len=%d", len(param))
+		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("input params' len invlid: len=%d", len(param))
 	}
 
 	var args []uint64
@@ -100,7 +100,7 @@ func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore app
 			val := p.Value.(string)
 			arg, err := akvm.SetBytes([]byte(val))
 			if err != nil {
-				return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("param err: index=%d, type=string, val=%s", p.Index, val)
+				return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("param err: index=%d, type=string, val=%s", p.Index, val)
 			}
 
 			args = append(args, arg)
@@ -111,18 +111,18 @@ func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore app
 			val := p.Value.(int64)
 			args = append(args, uint64(val))
 		}else {
-			return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("param err: index=%d, type=%s", p.Index, p.ParamType)
+			return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("param err: index=%d, type=%s", p.Index, p.ParamType)
 		}
 	}
 
 	akvmResult, err := akvm.Execute(fnIndex, rtnType, args...)
 	if err != nil {
-		return &ankrtypes.ContractResult{false, rtnType, nil}, err
+		return &ankrcmm.ContractResult{false, rtnType, nil}, err
 	}
 
 	if reflect.ValueOf(akvmResult).Type().Name() == rtnType  {
-		return &ankrtypes.ContractResult{true, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
+		return &ankrcmm.ContractResult{true, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
 	}else {
-		return &ankrtypes.ContractResult{false, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
+		return &ankrcmm.ContractResult{false, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
 	}
 }

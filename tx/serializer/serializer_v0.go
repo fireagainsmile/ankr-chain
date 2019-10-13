@@ -4,27 +4,27 @@ import (
 	"errors"
 	"strings"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/tx"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 )
 
 func ParseTxPrefix(tx []byte) (string, error) {
-	if strings.HasPrefix(string(tx), ankrtypes.ValidatorSetChangePrefix) {
-		return ankrtypes.ValidatorSetChangePrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.TrxSendPrefix) {
-		return ankrtypes.TrxSendPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetMeteringPrefix) {
-		return ankrtypes.SetMeteringPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetCertPrefix) {
-		return ankrtypes.SetCertPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.RemoveCertPrefix) {
-		return ankrtypes.RemoveCertPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetBalancePrefix) {
-		return ankrtypes.SetBalancePrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetOpPrefix) {
-		return ankrtypes.SetOpPrefix, nil
-	}else if strings.HasPrefix(string(tx), ankrtypes.SetStakePrefix) {
-		return ankrtypes.SetOpPrefix, nil
+	if strings.HasPrefix(string(tx), ankrcmm.ValidatorSetChangePrefix) {
+		return ankrcmm.ValidatorSetChangePrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.TrxSendPrefix) {
+		return ankrcmm.TrxSendPrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.SetMeteringPrefix) {
+		return ankrcmm.SetMeteringPrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.SetCertPrefix) {
+		return ankrcmm.SetCertPrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.RemoveCertPrefix) {
+		return ankrcmm.RemoveCertPrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.SetBalancePrefix) {
+		return ankrcmm.SetBalancePrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.SetOpPrefix) {
+		return ankrcmm.SetOpPrefix, nil
+	}else if strings.HasPrefix(string(tx), ankrcmm.SetStakePrefix) {
+		return ankrcmm.SetOpPrefix, nil
 	}else {
 		return "", errors.New("unknown tx")
 	}

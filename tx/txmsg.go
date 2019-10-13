@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/ankr-chain/common"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec/gas"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -26,15 +24,15 @@ type ImplTxMsg interface {
 }
 
 type TxFee struct {
-	Amount account.Amount `json:"amount"`
+	Amount ankrcmm.Amount `json:"amount"`
 	Gas    *big.Int       `json:"gas"`
 }
 
 type TxMsg struct {
-	ChID        common.ChainID          `json:"chainid"`
+	ChID        ankrcmm.ChainID          `json:"chainid"`
 	Nonce       uint64                  `json:"nonce"`
     Fee         TxFee                   `json:"fee"`
-	GasPrice    account.Amount          `json:"gasprice"`
+	GasPrice    ankrcmm.Amount          `json:"gasprice"`
 	GasUsed     *big.Int                 `json:"gasused"`
 	Signs       []ankrcrypto.Signature  `json:"signs"`
 	Memo        string                  `json:"memo"`
@@ -43,10 +41,10 @@ type TxMsg struct {
 }
 
 type txSignMsg struct {
-	ChID     common.ChainID   `json:"chainid"`
+	ChID     ankrcmm.ChainID   `json:"chainid"`
 	Nonce    uint64           `json:"nonce"`
 	Fee      TxFee            `json:"fee"`
-	GasPrice account.Amount   `json:"gasprice"`
+	GasPrice ankrcmm.Amount   `json:"gasprice"`
 	Memo     string           `json:"memo"`
 	Version  string           `json:"version"`
 	Data     []byte           `json:"data"`
@@ -113,7 +111,7 @@ func (tx *TxMsg) verifySignature(store appstore.AppStore, txSerializer TxSeriali
 	signMsg := tx.signMsg(txSerializer)
 	toVerifyBytes := signMsg.Bytes(txSerializer)
 	for i, signerAddr := range tx.SignerAddr() {
-		if len(signerAddr) != ankrtypes.KeyAddressLen {
+		if len(signerAddr) != ankrcmm.KeyAddressLen {
 			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer address. Got %v, len=%d", signerAddr, len(signerAddr))
 		}
 
@@ -202,7 +200,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	}
 
 	balRtn := new(big.Int).Add(balFrom, leftFee)
-	context.AppStore().SetBalance(tx.SignerAddr()[0], account.Amount{account.Currency{"ANKR", 18}, balRtn})
+	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, balRtn.Bytes()})
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.Fee.Gas.Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
 }

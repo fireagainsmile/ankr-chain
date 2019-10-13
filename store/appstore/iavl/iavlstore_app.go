@@ -11,11 +11,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/ankr-chain/common"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
@@ -34,7 +32,7 @@ type storeQueryHandler func(store *IavlStoreApp, reqData []byte) (resQuery types
 
 type IavlStoreApp struct {
 	iavlSM          *IavlStoreMulti
-	lastCommitID    ankrtypes.CommitID
+	lastCommitID    ankrcmm.CommitID
 	storeLog        log.Logger
 	cdc             *amino.Codec
 	queryHandleMap map[string] storeQueryHandler
@@ -64,13 +62,13 @@ func stripCertKeyPrefix(key string) (string, error) {
 
 func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	kvPath := filepath.Join(dbDir, "kvstore.db")
-	isKVPathExist, err := common.PathExists(kvPath)
+	isKVPathExist, err := ankrcmm.PathExists(kvPath)
 	if err != nil {
 		panic(err)
 	}
 
 	var kvDB dbm.DB
-	var lcmmID ankrtypes.CommitID
+	var lcmmID ankrcmm.CommitID
 	if isKVPathExist {
 		kvDB, err = dbm.NewGoLevelDB("kvstore", dbDir)
 		if err != nil {
@@ -101,11 +99,11 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	iavlSApp.queryHandleMap = make(map[string]storeQueryHandler)
 
-	iavlSApp.registerQueryHandlerWapper("balance",   common.BalanceQueryReq{},  iavlSApp.Balance)
-	iavlSApp.registerQueryHandlerWapper("certkey",   common.CertKeyQueryReq{},  iavlSApp.CertKey)
-	iavlSApp.registerQueryHandlerWapper("metering",  common.MeteringQueryReq{}, iavlSApp.Metering)
-	iavlSApp.registerQueryHandlerWapper("validator", common.ValidatorQueryReq{},iavlSApp.Validator)
-	iavlSApp.registerQueryHandlerWapper("contract",  common.ContractQueryReq{}, iavlSApp.LoadContract)
+	iavlSApp.registerQueryHandlerWapper("balance",   ankrcmm.BalanceQueryReq{},  iavlSApp.Balance)
+	iavlSApp.registerQueryHandlerWapper("certkey",   ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKey)
+	iavlSApp.registerQueryHandlerWapper("metering",  ankrcmm.MeteringQueryReq{}, iavlSApp.Metering)
+	iavlSApp.registerQueryHandlerWapper("validator", ankrcmm.ValidatorQueryReq{},iavlSApp.Validator)
+	iavlSApp.registerQueryHandlerWapper("contract",  ankrcmm.ContractQueryReq{}, iavlSApp.LoadContract)
 
 	return iavlSApp
 }
@@ -121,11 +119,11 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 
 	iavlSApp.queryHandleMap = make(map[string]storeQueryHandler)
 
-	iavlSApp.registerQueryHandlerWapper("balance",   common.BalanceQueryReq{},  iavlSApp.Balance)
-	iavlSApp.registerQueryHandlerWapper("certkey",   common.CertKeyQueryReq{},  iavlSApp.CertKey)
-	iavlSApp.registerQueryHandlerWapper("metering",  common.MeteringQueryReq{}, iavlSApp.Metering)
-	iavlSApp.registerQueryHandlerWapper("validator", common.ValidatorQueryReq{},iavlSApp.Validator)
-	iavlSApp.registerQueryHandlerWapper("contract",  common.ContractQueryReq{}, iavlSApp.LoadContract)
+	iavlSApp.registerQueryHandlerWapper("balance",   ankrcmm.BalanceQueryReq{},  iavlSApp.Balance)
+	iavlSApp.registerQueryHandlerWapper("certkey",   ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKey)
+	iavlSApp.registerQueryHandlerWapper("metering",  ankrcmm.MeteringQueryReq{}, iavlSApp.Metering)
+	iavlSApp.registerQueryHandlerWapper("validator", ankrcmm.ValidatorQueryReq{},iavlSApp.Validator)
+	iavlSApp.registerQueryHandlerWapper("contract",  ankrcmm.ContractQueryReq{}, iavlSApp.LoadContract)
 
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 }
@@ -176,7 +174,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 
 	if it != nil {
 		for it.Valid() {
-			if len(it.Key()) >= len(ankrtypes.AccountBlancePrefix) && string(it.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
+			if len(it.Key()) >= len(ankrcmm.AccountBlancePrefix) && string(it.Key()[0:len(ankrcmm.AccountBlancePrefix)]) == ankrcmm.AccountBlancePrefix {
 				iavlStore = sp.iavlSM.IavlStore(IavlStoreAccountKey)
 				keyStrList := strings.Split(string(it.Key()), ":")
 				valStrList := strings.Split(string(it.Value()), ":")
@@ -187,7 +185,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 				_, err := strconv.ParseInt(valStrList[1], 10, 64)
 				if err == nil {
 					valI, _ := new(big.Int).SetString(valStrList[0], 10)
-					sp.SetBalance(keyStrList[1], account.Amount{account.Currency{"ANKR", 18}, valI.Bytes()})
+					sp.SetBalance(keyStrList[1], ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, valI.Bytes()})
 				}else {
 					if err != nil {
 						sp.storeLog.Error("invalid old account store will be ignored: parse bal fails", "err", err)
@@ -195,7 +193,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 				}
 			}else {
 				iavlStore = sp.iavlSM.IavlStore(IAvlStoreMainKey)
-				if len(it.Key()) >= len(ankrtypes.CertPrefix) && string(it.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
+				if len(it.Key()) >= len(ankrcmm.CertPrefix) && string(it.Key()[0:len(ankrcmm.CertPrefix)]) == ankrcmm.CertPrefix {
 					//sp.SetCertKey(it.Key(), it.Value())
 				} else {
 					iavlStore.Set(it.Key(), it.Value())
@@ -213,7 +211,7 @@ func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
 	return err
 }
 
-func (sp *IavlStoreApp) LastCommit() *ankrtypes.CommitID{
+func (sp *IavlStoreApp) LastCommit() *ankrcmm.CommitID{
 	return &sp.lastCommitID
 }
 
@@ -338,19 +336,19 @@ func (sp *IavlStoreApp) Metering(dcName string, nsName string) string {
 	return string(valueBytes)
 }
 
-func (sp *IavlStoreApp) SetValidator(valInfo *ankrtypes.ValidatorInfo) {
-	valBytes := ankrtypes.EncodeValidatorInfo(sp.cdc, valInfo)
+func (sp *IavlStoreApp) SetValidator(valInfo *ankrcmm.ValidatorInfo) {
+	valBytes := ankrcmm.EncodeValidatorInfo(sp.cdc, valInfo)
 
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set([]byte(containValidatorPrefix(valInfo.ValAddress)), valBytes)
 }
 
-func (sp *IavlStoreApp) Validator(valAddr string) (*ankrtypes.ValidatorInfo, error) {
+func (sp *IavlStoreApp) Validator(valAddr string) (*ankrcmm.ValidatorInfo, error) {
 	valBytes, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get([]byte(containValidatorPrefix(valAddr)))
 	if err != nil {
 		return nil, fmt.Errorf("can't get the responding validator info: valAddr=%s", valAddr)
 	}
 
-	valInfo := ankrtypes.DecodeValidatorInfo(sp.cdc, valBytes)
+	valInfo := ankrcmm.DecodeValidatorInfo(sp.cdc, valBytes)
 
 	return  &valInfo, nil
 }
@@ -366,7 +364,7 @@ func (sp *IavlStoreApp) TotalValidatorPowers() int64 {
 
 	sp.iavlSM.storeMap[IAvlStoreMainKey].tree.IterateRange([]byte(StoreValidatorPrefix), endBytes, true, func(key []byte, value []byte) bool{
 		if len(key) >= len(StoreValidatorPrefix) && string(key[0:len(StoreValidatorPrefix)]) == StoreValidatorPrefix {
-			valInfo := ankrtypes.DecodeValidatorInfo(sp.cdc, value)
+			valInfo := ankrcmm.DecodeValidatorInfo(sp.cdc, value)
 
 			valPower += valInfo.Power
 		}
@@ -440,26 +438,26 @@ func (sp *IavlStoreApp) ContractAddrBySymbol(symbol string) (string, error) {
 
 }
 
-func (sp *IavlStoreApp) SaveContract(cAddr string, cInfo *ankrtypes.ContractInfo) error{
+func (sp *IavlStoreApp) SaveContract(cAddr string, cInfo *ankrcmm.ContractInfo) error{
 	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(containContractInfoPrefix(cAddr))) {
 		return errors.New("the contract name has existed")
 	}
 
-	cInfoBytes := ankrtypes.EncodeContractInfo(sp.cdc, cInfo)
+	cInfoBytes := ankrcmm.EncodeContractInfo(sp.cdc, cInfo)
 
 	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containContractInfoPrefix(cAddr)), cInfoBytes)
 
 	return nil
 }
 
-func (sp *IavlStoreApp) LoadContract(cAddr string) (*ankrtypes.ContractInfo, error) {
+func (sp *IavlStoreApp) LoadContract(cAddr string) (*ankrcmm.ContractInfo, error) {
 	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
 	if err != nil {
 		sp.storeLog.Error("can't get the contract", "addr", cAddr)
 		return nil, err
 	}
 
-	cInfo := ankrtypes.DecodeContractInfo(sp.cdc, cInfoBytes)
+	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
 
 	return &cInfo, nil
 }

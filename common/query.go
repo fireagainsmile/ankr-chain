@@ -1,23 +1,5 @@
 package common
 
-import (
-	"github.com/Ankr-network/ankr-chain/account"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
-)
-
-type RunMode int
-const (
-	_ RunMode = iota
-	RunModeTesting
-	RunModeProd
-)
-
-var RM = RunModeTesting
-
-type ChainID string
-
-type Address []byte
-
 type BalanceQueryReq struct {
 	Address string  `json:"address"`
 	Symbol  string  `json:"symbol"`
@@ -62,11 +44,11 @@ type ValidatorQueryReq struct {
 }
 
 type ValidatorQueryResp struct {
-	Name         string               `json:"name"`
-	ValAddress   string               `json:"valaddress"`
-	PubKey       ankrtypes.ValPubKey  `json:"pubkey"`
-	Power        int64                `json:"power"`
-	StakeAddress string               `json:"stakeaddress"`
-	StakeAmount  account.Amount       `json:"stakeamount"`
-	ValidHeight  uint64               `json:"validheight"`
+	Name         string     `json:"name"`
+	ValAddress   string     `json:"valaddress"`
+	PubKey       ValPubKey  `json:"pubkey"`
+	Power        int64      `json:"power"`
+	StakeAddress string     `json:"stakeaddress"`
+	StakeAmount  Amount     `json:"stakeamount"`
+	ValidHeight  uint64     `json:"validheight"`
 }

@@ -1,14 +1,15 @@
 package validator
 
 import (
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"strings"
+
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 )
 
 func PrefixStakeKey(key []byte) []byte {
-	return append([]byte(ankrtypes.AccountStakePrefix), key...)
+	return append([]byte(ankrcmm.AccountStakePrefix), key...)
 }
 
 func isValidatorTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), ankrtypes.ValidatorSetChangePrefix)
+	return strings.HasPrefix(string(tx), ankrcmm.ValidatorSetChangePrefix)
 }
