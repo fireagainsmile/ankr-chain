@@ -17,6 +17,7 @@ const (
 
 type Param struct {
 	Index     int          `json:"index"`
+	Name      string        `json:"name"`
 	ParamType string       `json:"paramType"`
 	Value     interface{} `json:"value"`
 }

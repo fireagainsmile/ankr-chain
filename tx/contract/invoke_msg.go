@@ -78,7 +78,7 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 	json.Unmarshal([]byte(ci.Args), &params)
 
 	contractType    := ankrtypes.ContractType(cInfo.Codes[0])
-	contractContext := ankrcontext.NewContextContract(metric, ci, cInfo, context.AppStore())
+	contractContext := ankrcontext.NewContextContract(metric, ci, cInfo, context.AppStore(), context.PubSubServer())
 	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, cInfo.Codes[ankrtypes.CodePrefixLen:], cInfo.Name, ci.Method, params, ci.RtnType)
 	if err != nil {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=%s, err=%v", ci.ContractAddr, ci.Method, err), nil

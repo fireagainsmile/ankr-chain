@@ -20,6 +20,7 @@ import (
 	akver "github.com/Ankr-network/ankr-chain/version"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	tmCoreTypes "github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tendermint/version"
 )
@@ -32,6 +33,7 @@ type AnkrChainApplication struct {
 	app          appstore.AppStore
 	txSerializer tx.TxSerializer
 	contract     contract.Contract
+	pubsubServer *tmpubsub.Server
 	logger       log.Logger
 	minGasPrice  account.Amount
 }
@@ -103,6 +105,14 @@ func (app *AnkrChainApplication) TxSerializer() tx.TxSerializer {
 
 func (app *AnkrChainApplication) Contract() contract.Contract {
 	return app.contract
+}
+
+func (app *AnkrChainApplication) SetPubSubServer(server *tmpubsub.Server) {
+	app.pubsubServer = server
+}
+
+func (app *AnkrChainApplication) PubSubServer() *tmpubsub.Server {
+	return app.pubsubServer
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {

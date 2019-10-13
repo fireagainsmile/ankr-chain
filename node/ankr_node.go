@@ -66,6 +66,8 @@ func NewAnkrNode(config *ankrconfig.AnkrConfig, logger tmcorelog.Logger) (*AnkrN
 		return nil, err
 	}
 
+	ankrChainApp.SetPubSubServer(tmNode.EventBus().PubSubServer())
+
 	historyDBLogger := logger.With("module", "historydb")
 	historyDBLogger.Info("historydb parameter", "dbType", config.HistoryDB.Type, "dbHost", config.HistoryDB.Host, "dbName", config.HistoryDB.Name)
 	if config.HistoryDB.Type != "" && config.HistoryDB.Host != "" && config.HistoryDB.Name != "" {

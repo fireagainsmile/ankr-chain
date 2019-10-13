@@ -2,11 +2,13 @@ package module
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/Ankr-network/ankr-chain/context"
+	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/types"
 	"github.com/go-interpreter/wagon/exec"
 )
@@ -235,7 +237,7 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
 		return -1
 	}
 
-	cInfo, err := context.GetBCContext().LoadContract(toReadContractAddr)
+	cInfo, err := ankrcontext.GetBCContext().LoadContract(toReadContractAddr)
 	if err != nil {
 		proc.VM().Logger().Error("ContractCall LoadContract err", "err", err)
 		return -1
@@ -296,7 +298,7 @@ func ContractDelegateCall(proc *exec.Process, contractIndex int32, methodIndex i
 		return -1
 	}
 
-	cInfo, err := context.GetBCContext().LoadContract(toReadContractAddr)
+	cInfo, err := ankrcontext.GetBCContext().LoadContract(toReadContractAddr)
 	if err != nil {
 		proc.VM().Logger().Error("ContractDelegateCall LoadContract err", "err", err)
 		return -1
@@ -338,7 +340,7 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 		proc.VM().Logger().Error("TrigEvent read event source", "err", err)
 		return -1
 	} else {
-		proc.VM().Logger().Error("TrigEvent event source", "evSrc", evSrc)
+		proc.VM().Logger().Info("TrigEvent event source", "evSrc", evSrc)
 	}
 
 	evData, err := proc.ReadString(int64(dataIndex))
@@ -346,8 +348,38 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 		proc.VM().Logger().Error("TrigEvent read event data", "err", err)
 		return -1
 	} else {
-		proc.VM().Logger().Error("TrigEvent event data", "evData", evData)
+		proc.VM().Logger().Info("TrigEvent event data", "evData", evData)
 	}
+
+	runningContractAddr := proc.VMContext().RunningVM().ContractAddr()
+
+	evSrcSegs := strings.Split(evSrc, "(")
+	if len(evSrcSegs) != 2 {
+		proc.VM().Logger().Error("TrigEvent event invalid evSrc", "evSrc", evSrc)
+		return -1
+	}
+
+	method := evSrcSegs[0]
+	//argStr := strings.TrimRight(evSrcSegs[1], ")")
+	//argTyps := strings.Split(argStr, ",")
+
+	params := make([]*types.Param, 0)
+	err =  json.Unmarshal([]byte(evData), params)
+	if err != nil {
+		proc.VM().Logger().Error("TrigEvent event json.Unmarshal err", "evData", evData, "err", err)
+		return -1
+	}
+
+	tags := make(map[string]string)
+	tags["contract.addr"]   = runningContractAddr
+	tags["contract.method"] = method
+	for _, param := range params {
+		tagName  := fmt.Sprintf("contract.method.%s", param.Name)
+		tagValue :=  param.Value.(string)
+		tags[tagName] = tagValue
+	}
+
+	proc.VMContext().Publisher().PublishWithTags(context.Background(),"contract", tags)
 
 	return 0
 }

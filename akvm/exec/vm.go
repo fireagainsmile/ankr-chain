@@ -6,6 +6,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/akvm/memory"
 	"github.com/Ankr-network/ankr-chain/akvm/module"
 	"github.com/go-interpreter/wagon/exec"
+	vmevent "github.com/go-interpreter/wagon/exec/event"
 	"github.com/go-interpreter/wagon/exec/gas"
 	"github.com/go-interpreter/wagon/log"
 	"github.com/go-interpreter/wagon/wasm"
@@ -17,15 +18,15 @@ type WASMVirtualMachine struct {
 	log          log.Logger
 }
 
-func NewWASMVirtualMachine(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, code []byte, log log.Logger) *WASMVirtualMachine {
+func NewWASMVirtualMachine(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, publisher vmevent.Publisher, code []byte, log log.Logger) *WASMVirtualMachine {
 	wasmVM :=  &WASMVirtualMachine{ envModule: module.NewModuleEnv()}
 	wasmVM.log = log
-	wasmVM.loadAndInstantiateModule(contractAddr, ownerAddr, callerAddr, metric, code)
+	wasmVM.loadAndInstantiateModule(contractAddr, ownerAddr, callerAddr, metric, publisher, code)
 
 	return wasmVM
 }
 
-func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, code []byte) {
+func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, publisher vmevent.Publisher, code []byte) {
 	if wvm.envModule == nil {
 		panic("WASMVirtualMachine envModle nil")
 	}
@@ -43,7 +44,7 @@ func (wvm *WASMVirtualMachine) loadAndInstantiateModule(contractAddr string, own
 		panic(err)
 	}*/
 
-	vm, err := exec.NewVM(contractAddr, ownerAddr, callerAddr, metric,  m)
+	vm, err := exec.NewVM(contractAddr, ownerAddr, callerAddr, metric, publisher, m)
 	if err != nil {
 		panic(err)
 	}

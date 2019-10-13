@@ -32,7 +32,7 @@ func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, ca
 		return nil, errors.New("invalid params")
 	}
 
-	akvm := akexe.NewWASMVirtualMachine(contractAddr, ownerAddr, callerAddr, code, r.log)
+	akvm := akexe.NewWASMVirtualMachine(contractAddr, ownerAddr, callerAddr, vmContext.GasMetric(), vmContext.Publisher(), code, r.log)
 	if akvm == nil {
 		return -1, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
 	}
@@ -76,7 +76,7 @@ func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, ca
 
 func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrtypes.Param, rtnType string) (*ankrtypes.ContractResult, error) {
 	r.context = ankrcontext.CreateContextAKVM(context,appStore)
-	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, code, r.log)
+	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, context, code, r.log)
 	if akvm == nil {
 		return &ankrtypes.ContractResult{false, rtnType, nil}, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
 	}

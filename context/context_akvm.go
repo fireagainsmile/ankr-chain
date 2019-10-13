@@ -1,6 +1,7 @@
 package context
 
 import (
+	"context"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/account"
@@ -20,6 +21,8 @@ type ContextAKVM interface {
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	LoadContract(cAddr string) (*ankrtypes.ContractInfo, error)
 	Height() int64
+	Publish(ctx context.Context, msg interface{}) error
+	PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error
 }
 
 func SetBCContext(context ContextAKVM) {

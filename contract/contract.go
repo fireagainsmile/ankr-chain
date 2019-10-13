@@ -31,7 +31,7 @@ func NewContract(store appstore.AppStore,  log log.Logger) Contract {
 	return cImpl
 }
 
-func (c *ContractImpl) init(store appstore.AppStore,  log log.Logger) {
+func (c *ContractImpl) init(store appstore.AppStore, log log.Logger) {
 	c.registerInvoker(store, log)
 }
 
