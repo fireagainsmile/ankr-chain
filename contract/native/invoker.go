@@ -2,6 +2,7 @@ package native
 
 import (
 	"fmt"
+	"math/big"
 	"reflect"
 
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
@@ -54,6 +55,7 @@ func (invoker *NativeInvoker) Invoke(context context.ContextContract, appStore a
 	rtnValues := methodValue.Call(args)
 	if len(rtnValues) > 0 {
 		if rtnValues[0].Type().Name() == rtnType {
+			context.SpendGas(new(big.Int).SetUint64(0))
 		  	return &ankrcmm.ContractResult{true, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil
 		}else {
 			return &ankrcmm.ContractResult{false, rtnValues[0].Type().Name(), rtnValues[0].Interface()}, nil

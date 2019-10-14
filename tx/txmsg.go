@@ -25,15 +25,15 @@ type ImplTxMsg interface {
 
 type TxFee struct {
 	Amount ankrcmm.Amount `json:"amount"`
-	Gas    *big.Int       `json:"gas"`
+	Gas    []byte         `json:"gas"`
 }
 
 type TxMsg struct {
-	ChID        ankrcmm.ChainID          `json:"chainid"`
+	ChID        ankrcmm.ChainID         `json:"chainid"`
 	Nonce       uint64                  `json:"nonce"`
     Fee         TxFee                   `json:"fee"`
 	GasPrice    ankrcmm.Amount          `json:"gasprice"`
-	GasUsed     *big.Int                 `json:"gasused"`
+	GasUsed     *big.Int                `json:"gasused"`
 	Signs       []ankrcrypto.Signature  `json:"signs"`
 	Memo        string                  `json:"memo"`
 	Version     string                  `json:"version"`
@@ -82,6 +82,8 @@ func (tx *TxMsg) SignAndMarshal(txSerializer TxSerializer, key ankrcrypto.Secret
 
 		tx.Signs = []ankrcrypto.Signature{*signature}
 
+		fmt.Printf("SignAndMarshal, tx=%v", tx)
+
 		return txSerializer.Serialize(tx)
 	}
 
@@ -96,7 +98,7 @@ func (tx *TxMsg) SpendGas(gas *big.Int) bool {
     gasUsedT := new(big.Int).SetUint64(tx.GasUsed.Uint64())
 	gasUsedT = new(big.Int).Add(gasUsedT, gas)
 
-	subGas := new(big.Int).Sub(gasUsedT, tx.Fee.Gas)
+	subGas := new(big.Int).Sub(gasUsedT, new(big.Int).SetBytes(tx.Fee.Gas))
 
 	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return false
@@ -174,7 +176,7 @@ func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: tx.Fee.Gas.Int64()}
+	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.Fee.Gas).Int64()}
 }
 
 func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
@@ -183,7 +185,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
-	subGas := new(big.Int).Sub(tx.GasUsed, tx.Fee.Gas)
+	subGas := new(big.Int).Sub(tx.GasUsed, new(big.Int).SetBytes(tx.Fee.Gas))
 	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return types.ResponseDeliverTx{Code: code.CodeTypeGasNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, gas not enough, got %s", tx.GasUsed.String())}
 	}
@@ -202,5 +204,5 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	balRtn := new(big.Int).Add(balFrom, leftFee)
 	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, balRtn.Bytes()})
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: tx.Fee.Gas.Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.Fee.Gas).Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
 }

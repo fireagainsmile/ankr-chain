@@ -10,6 +10,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
+const (
+	AnkrCoinCodesPrefix = "010000000000" //
+)
+
 type AnkrCoin struct {
 	name        string
 	symbol      string
@@ -22,8 +26,9 @@ type AnkrCoin struct {
 func NewAnkrCoin(store appstore.AppStore, log log.Logger) *AnkrCoin {
 	addrBytes := make([]byte, ankrcmm.KeyAddressLen/2)
 	addrBytes[ankrcmm.KeyAddressLen/2-1] = 0x01
+	codePrefixBytes := ankrcmm.GenerateContractCodePrefix(ankrcmm.ContractTypeNative, ankrcmm.ContractVMTypeUnknown, ankrcmm.ContractPatternTypeUnknown)
 	store.BuildCurrencyCAddrMap("ANKR", string(addrBytes))
-	store.SaveContract(string(addrBytes), &ankrcmm.ContractInfo{string(addrBytes), "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), []byte{ankrcmm.ContractTypeNative}, ""})
+	store.SaveContract(string(addrBytes), &ankrcmm.ContractInfo{string(addrBytes), "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), codePrefixBytes, ""})
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
 	store.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},totalSup.Bytes()})
 	return &AnkrCoin{

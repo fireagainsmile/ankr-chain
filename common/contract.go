@@ -13,11 +13,27 @@ const (
 	_ ContractType = iota
 	ContractTypeNative  = 0x01
 	ContractTypeRuntime = 0x02
+	ContractTypeUnknown = 0x03
+)
+
+type ContractVMType int
+const (
+	_ ContractVMType = iota
+	ContractVMTypeWASM    = 0x01
+	ContractVMTypeUnknown = 0x02
+)
+
+type ContractPatternType int
+const (
+	_  ContractPatternType = iota
+	ContractPatternType1       = 0x01
+	ContractPatternType2       = 0x02
+	ContractPatternTypeUnknown = 0x03
 )
 
 type Param struct {
 	Index     int          `json:"index"`
-	Name      string        `json:"name"`
+	Name      string       `json:"name"`
 	ParamType string       `json:"paramType"`
 	Value     interface{} `json:"value"`
 }
@@ -50,6 +66,10 @@ type ContractInfo struct {
 	//TxHashs   []string `json:"txhashs"`
 }
 
+func GenerateContractCodePrefix(cType ContractType, cVMType ContractVMType, cPatternType ContractPatternType) []byte {
+	return []byte{byte(cType), byte(cVMType), byte(cPatternType), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+}
+
 func (c *ContractInfo) OwnerAddr() string {
 	return c.Owner
 }
@@ -68,3 +88,5 @@ func DecodeContractInfo(cdc *amino.Codec, bytes []byte) (cInfo ContractInfo) {
 	cdc.UnmarshalJSON(bytes, &cInfo)
 	return
 }
+
+
