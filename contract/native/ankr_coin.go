@@ -10,10 +10,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-const (
-	AnkrCoinCodesPrefix = "010000000000" //
-)
-
 type AnkrCoin struct {
 	name        string
 	symbol      string

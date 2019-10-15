@@ -16,6 +16,8 @@ else
   endif
 endif
 
+echo "OS:"${PLATFORM}
+
 all: build install
 
 build:
@@ -25,8 +27,9 @@ install:
 	CGO_ENABLED=0 go install  $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./main.go
 
 tools:
-	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/base64show  ./tool/base64_show.go
-	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen      ./tool/keygen.go
+	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen   ./tool/key/keygen.go
+	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen   ./tool/compiler/main.go
+	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen   ./tool/cli/main.go
 
 fmt:
 	@go fmt ./...

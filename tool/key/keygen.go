@@ -1,11 +1,12 @@
-package main
+package key
 
 import (
+	"encoding/base64"
+	_ "encoding/json"
     "fmt"
-    "encoding/base64"
+
+	_ "github.com/tendermint/tendermint/crypto"
     "github.com/tendermint/tendermint/crypto/ed25519"
-    _ "github.com/tendermint/tendermint/crypto"
-    _ "encoding/json"
 )
 
 func main() {
