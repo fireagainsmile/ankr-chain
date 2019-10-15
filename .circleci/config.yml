@@ -75,4 +75,3 @@ jobs:
               docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$TAG
             done
 
-
