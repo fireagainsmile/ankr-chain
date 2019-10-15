@@ -16,12 +16,6 @@ jobs:
           command: |
             cp ${HOME}/.ssh/id_rsa id_rsa
       - run:
-          name: Login to private GitHub registry
-          command: npm config set //npm.pkg.github.com/:_authToken $GITHUB_TOKEN
-      - run:
-          name: Installing modules
-          command: yarn install
-      - run:
           name: Install AWSCLI / kops / kubectl
           command: |
             curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
