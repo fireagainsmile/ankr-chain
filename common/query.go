@@ -1,5 +1,13 @@
 package common
 
+type NonceQueryReq struct {
+	Address string  `json:"address"`
+}
+
+type NonceQueryResp struct {
+	Nonce uint64  `json:"nonce"`
+}
+
 type BalanceQueryReq struct {
 	Address string  `json:"address"`
 	Symbol  string  `json:"symbol"`
