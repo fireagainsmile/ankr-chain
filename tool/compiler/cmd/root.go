@@ -3,14 +3,16 @@ package cmd
 import (
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
+	compile2 "github.com/Ankr-network/ankr-chain/tool/compiler/compile"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/parser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 var (
-	outputDir  = "outputDir"
+	OutputDir  = "outputDir"
 	outputFlag = "output"
 	genAbi bool
 	genAbiFlag = "gen-abi"
@@ -42,14 +44,14 @@ func compile(cmd *cobra.Command, args []string) {
 	}
 
 	//exec clang commands
-	err := exeCommand(NewClangOption(), args)
+	err := exeCommand(compile2.NewClangOption(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	//exec smart contract rule check
-	sourceFile := filterSrcFile(args).name
+	sourceFile := getSrcFile(args)
 	err = exeCommand(parser.NewRegexpParser(), []string{sourceFile})
 	if err != nil {
 		fmt.Println(err)
@@ -65,7 +67,7 @@ func compile(cmd *cobra.Command, args []string) {
 		}
 	}
 	//exec wasm-ld to generate binary file
-	err = exeCommand(NewDefaultWasmOptions(), args)
+	err = exeCommand(compile2.NewDefaultWasmOptions(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -91,5 +93,18 @@ func init() {
 	rootCmd.Flags().String(outputFlag, "", "output file directory")
 	//rootCmd.Flags().Bool(genAbiFlag,false, "generate abi file")
 	rootCmd.Flags().BoolVar(&genAbi, "gen-abi", false, "generate abi")
-	viper.BindPFlag(outputDir, rootCmd.Flags().Lookup(outputFlag))
+	viper.BindPFlag(OutputDir, rootCmd.Flags().Lookup(outputFlag))
+}
+
+func getSrcFile(args []string) string {
+	for _, arg := range args {
+		argSlice := strings.Split(arg, ".")
+		if len(argSlice) == 2{
+			switch argSlice[1] {
+			case "cpp", "cc","c":
+				return arg
+			}
+		}
+	}
+	return ""
 }

@@ -1,8 +1,9 @@
-package cmd
+package compile
 
 import (
 	"errors"
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/cmd"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
@@ -120,7 +121,7 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	renameFile := viper.GetString(outputDir)
+	renameFile := viper.GetString(cmd.OutputDir)
 	renameFile = path.Join(renameFile, distFile)
 	return os.Rename(distFile, renameFile)
 }
