@@ -23,15 +23,10 @@ type ImplTxMsg interface {
 	ProcessTx(context ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair)
 }
 
-type TxFee struct {
-	Amount ankrcmm.Amount `json:"amount"`
-	Gas    []byte         `json:"gas"`
-}
-
 type TxMsg struct {
 	ChID        ankrcmm.ChainID         `json:"chainid"`
 	Nonce       uint64                  `json:"nonce"`
-    Fee         TxFee                   `json:"fee"`
+    GasLimit    []byte                  `json:"gaslimit"`
 	GasPrice    ankrcmm.Amount          `json:"gasprice"`
 	GasUsed     *big.Int                `json:"gasused"`
 	Signs       []ankrcrypto.Signature  `json:"signs"`
@@ -42,12 +37,12 @@ type TxMsg struct {
 
 type txSignMsg struct {
 	ChID     ankrcmm.ChainID   `json:"chainid"`
-	Nonce    uint64           `json:"nonce"`
-	Fee      TxFee            `json:"fee"`
-	GasPrice ankrcmm.Amount   `json:"gasprice"`
-	Memo     string           `json:"memo"`
-	Version  string           `json:"version"`
-	Data     []byte           `json:"data"`
+	Nonce    uint64            `json:"nonce"`
+	GasLimit    []byte         `json:"gaslimit"`
+	GasPrice ankrcmm.Amount    `json:"gasprice"`
+	Memo     string            `json:"memo"`
+	Version  string            `json:"version"`
+	Data     []byte            `json:"data"`
 }
 
 func (ts txSignMsg) Bytes(txSerializer TxSerializer) []byte {
@@ -63,7 +58,7 @@ func (tx *TxMsg) signMsg(txSerializer TxSerializer) *txSignMsg {
 	return &txSignMsg{
 		ChID:     tx.ChID,
 		Nonce:    tx.Nonce,
-		Fee:      tx.Fee,
+		GasLimit: tx.GasLimit,
 		GasPrice: tx.GasPrice,
 		Memo:     tx.Memo,
 		Version:  tx.Version,
@@ -98,7 +93,7 @@ func (tx *TxMsg) SpendGas(gas *big.Int) bool {
     gasUsedT := new(big.Int).SetUint64(tx.GasUsed.Uint64())
 	gasUsedT = new(big.Int).Add(gasUsedT, gas)
 
-	subGas := new(big.Int).Sub(gasUsedT, new(big.Int).SetBytes(tx.Fee.Gas))
+	subGas := new(big.Int).Sub(gasUsedT, new(big.Int).SetBytes(tx.GasLimit))
 
 	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return false
@@ -176,7 +171,7 @@ func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.Fee.Gas).Int64()}
+	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.GasLimit).Int64()}
 }
 
 func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
@@ -185,24 +180,23 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
-	subGas := new(big.Int).Sub(tx.GasUsed, new(big.Int).SetBytes(tx.Fee.Gas))
+	subGas := new(big.Int).Sub(tx.GasUsed, new(big.Int).SetBytes(tx.GasLimit))
 	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return types.ResponseDeliverTx{Code: code.CodeTypeGasNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, gas not enough, got %s", tx.GasUsed.String())}
 	}
 
 	usedFee := new(big.Int).Mul(tx.GasUsed, new(big.Int).SetBytes(tx.GasPrice.Value))
-	leftFee := new(big.Int).Sub(new(big.Int).SetBytes(tx.Fee.Amount.Value), usedFee)
-	if leftFee.Cmp(big.NewInt(0)) > 1 || leftFee.Cmp(big.NewInt(0)) == 0 {
-		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), new(big.Int).SetBytes(tx.Fee.Amount.Value).String())}
-	}
-
-	balFrom, err := context.AppStore().Balance(tx.SignerAddr()[0], "ANKR")
+	balFrom, err := context.AppStore().Balance(tx.SignerAddr()[0], tx.GasPrice.Cur.Symbol)
 	if err != nil {
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), tx.SignerAddr()[0])}
 	}
+	if usedFee.Cmp(big.NewInt(0)) > 1 || usedFee.Cmp(big.NewInt(0)) == 0 {
+		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), balFrom.String())}
+	}
 
-	balRtn := new(big.Int).Add(balFrom, leftFee)
-	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, balRtn.Bytes()})
+	balFrom = new(big.Int).Sub(balFrom, usedFee)
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.Fee.Gas).Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
+	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{tx.GasPrice.Cur.Symbol, 18}, balFrom.Bytes()})
+
+	return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.GasLimit).Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
 }

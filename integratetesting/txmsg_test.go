@@ -22,8 +22,8 @@ func TestTxTransfer(t *testing.T) {
 		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
 	}
 
-	txFee := tx.TxFee{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(5000000000000000000).Bytes()}, new(big.Int).SetUint64(1000).Bytes()}
-	txMsg := &tx.TxMsg{ChID: "ankr-chain", Nonce: 0, Fee: txFee, GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()}, Memo: "transfermsg testing", ImplTxMsg: tfMsg}
+	txGasLimit := new(big.Int).SetUint64(1000).Bytes()
+	txMsg := &tx.TxMsg{ChID: "ankr-chain", Nonce: 0, GasLimit: txGasLimit, GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()}, Memo: "transfermsg testing", ImplTxMsg: tfMsg}
 	t.Logf("txMsg:%v\n", txMsg)
 
 	txSerializer := serializer.NewTxSerializerCDC()
