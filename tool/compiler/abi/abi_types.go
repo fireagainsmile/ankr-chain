@@ -201,7 +201,7 @@ func getInputs(foo string) []*InputType {
 		for _, v := range inputSlice {
 			switch v {
 			// find type, in case static or const  exist
- 			case "int","float","void", "bool":
+ 			case "int","void", "bool":
 				in.Type = v
 			case "char":
 				in.Type = "string"

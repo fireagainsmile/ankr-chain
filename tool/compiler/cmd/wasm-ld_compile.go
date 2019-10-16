@@ -93,13 +93,13 @@ func (wo *WasmOptions) Options() []string {
 }
 // by executing wasm-ld to transfer object into wasm format
 // and remove
-func execWasmLd(args []string) error {
-	//srcFile := args[0]
+
+func (wasmOp *WasmOptions)Execute(args []string) error {
 	srcFile := filterSrcFile(args).name
 	srcFileSlice := strings.Split(srcFile, ".")
 	srcFile = fmt.Sprintf("%s.o", srcFileSlice[0])
 	distFile := fmt.Sprintf("%s.wasm", srcFileSlice[0])
-	wasmOp := NewDefaultWasmOptions()
+	//wasmOp := NewDefaultWasmOptions()
 	wasmArgs := wasmOp.Options()
 	wasmArgs = append(wasmArgs, srcFile, "-o", distFile)
 	out, err := exec.Command("wasm-ld.exe", wasmArgs...).Output()

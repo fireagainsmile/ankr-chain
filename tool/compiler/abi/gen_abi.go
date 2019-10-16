@@ -1,10 +1,9 @@
-package cmd
+package abi
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	abi2 "github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -15,6 +14,7 @@ import (
 var(
 	//expression to match invoke_action and invoke_func labeled functions
 	invokeRegexp = `(INVOKE_ACTION|INVOKE_FUNC) \( "\b[\w]+`
+	baseRegexp   = `class [\w]+( : public akchain : : Contract)`
 )
 
 type InvokeType struct {
@@ -23,7 +23,7 @@ type InvokeType struct {
 }
 
 func GenAbi(file string) error {
-	cc := abi2.NewContractClass()
+	cc := NewContractClass()
 	err := parseClassFromFile(file, cc)
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func GenAbi(file string) error {
 func getAbiFileName(srcFile string) string {
 	// replace cpp or cc with json
 	abiFile := strings.TrimRight(srcFile, "cpp")
-	abiFile = strings.TrimRight(srcFile, "cc")
+	abiFile = strings.TrimRight(abiFile, "cc")
 	return  fmt.Sprintf("%sabi",abiFile)
 }
 
@@ -59,7 +59,7 @@ func writeABI(abi []byte, fileName string) error {
 	return err
 }
 
-func parseClassFromFile(file string, cc *abi2.ContractClass) error {
+func parseClassFromFile(file string, cc *ContractClass) error {
 	cl := searchClass(file)
 	if len(cl) == 0 {
 		return errors.New("no class found! ")
@@ -86,8 +86,8 @@ func readContract(file string) (contract []string) {
 
 // collect functions called in action entry, prepare for abi output
 // require actionEntry defined by user
-func getActionEntry(funcs []InvokeType, cc *abi2.ContractClass) []*abi2.Method {
-	m := make([]*abi2.Method, 0)
+func getActionEntry(funcs []InvokeType, cc *ContractClass) []*Method {
+	var m []*Method
 	// if no action entry is defined in contract, output abi
 	if len(funcs) == 0 {
 		for _, v := range cc.FuncCache {
@@ -142,7 +142,7 @@ func searchClass(file string) (class []string) {
 	sc.Init(fileBuffer)
 	for tok := sc.Scan(); tok != scanner.EOF; tok = sc.Scan(){
 		switch sc.TokenText() {
-		case tokens[CLASS]:
+		case "class":
 			classDeclare := readClass(sc)
 			reg, _ := regexp.Compile(baseRegexp)
 			if reg.MatchString(strings.Join(classDeclare, " ")) {
@@ -158,14 +158,26 @@ func readClass(sc scanner.Scanner) []string {
 	args := make([]string,0)
 	for !isOutScope(scope) {
 		switch sc.TokenText() {
-		case tokens[LBRACE]:
+		case "{":
 			scope.entered = true
 			scope.subScope++
-		case tokens[RBRACE]:
+		case "}":
 			scope.subScope--
 		}
 		args = append(args, sc.TokenText())
 		sc.Scan()
 	}
 	return args
+}
+
+type Scope struct {
+	entered bool //mark if we entered a class scope
+	subScope int //sub scope counter
+}
+
+func isOutScope(s Scope) bool {
+	if s.entered && s.subScope == 0 {
+		return true
+	}
+	return false
 }

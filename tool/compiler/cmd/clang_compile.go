@@ -51,21 +51,24 @@ type srcContract struct {
 	fileType string // the contract whether is c or c++ type
 }
 
+func NewClangOption() *ClangOptions {
+	return &DefaultClangOptions
+}
+
 // compile c/c++ file into object
-func execClang(args []string) error {
+func (co *ClangOptions)Execute(args []string) error  {
 	srcFile := filterSrcFile(args)
 	if srcFile.name == "" {
 		return errors.New("no input file")
 	}
 
-	var co = &DefaultClangOptions
+	//var co = &DefaultClangOptions
 	switch srcFile.fileType {
 	case cType:
 		co.withC()
 	case cPlusType:
 		co.withCpp()
 	}
-
 
 	clangArgs := co.Options()
 	clangArgs = append(clangArgs, srcFile.name)
@@ -79,6 +82,33 @@ func execClang(args []string) error {
 	}
 	return nil
 }
+//func execClang(args []string) error {
+//	srcFile := filterSrcFile(args)
+//	if srcFile.name == "" {
+//		return errors.New("no input file")
+//	}
+//
+//	var co = &DefaultClangOptions
+//	switch srcFile.fileType {
+//	case cType:
+//		co.withC()
+//	case cPlusType:
+//		co.withCpp()
+//	}
+//
+//
+//	clangArgs := co.Options()
+//	clangArgs = append(clangArgs, srcFile.name)
+//
+//	out, err := exec.Command(co.Compiler, clangArgs...).Output()
+//	if err != nil {
+//		return err
+//	}
+//	if string(out) != "" {
+//		return errors.New(string(out))
+//	}
+//	return nil
+//}
 
 func filterSrcFile(args []string) srcContract {
 	var src srcContract

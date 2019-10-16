@@ -1,4 +1,4 @@
-package cmd
+package parser
 
 type ContractState struct {
 	className string

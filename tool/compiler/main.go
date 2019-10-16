@@ -21,12 +21,4 @@ import (
 
 func main() {
   cmd.Execute()
-  //cmd.Execute()
-  //cmd.Execute()
-  //p := cmd2.NewRegexpParser()
-  //p.ParseFile("./tool/compiler/tt")
-  //valid := p.ValidContract()
-  //fmt.Println(valid)
-  //err := cmd.GenAbi("./tool/compiler/tt")
-  //fmt.Println(err)
 }

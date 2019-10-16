@@ -1,4 +1,4 @@
-package cmd
+package parser
 
 type Token int
 
@@ -71,14 +71,4 @@ var tokens = [...]string{
 	SEMICOLON: ";",
 	COLON:     ":",
 	MUL: "*",
-}
-
-// used to identify whether an parameter is a type token
-var paramType = [...]string{
-	tokens[INT],
-	tokens[FLOAT],
-	tokens[CHAR],
-	tokens[STRING],
-	tokens[VOID],
-	tokens[MUL],
 }

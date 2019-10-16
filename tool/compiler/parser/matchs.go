@@ -1,4 +1,4 @@
-package cmd
+package parser
 
 import (
 	"errors"
@@ -126,12 +126,6 @@ func NewEntryMatcher() *entryMatcher  {
 func (e *entryMatcher)Match(c *ContractState, str string) error  {
 	reg, _ := regexp.Compile(e.reg)
 	if reg.MatchString(str) {
-		//if c.requiredRule[CONTRACTENTRY] {
-		//	return errors.New("[ERROR]: multiple ContractEntry found")
-		//}
-		//if !c.requiredRule[ACTIONENTRY] {
-		//	return errors.New("[ERROR]: can not find actionEntry definition")
-		//}
 		c.requiredRule[CONTRACTENTRY] = true
 	}
 	return nil
