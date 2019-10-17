@@ -18,7 +18,7 @@ endif
 
 echo "OS:"${PLATFORM}
 
-all: build install
+all: build tools
 
 build:
 	CGO_ENABLED=0 go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT) ./main.go
@@ -28,8 +28,8 @@ install:
 
 tools:
 	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen   ./tool/key/keygen.go
-	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen   ./tool/compiler/main.go
-	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen   ./tool/cli/main.go
+	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/contract-compiler   ./tool/compiler/main.go
+	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/cli   ./tool/cli/main.go
 
 fmt:
 	@go fmt ./...
