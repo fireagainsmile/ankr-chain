@@ -1,7 +1,5 @@
 module github.com/Ankr-network/ankr-chain
 
-go 1.12
-
 replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-0.20191016091852-c60735e225bb
 
 replace github.com/go-interpreter/wagon => github.com/Ankr-network/wagon v0.9.0-0.20191015152132-a57bd86fecb0
