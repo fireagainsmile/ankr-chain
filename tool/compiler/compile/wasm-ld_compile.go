@@ -3,8 +3,6 @@ package compile
 import (
 	"errors"
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/tool/compiler/cmd"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -12,6 +10,7 @@ import (
 	"strings"
 )
 
+var OutPutDir string
 const (
 	CodePrefixLen = 10
 	ExtensionLen = 7
@@ -121,8 +120,7 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	renameFile := viper.GetString(cmd.OutputDir)
-	renameFile = path.Join(renameFile, distFile)
+	renameFile := path.Join(OutPutDir, distFile)
 	return os.Rename(distFile, renameFile)
 }
 

@@ -6,16 +6,13 @@ import (
 	compile2 "github.com/Ankr-network/ankr-chain/tool/compiler/compile"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/parser"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
 	"strings"
 )
 
 var (
-	OutputDir  = "outputDir"
 	outputFlag = "output"
 	genAbi bool
-	genAbiFlag = "gen-abi"
 )
 
 type CompileOptions interface {
@@ -90,10 +87,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().String(outputFlag, "", "output file directory")
-	//rootCmd.Flags().Bool(genAbiFlag,false, "generate abi file")
+	rootCmd.Flags().StringVar(&compile2.OutPutDir, outputFlag, "", "output file directory")
 	rootCmd.Flags().BoolVar(&genAbi, "gen-abi", false, "generate abi")
-	viper.BindPFlag(OutputDir, rootCmd.Flags().Lookup(outputFlag))
 }
 
 func getSrcFile(args []string) string {
