@@ -57,6 +57,8 @@ type AppStore interface {
 	QueryHandler
 	ContractStore
 	BCStore
+	SetChainID(chainID string)
+	ChainID() string
 	APPHash() []byte
     DB() dbm.DB
 }

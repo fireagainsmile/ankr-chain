@@ -16,24 +16,24 @@ type Client struct {
 }
 
 func NewClient(nodeUrl string) *Client {
-	cHttp := client.NewHTTP("nodeUrl", "/websocket")
+	cHttp := client.NewHTTP(nodeUrl, "/websocket")
 
 	return &Client{cHttp, amino.NewCodec()}
 }
 
-func (c *Client) Query(path string, req interface{}) (resp interface{}, err error) {
+func (c *Client) Query(path string, req interface{}, resp interface{}) (err error) {
 	reqDataBytes, err := c.cdc.MarshalJSON(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	resultQ, err := c.cHttp.ABCIQuery(path, reqDataBytes)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if resultQ.Response.Code != code.CodeTypeOK {
-		return nil, fmt.Errorf("Client query response code not ok, code=%d, log=%s", resultQ.Response.Code, resultQ.Response.Log)
+		return fmt.Errorf("Client query response code not ok, code=%d, log=%s", resultQ.Response.Code, resultQ.Response.Log)
 	}
 
 	err = c.cdc.UnmarshalJSON(resultQ.Response.Value, resp)

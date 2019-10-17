@@ -159,6 +159,12 @@ func (sp *IavlStoreApp) GetAssert(address string, symbol string) (*ankrcmm.Amoun
 	return nil, fmt.Errorf("can't find the respond assert from store: symbol=%s", symbol)
 }
 
+func (sp *IavlStoreApp)  NonceQuery(address string) (*ankrcmm.NonceQueryResp, error) {
+	nonce, err := sp.Nonce(address)
+
+	return &ankrcmm.NonceQueryResp{nonce}, err
+}
+
 func (sp *IavlStoreApp) Nonce(address string) (uint64, error) {
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		return 0, fmt.Errorf("can't find the respond account from store: address=%s", address)

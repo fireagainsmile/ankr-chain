@@ -190,7 +190,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	if err != nil {
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), tx.SignerAddr()[0])}
 	}
-	if usedFee.Cmp(big.NewInt(0)) > 1 || usedFee.Cmp(big.NewInt(0)) == 0 {
+	if usedFee.Cmp(balFrom) > 1 || usedFee.Cmp(balFrom) == 0 {
 		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), balFrom.String())}
 	}
 

@@ -43,7 +43,7 @@ func (qr *QueryRouter) parseRouterPath(path string) (routerPath string, subPath 
 		}
 
 		if len(pathSegs) >= 2 {
-			subPath = path[len(pathSegs[0])+1:]
+			subPath = pathSegs[1]
 		}
 
 		return
