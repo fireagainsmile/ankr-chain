@@ -100,6 +100,8 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		lcmmID = iavlSM.lastCommit()
 	}
 
+	iavlSM.Load()
+
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 
 	if isKVPathExist {
@@ -109,7 +111,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	iavlSApp.queryHandleMap = make(map[string]*storeQueryHandler)
 
 	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},  iavlSApp.NonceQuery}
-	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.Balance}
+	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
 	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKey}
 	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.Metering}
 	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.Validator}
@@ -129,8 +131,8 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 
 	iavlSApp.queryHandleMap = make(map[string]*storeQueryHandler)
 
-	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},  iavlSApp.NonceQuery}
-	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.Balance}
+	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
+	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
 	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKey}
 	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.Metering}
 	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.Validator}
@@ -139,8 +141,7 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 }
 
-
-func (sp* IavlStoreApp) registerQueryHandlerWapper(queryKey string, reqData []byte) (resQuery types.ResponseQuery) {
+func (sp* IavlStoreApp) queryHandlerWapper(queryKey string, reqData []byte) (resQuery types.ResponseQuery) {
 	req      := sp.queryHandleMap[queryKey].req
 	callFunc := sp.queryHandleMap[queryKey].callFunc
 	err := sp.cdc.UnmarshalJSON(reqData, req)
@@ -168,8 +169,8 @@ func (sp* IavlStoreApp) registerQueryHandlerWapper(queryKey string, reqData []by
 
 	if respVals[1].Interface() == nil {
 		resQDataBytes, _ := sp.cdc.MarshalJSON(respVals[0].Interface())
-		resQuery.Code  = code.CodeTypeOK
-		resQuery.Value = resQDataBytes
+		resQuery.Code    = code.CodeTypeOK
+		resQuery.Value   = resQDataBytes
 		return
 	}
 
@@ -291,7 +292,7 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
 		}
 	}
 
-    return sp.registerQueryHandlerWapper(reqQuery.Path, reqQuery.Data)
+    return sp.queryHandlerWapper(reqQuery.Path, reqQuery.Data)
 }
 
 func (sp *IavlStoreApp) SetCertKey(dcName string, nsName string, pemBase64 string)  {

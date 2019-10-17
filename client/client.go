@@ -36,9 +36,9 @@ func (c *Client) Query(path string, req interface{}, resp interface{}) (err erro
 		return fmt.Errorf("Client query response code not ok, code=%d, log=%s", resultQ.Response.Code, resultQ.Response.Log)
 	}
 
-	err = c.cdc.UnmarshalJSON(resultQ.Response.Value, resp)
+	c.cdc.UnmarshalJSON(resultQ.Response.Value, resp)
 
-	return
+	return nil
 }
 
 func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight int64, err error) {

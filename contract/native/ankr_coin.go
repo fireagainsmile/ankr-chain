@@ -92,8 +92,8 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 		balTo = new(big.Int).SetUint64(0)
 	}
 
-	balSender = balSender.Sub(balSender, value)
-	balTo     = balTo.Add(balTo, value)
+	balSender = new(big.Int).Sub(balSender, value)
+	balTo     = new(big.Int).Add(balTo, value)
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balSender.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
@@ -129,8 +129,8 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 		balTo = new(big.Int).SetUint64(0)
 	}
 
-	balFrom = balFrom.Sub(balFrom, value)
-	balTo   = balTo.Add(balTo, value)
+	balFrom = new(big.Int).Sub(balFrom, value)
+	balTo   = new(big.Int).Add(balTo, value)
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol,18}, balFrom.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
