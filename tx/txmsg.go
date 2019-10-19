@@ -180,6 +180,10 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
+	if tx.GasUsed == nil || tx.GasUsed.Cmp(big.NewInt(0)) == 0 {
+		return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: 0, GasUsed: 0, Tags: tags}
+	}
+
 	subGas := new(big.Int).Sub(tx.GasUsed, new(big.Int).SetBytes(tx.GasLimit))
 	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return types.ResponseDeliverTx{Code: code.CodeTypeGasNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, gas not enough, got %s", tx.GasUsed.String())}

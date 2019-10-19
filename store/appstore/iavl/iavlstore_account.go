@@ -231,7 +231,6 @@ func (sp *IavlStoreApp) Balance(address string, symbol string) (*big.Int, error)
 	return new(big.Int).SetBytes(assert.Value), nil
 }
 
-
 func (sp *IavlStoreApp) BalanceQuery(address string, symbol string) (*ankrcmm.BalanceQueryResp, error) {
 	bal, err := sp.Balance(address, symbol)
 	if err != nil || bal == nil {

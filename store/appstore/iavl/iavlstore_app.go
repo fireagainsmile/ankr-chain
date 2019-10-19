@@ -112,10 +112,10 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},  iavlSApp.NonceQuery}
 	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
-	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKey}
-	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.Metering}
-	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.Validator}
-	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContract}
+	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
+	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
+	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
+	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
 
 	return iavlSApp
 }
@@ -133,10 +133,10 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 
 	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
 	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
-	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKey}
-	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.Metering}
-	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.Validator}
-	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContract}
+	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
+	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
+	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
+	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
 
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 }
@@ -175,6 +175,7 @@ func (sp* IavlStoreApp) queryHandlerWapper(queryKey string, reqData []byte) (res
 	}
 
 	resQuery.Code  = code.CodeTypeUnknownError
+	resQuery.Log   = fmt.Sprintf("load %s query unknown err", queryKey)
 
 	return
 }
@@ -311,6 +312,10 @@ func (sp *IavlStoreApp) CertKey(dcName string, nsName string) string {
 	return string(valBytes)
 }
 
+func (sp *IavlStoreApp) CertKeyQuery(dcName string, nsName string) (*ankrcmm.CertKeyQueryResp, error) {
+	return &ankrcmm.CertKeyQueryResp{sp.CertKey(dcName, nsName)}, nil
+}
+
 func (sp *IavlStoreApp) DeleteCertKey(dcName string, nsName string) {
 	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove(key)
@@ -360,6 +365,10 @@ func (sp *IavlStoreApp) Metering(dcName string, nsName string) string {
 	return string(valueBytes)
 }
 
+func (sp *IavlStoreApp) MeteringQuery(dcName string, nsName string) (*ankrcmm.MeteringQueryResp, error) {
+	return &ankrcmm.MeteringQueryResp{sp.Metering(dcName, nsName)}, nil
+}
+
 func (sp *IavlStoreApp) SetValidator(valInfo *ankrcmm.ValidatorInfo) {
 	valBytes := ankrcmm.EncodeValidatorInfo(sp.cdc, valInfo)
 
@@ -375,6 +384,25 @@ func (sp *IavlStoreApp) Validator(valAddr string) (*ankrcmm.ValidatorInfo, error
 	valInfo := ankrcmm.DecodeValidatorInfo(sp.cdc, valBytes)
 
 	return  &valInfo, nil
+}
+
+func (sp *IavlStoreApp) ValidatorQuery(valAddr string) (*ankrcmm.ValidatorQueryResp, error) {
+	valInfo, err := sp.Validator(valAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	valQResp := &ankrcmm.ValidatorQueryResp{
+		Name:         valInfo.Name,
+		ValAddress:   valInfo.ValAddress,
+		PubKey:       valInfo.PubKey,
+		Power:        valInfo.Power,
+		StakeAddress: valInfo.StakeAddress,
+		StakeAmount:  valInfo.StakeAmount,
+		ValidHeight:  valInfo.ValidHeight,
+	}
+
+	return valQResp, nil
 }
 
 func (sp *IavlStoreApp) RemoveValidator(valAddr string) {
@@ -484,6 +512,25 @@ func (sp *IavlStoreApp) LoadContract(cAddr string) (*ankrcmm.ContractInfo, error
 	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
 
 	return &cInfo, nil
+}
+
+func (sp *IavlStoreApp) LoadContractQuery(cAddr string) (*ankrcmm.ContractQueryResp, error) {
+	cInfo, err := sp.LoadContract(cAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	cInfoQResp := &ankrcmm.ContractQueryResp{}
+	cInfoQResp.Addr  = cInfo.Addr
+	cInfoQResp.Name  = cInfo.Name
+	cInfoQResp.Owner = cInfo.Owner
+
+	cInfoQResp.Codes = make([]byte, len(cInfo.Codes))
+	copy(cInfoQResp.Codes[:], cInfo.Codes)
+
+	cInfoQResp.CodesDesc = cInfo.CodesDesc
+
+	return cInfoQResp, nil
 }
 
 
