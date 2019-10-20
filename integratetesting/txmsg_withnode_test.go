@@ -2,7 +2,9 @@ package integratetesting
 
 import (
 	"github.com/Ankr-network/ankr-chain/account"
+	"github.com/Ankr-network/ankr-chain/tx/contract"
 	"github.com/Ankr-network/ankr-chain/tx/metering"
+	"io/ioutil"
 	"math/big"
 	"testing"
 
@@ -49,7 +51,7 @@ func TestTxTransferWithNode(t *testing.T) {
 	}
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ToAddr:  "454D92DC842F532683E820DF6C3784473AD9CCF222D8FB",
+		ToAddr:  "065E37B3FC243B9FABB1519AB876E7632C510DC9324031",
 		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
 	}
 
@@ -59,7 +61,7 @@ func TestTxTransferWithNode(t *testing.T) {
 
 	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
 
-	txHash, cHeight, err := builder.BuildAndCommit(c)
+	txHash, cHeight, _, err := builder.BuildAndCommit(c)
 
 	assert.Equal(t, err, nil)
 
@@ -99,7 +101,7 @@ func TestCertMsgWithNode(t *testing.T) {
 
 	builder := client.NewTxMsgBuilder(msgHeader, certMsg,  txSerializer, key)
 
-	txHash, cHeight, err := builder.BuildAndCommit(c)
+	txHash, cHeight, _, err := builder.BuildAndCommit(c)
 
 	assert.Equal(t, err, nil)
 
@@ -141,7 +143,7 @@ func TestMeteringWithNode(t *testing.T) {
 
 	builder := client.NewTxMsgBuilder(msgHeader, certMsg,  txSerializer, key)
 
-	txHash, cHeight, err := builder.BuildAndCommit(c)
+	txHash, cHeight, _, err := builder.BuildAndCommit(c)
 
 	assert.Equal(t, err, nil)
 
@@ -151,4 +153,44 @@ func TestMeteringWithNode(t *testing.T) {
 	c.Query("/store/metering", &ankrcmm.MeteringQueryReq{"dc1", "ns1"}, respMetering)
 
 	t.Logf("value=%s", respMetering.Value)
+}
+
+func TestContractDeployWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-hQYhLJ",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		Memo: "test ContractDeploy",
+		Version: "1.0",
+	}
+
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
+	if err != nil {
+		t.Errorf("can't read wasm file: %s", err.Error())
+	}
+
+	cdMsg := &contract.ContractDeployMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		Name:     "TestContract",
+		Codes:     rawBytes,
+	    CodesDesc: "",
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, cdMsg,  txSerializer, key)
+
+	txHash, cHeight, contractAddr, err := builder.BuildAndCommit(c)
+
+	assert.Equal(t, err, nil)
+
+	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractAddr=%s", txHash, cHeight, contractAddr)
+
+	resp := &ankrcmm.ContractQueryResp{}
+	c.Query("/store/contract", &ankrcmm.ContractQueryReq{contractAddr}, resp)
+
+	t.Logf("conract=%v", resp)
 }

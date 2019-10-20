@@ -41,26 +41,26 @@ func (c *Client) Query(path string, req interface{}, resp interface{}) (err erro
 	return nil
 }
 
-func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight int64, err error) {
+func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight int64, log string, err error) {
 	result, err := c.cHttp.BroadcastTxCommit(txBytes)
 	if err != nil {
-		return "", -1, err
+		return "", -1, "", err
 	}
 
 	if result.CheckTx.Code != code.CodeTypeOK {
-		return "", -1, fmt.Errorf("Client BroadcastTxCommit CheckTx response code not ok, code=%d, log=%s", result.CheckTx.Code, result.CheckTx.Log)
+		return "", -1, "", fmt.Errorf("Client BroadcastTxCommit CheckTx response code not ok, code=%d, log=%s", result.CheckTx.Code, result.CheckTx.Log)
 	}
 
 	if result.DeliverTx.Code != code.CodeTypeOK {
-		return "", -1, fmt.Errorf("Client BroadcastTxCommit DeliverTx response code not ok, code=%d, log=%s", result.DeliverTx.Code, result.DeliverTx.Log)
+		return "", -1, "", fmt.Errorf("Client BroadcastTxCommit DeliverTx response code not ok, code=%d, log=%s", result.DeliverTx.Code, result.DeliverTx.Log)
 	}
 
 	err = client.WaitForHeight(c.cHttp, result.Height+1, nil)
 	if err != nil {
-		return result.Hash.String(), result.Height, err
+		return result.Hash.String(), result.Height, "", err
 	}
 
-	return result.Hash.String(), result.Height+1, nil
+	return result.Hash.String(), result.Height+1, result.DeliverTx.Log, nil
 }
 
 func (c *Client) Status() (*ctypes.ResultStatus, error) {

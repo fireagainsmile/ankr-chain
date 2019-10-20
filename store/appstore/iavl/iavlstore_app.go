@@ -504,7 +504,7 @@ func (sp *IavlStoreApp) SaveContract(cAddr string, cInfo *ankrcmm.ContractInfo) 
 
 func (sp *IavlStoreApp) LoadContract(cAddr string) (*ankrcmm.ContractInfo, error) {
 	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
-	if err != nil {
+	if err != nil || len(cInfoBytes) == 0{
 		sp.storeLog.Error("can't get the contract", "addr", cAddr)
 		return nil, err
 	}

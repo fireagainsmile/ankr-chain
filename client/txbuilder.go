@@ -31,12 +31,12 @@ func (builder *TxMsgBuilder) BuildOnly(nonce uint64) ([]byte, error) {
 	return  txMsg.SignAndMarshal(builder.serializer, builder.key)
 }
 
-func (builder *TxMsgBuilder) BuildAndCommit(c *Client) (txHash string, commitHeight int64, err error){
+func (builder *TxMsgBuilder) BuildAndCommit(c *Client) (txHash string, commitHeight int64, log string, err error){
 	signer := builder.msgData.SignerAddr()
 	resp := &ankrcmm.NonceQueryResp{}
 	err = c.Query("/store/nonce", &ankrcmm.NonceQueryReq{signer[0]}, resp)
 	if err != nil {
-		return "", -1, err
+		return "", -1, "", err
     }
 
 	nonce := resp.Nonce
@@ -45,7 +45,7 @@ func (builder *TxMsgBuilder) BuildAndCommit(c *Client) (txHash string, commitHei
 
 	txBytes, err := txMsg.SignAndMarshal(builder.serializer, builder.key)
 	if err != nil {
-		return "", -1, err
+		return "", -1, "", err
 	}
 
 	return c.BroadcastTxCommit(txBytes)
