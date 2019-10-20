@@ -77,8 +77,6 @@ func (tx *TxMsg) SignAndMarshal(txSerializer TxSerializer, key ankrcrypto.Secret
 
 		tx.Signs = []ankrcrypto.Signature{*signature}
 
-		fmt.Printf("SignAndMarshal, tx=%v", tx)
-
 		return txSerializer.Serialize(tx)
 	}
 
@@ -112,7 +110,12 @@ func (tx *TxMsg) verifySignature(store appstore.AppStore, txSerializer TxSeriali
 			return  code.CodeTypeInvalidAddress, fmt.Sprintf("Unexpected signer address. Got %v, len=%d", signerAddr, len(signerAddr))
 		}
 
-		if !tx.PermitKey(store, tx.Signs[i].PubKey.Bytes()) {
+		var pubKeyBytes []byte
+		if tx.Signs[i].PubKey != nil {
+			pubKeyBytes = tx.Signs[i].PubKey.Bytes()
+		}
+
+		if !tx.PermitKey(store, pubKeyBytes) {
 			return code.CodeTypeNotPermitPubKey, fmt.Sprintf("not permit public key: %v", tx.Signs[i].PubKey.Bytes())
 		}
 

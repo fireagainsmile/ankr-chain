@@ -30,6 +30,13 @@ AwIDSAAwRQIhAPqre8XQqNr6JFvEhfaZz5XHf7854zDC4H/wmLcRv5b3AiAGgiuI
 PvDQFLYt8PkvJk9hH2ynYEyI6zId1KFGxBrd/g==
 -----END CERTIFICATE-----`
 
+const TEST_KEY = `
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIHMyEp01U2qMTNYLdQEyc9NX8F9JowMM7ODVD9ap77ENoAoGCCqGSM49
+AwEHoUQDQgAEE4x4SoWjyQit98+NDaAApQIbNIUOh/wGi4rR6EmcGmFaqKW0jHxo
+Yr3093CQHQ5X+BVVAjsLZCSy5melIcgPLg==
+-----END EC PRIVATE KEY-----`
+
 func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
@@ -71,7 +78,7 @@ func TestCertMsgWithNode(t *testing.T) {
 		ChID: "test-chain-hQYhLJ",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
-		Memo: "test transfer",
+		Memo: "test CertMsg",
 		Version: "1.0",
 	}
 
@@ -103,4 +110,46 @@ func TestCertMsgWithNode(t *testing.T) {
 	c.Query("/store/certkey", &ankrcmm.CertKeyQueryReq{"dc1", "ns1"}, resp)
 
 	t.Logf("pembase64=%s", resp.PEMBase64)
+}
+
+func TestMeteringWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-hQYhLJ",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		Memo: "test metering",
+		Version: "1.0",
+	}
+
+	resp := &ankrcmm.CertKeyQueryResp{}
+	c.Query("/store/certkey", &ankrcmm.CertKeyQueryReq{"dc1", "ns1"}, resp)
+
+	key := crypto.NewSecretKeyPem(TEST_KEY, resp.PEMBase64,"@mert:"+"dc1_"+"ns1")
+
+	addr, _ := key.Address()
+
+	t.Logf("meteringtMsgFromAddr=%s", string(addr))
+
+	certMsg := &metering.MeteringMsg{FromAddr: string(addr),
+		DCName: "dc1",
+		NSName: "ns1",
+		Value: "value1",
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	builder := client.NewTxMsgBuilder(msgHeader, certMsg,  txSerializer, key)
+
+	txHash, cHeight, err := builder.BuildAndCommit(c)
+
+	assert.Equal(t, err, nil)
+
+	t.Logf("TestCertMsgWithNode:94 sucessful: txHash=%s, cHeight=%d", txHash, cHeight)
+
+	respMetering := &ankrcmm.MeteringQueryResp{}
+	c.Query("/store/metering", &ankrcmm.MeteringQueryReq{"dc1", "ns1"}, respMetering)
+
+	t.Logf("value=%s", respMetering.Value)
 }

@@ -350,12 +350,12 @@ func (sp *IavlStoreApp) CertKeyList() ([]byte, uint64) {
 }
 
 func (sp *IavlStoreApp) SetMetering(dcName string, nsName string, value string) {
-	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+	key := []byte(containMeteringPrefix(dcName+"_"+nsName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, []byte(value))
 }
 
 func (sp *IavlStoreApp) Metering(dcName string, nsName string) string {
-	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+	key := []byte(containMeteringPrefix(dcName+"_"+nsName))
 	valueBytes, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(key)
 	if err != nil {
 		sp.storeLog.Error("can't get the responding metering value", "dcName", dcName, "nsName", nsName, "err", err)

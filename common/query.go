@@ -32,7 +32,7 @@ type MeteringQueryReq struct {
 }
 
 type MeteringQueryResp struct {
-	PEMBase64 string  `json:"pembase64"`
+	Value string  `json:"value"`
 }
 
 type ContractQueryReq struct {

@@ -169,7 +169,8 @@ func (sp *IavlStoreApp)  NonceQuery(address string) (*ankrcmm.NonceQueryResp, er
 
 func (sp *IavlStoreApp) Nonce(address string) (uint64, error) {
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
-		return 0, fmt.Errorf("can't find the respond account from store: address=%s", address)
+		sp.AddAccount(address, ankrcmm.AccountGenesis)
+		return 0, nil
 	}
 
 	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
