@@ -90,7 +90,6 @@ func TestCertMsgWithNode(t *testing.T) {
 
 	certMsg := &metering.SetCertMsg{FromAddr: addrFrom,
 		DCName: "dc1",
-		NSName: "ns1",
 	    PemBase64: TEST_CERT,
 	}
 
@@ -107,7 +106,7 @@ func TestCertMsgWithNode(t *testing.T) {
 	t.Logf("TestCertMsgWithNode:94 sucessful: txHash=%s, cHeight=%d", txHash, cHeight)
 
 	resp := &ankrcmm.CertKeyQueryResp{}
-	c.Query("/store/certkey", &ankrcmm.CertKeyQueryReq{"dc1", "ns1"}, resp)
+	c.Query("/store/certkey", &ankrcmm.CertKeyQueryReq{"dc1"}, resp)
 
 	t.Logf("pembase64=%s", resp.PEMBase64)
 }
@@ -124,7 +123,7 @@ func TestMeteringWithNode(t *testing.T) {
 	}
 
 	resp := &ankrcmm.CertKeyQueryResp{}
-	c.Query("/store/certkey", &ankrcmm.CertKeyQueryReq{"dc1", "ns1"}, resp)
+	c.Query("/store/certkey", &ankrcmm.CertKeyQueryReq{"dc1"}, resp)
 
 	key := crypto.NewSecretKeyPem(TEST_KEY, resp.PEMBase64,"@mert:"+"dc1_"+"ns1")
 

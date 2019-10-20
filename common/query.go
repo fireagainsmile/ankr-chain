@@ -19,7 +19,6 @@ type BalanceQueryResp struct {
 
 type CertKeyQueryReq struct {
 	DCName string  `json:"dcname"`
-	NSName string  `json:"nsname"`
 }
 
 type CertKeyQueryResp struct {

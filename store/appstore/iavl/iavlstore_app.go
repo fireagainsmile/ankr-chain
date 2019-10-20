@@ -296,13 +296,13 @@ func (sp *IavlStoreApp) Query(reqQuery types.RequestQuery) (resQuery types.Respo
     return sp.queryHandlerWapper(reqQuery.Path, reqQuery.Data)
 }
 
-func (sp *IavlStoreApp) SetCertKey(dcName string, nsName string, pemBase64 string)  {
-	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+func (sp *IavlStoreApp) SetCertKey(dcName string, pemBase64 string)  {
+	key := []byte(containCertKeyPrefix(dcName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set(key, []byte(pemBase64))
 }
 
-func (sp *IavlStoreApp) CertKey(dcName string, nsName string) string {
-	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+func (sp *IavlStoreApp) CertKey(dcName string) string {
+	key := []byte(containCertKeyPrefix(dcName))
 	valBytes, err :=  sp.iavlSM.IavlStore(IAvlStoreMainKey).Get(key)
 	if err != nil {
 		sp.storeLog.Error("can't get the key's value", "dcName", dcName)
@@ -312,8 +312,8 @@ func (sp *IavlStoreApp) CertKey(dcName string, nsName string) string {
 	return string(valBytes)
 }
 
-func (sp *IavlStoreApp) CertKeyQuery(dcName string, nsName string) (*ankrcmm.CertKeyQueryResp, error) {
-	return &ankrcmm.CertKeyQueryResp{sp.CertKey(dcName, nsName)}, nil
+func (sp *IavlStoreApp) CertKeyQuery(dcName string) (*ankrcmm.CertKeyQueryResp, error) {
+	return &ankrcmm.CertKeyQueryResp{sp.CertKey(dcName)}, nil
 }
 
 func (sp *IavlStoreApp) DeleteCertKey(dcName string, nsName string) {

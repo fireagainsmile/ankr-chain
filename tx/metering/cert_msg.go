@@ -18,7 +18,6 @@ import (
 type SetCertMsg struct {
 	FromAddr  string  `json:"fromaddr"`
 	DCName    string  `json:"dcname"`
-	NSName    string  `json:"nsname"`
 	PemBase64 string  `json:"pembase64"`
 }
 
@@ -67,7 +66,7 @@ func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOn
 		return code.CodeTypeOK, "", nil
 	}
 
-	context.AppStore().SetCertKey(sc.DCName, sc.NSName, sc.PemBase64)
+	context.AppStore().SetCertKey(sc.DCName, sc.PemBase64)
 
 	context.AppStore().IncNonce(sc.FromAddr)
 

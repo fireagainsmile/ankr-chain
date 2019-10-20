@@ -24,8 +24,8 @@ type BCStore interface {
 
 type TxStore interface {
 	Commit() types.ResponseCommit
-	SetCertKey(dcName string, nsName string, pemBase64 string)
-	CertKey(dcName string, nsName string) string
+	SetCertKey(dcName string, pemBase64 string)
+	CertKey(dcName string) string
 	DeleteCertKey(dcName string, nsName string)
 	SetMetering(dcName string, nsName string, value string)
 	Metering(dcName string, nsName string) string
