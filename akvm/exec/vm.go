@@ -72,7 +72,7 @@ func (wvm *WASMVirtualMachine) FuncSig(fnIndex int64) wasm.Function {
 }
 
 func (wvm *WASMVirtualMachine) SetBytes(bytes []byte) (uint64, error) {
-	return wvm.SetBytes(bytes)
+	return wvm.wasmVM.SetBytes(bytes)
 }
 
 func (wvm *WASMVirtualMachine) ReadString(off int64) (string, error) {

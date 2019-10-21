@@ -110,7 +110,7 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 		return errors.New(string(out))
 	}
 
-	prefix := NewBinPrefix(ContractTypeNative, ContractVMTypeWASM, ContractPatternType1)
+	prefix := NewBinPrefix(ContractTypeRuntime, ContractVMTypeWASM, ContractPatternType1)
 	err = addPrefixToFile(distFile, *prefix)
 	if err != nil {
 		return err

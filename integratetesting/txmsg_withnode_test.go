@@ -1,6 +1,7 @@
 package integratetesting
 
 import (
+	"encoding/json"
 	"github.com/Ankr-network/ankr-chain/account"
 	"github.com/Ankr-network/ankr-chain/tx/contract"
 	"github.com/Ankr-network/ankr-chain/tx/metering"
@@ -193,4 +194,42 @@ func TestContractDeployWithNode(t *testing.T) {
 	c.Query("/store/contract", &ankrcmm.ContractQueryReq{contractAddr}, resp)
 
 	t.Logf("conract=%v", resp)
+}
+
+func TestContractInvokeWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-hQYhLJ",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		Memo: "test ContractInvoke",
+		Version: "1.0",
+	}
+
+	jsonArg := "[{\"index\":1,\"Name\":\"args\",\"ParamType\":\"string\",\"Value\":{\"testStr\":\"testFuncWithInt arg\"}}]"
+
+	cdMsg := &contract.ContractInvokeMsg{
+		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ContractAddr: "9E44CF65DA7F39486F534AE8D03CDE78B64F6173416677",
+		Method:       "testFuncWithString",
+		Args:         jsonArg,
+		RtnType:      "string",
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, cdMsg,  txSerializer, key)
+
+	txHash, cHeight, contractResultJson, err := builder.BuildAndCommit(c)
+
+	assert.Equal(t, err, nil)
+
+	var contractR ankrcmm.ContractResult
+	json.Unmarshal([]byte(contractResultJson), &contractR)
+
+	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractR=%v", txHash, cHeight, contractR)
+
 }
