@@ -1,12 +1,37 @@
 package exec
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
+	"math/big"
 	"testing"
 
 	"github.com/Ankr-network/ankr-chain/log"
 	"github.com/stretchr/testify/assert"
 )
+
+type ContextAKVMTestImpl struct {
+
+}
+
+func (akc *ContextAKVMTestImpl) SpendGas(gas *big.Int) bool {
+	fmt.Printf("SpendGas invoked: gas=%s\n", gas.String())
+	return true
+}
+
+func (akc *ContextAKVMTestImpl) Publish(ctx context.Context, msg interface{}) error {
+	fmt.Printf("Publish invoked")
+
+	return nil
+}
+
+func (akc *ContextAKVMTestImpl) PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error {
+	fmt.Printf("PublishWithTags invoked")
+
+	return nil
+}
+
 
 func TestExecuteWithNoReturn(t *testing.T) {
 	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
@@ -14,7 +39,9 @@ func TestExecuteWithNoReturn(t *testing.T) {
 		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
-	wasmVM := NewWASMVirtualMachine(rawBytes, log.DefaultRootLogger.With("contract", "test"))
+	cak := new(ContextAKVMTestImpl)
+
+	wasmVM := NewWASMVirtualMachine("", "", "", cak, cak, rawBytes, log.DefaultRootLogger.With("contract", "test"))
 	assert.NotEqual(t, wasmVM, nil)
 
 	jsonArg := "{\"testStr\":\"testFunc arg\"}"
@@ -35,7 +62,9 @@ func TestExecuteWithIntReturn(t *testing.T) {
 		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
-	wasmVM := NewWASMVirtualMachine(rawBytes, log.DefaultRootLogger.With("contract", "test"))
+	cak := new(ContextAKVMTestImpl)
+
+	wasmVM := NewWASMVirtualMachine("", "", "", cak, cak, rawBytes, log.DefaultRootLogger.With("contract", "test"))
 	assert.NotEqual(t, wasmVM, nil)
 
 	jsonArg := "{\"testStr\":\"testFuncWithInt arg\"}"
@@ -59,7 +88,9 @@ func TestExecuteWithStringReturn(t *testing.T) {
 		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
-	wasmVM := NewWASMVirtualMachine(rawBytes, log.DefaultRootLogger.With("contract", "test"))
+	cak := new(ContextAKVMTestImpl)
+
+	wasmVM := NewWASMVirtualMachine("", "", "", cak, cak, rawBytes, log.DefaultRootLogger.With("contract", "test"))
 	assert.NotEqual(t, wasmVM, nil)
 
 	jsonArg := "{\"testStr\":\"testFuncWithString arg\"}"
