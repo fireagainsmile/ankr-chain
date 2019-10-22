@@ -57,7 +57,10 @@ func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrCh
 
 	//router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
 
+	chainID := appStore.ChainID()
+
 	return &AnkrChainApplication{
+		ChainId:      ankrcmm.ChainID(chainID),
 		APPName:      appName,
 		app:          appStore,
 		txSerializer: serializer.NewTxSerializerCDC(),
@@ -138,7 +141,7 @@ func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string
 		return nil, code.CodeTypeDecodingError, fmt.Sprintf("can't deserialize tx: tx=%v, err=%s", tx, err.Error())
 	} else {
 		if txMsg.ChID != app.ChainId {
-			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID", txMsg.ChID, app.ChainId)
+			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID=%s", txMsg.ChID, app.ChainId)
 		}
 	}
 
@@ -209,6 +212,8 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 	}
 
 	app.ChainId = ankrcmm.ChainID(req.ChainId)
+
+    app.app.SetChainID(req.ChainId)
 
 	account.AccountManagerInstance().Init(app.app)
 

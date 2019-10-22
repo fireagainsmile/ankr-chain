@@ -19,7 +19,6 @@ type BalanceQueryResp struct {
 
 type CertKeyQueryReq struct {
 	DCName string  `json:"dcname"`
-	NSName string  `json:"nsname"`
 }
 
 type CertKeyQueryResp struct {
@@ -32,7 +31,7 @@ type MeteringQueryReq struct {
 }
 
 type MeteringQueryResp struct {
-	PEMBase64 string  `json:"pembase64"`
+	Value string  `json:"value"`
 }
 
 type ContractQueryReq struct {

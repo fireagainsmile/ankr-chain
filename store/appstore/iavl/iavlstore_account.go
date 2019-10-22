@@ -78,7 +78,7 @@ func (sp *IavlStoreApp) updateOnce(address string, nonce uint64) error {
 		return fmt.Errorf("can't find the respond account from store: address=%s", address)
 	}
 
-	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(address))
+	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
 	accInfo := account.DecodeAccount(sp.cdc, accBytes)
 
 	accInfo.Nonce = nonce
@@ -118,14 +118,16 @@ func (sp *IavlStoreApp) updateBalance(address string, assert ankrcmm.Amount) err
 		return fmt.Errorf("can't find the respond account from store: address=%s", address)
 	}
 
-	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(address))
+	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
 	accInfo := account.DecodeAccount(sp.cdc, accBytes)
 
 	findAcc := false
-	for _, ass := range accInfo.Amounts {
+	for i, ass := range accInfo.Amounts {
 		if ass.Cur.Symbol == assert.Cur.Symbol {
-			ass.Value= assert.Value
+			accInfo.Amounts[i].Value = make([]byte, len(assert.Value))
+			copy(accInfo.Amounts[i].Value, assert.Value)
 			findAcc = true
+			break
 		}
 	}
 
@@ -135,7 +137,7 @@ func (sp *IavlStoreApp) updateBalance(address string, assert ankrcmm.Amount) err
 
 	bytes := account.EncodeAccount(sp.cdc, &accInfo)
 
-	updated := sp.iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(containAccountPrefix(accInfo.Address)), bytes)
+	updated := sp.iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(containAccountPrefix(address)), bytes)
 	if !updated {
 		return fmt.Errorf("update account's nonce fail: address=%s", address)
 	}
@@ -159,9 +161,16 @@ func (sp *IavlStoreApp) GetAssert(address string, symbol string) (*ankrcmm.Amoun
 	return nil, fmt.Errorf("can't find the respond assert from store: symbol=%s", symbol)
 }
 
+func (sp *IavlStoreApp)  NonceQuery(address string) (*ankrcmm.NonceQueryResp, error) {
+	nonce, err := sp.Nonce(address)
+
+	return &ankrcmm.NonceQueryResp{nonce}, err
+}
+
 func (sp *IavlStoreApp) Nonce(address string) (uint64, error) {
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
-		return 0, fmt.Errorf("can't find the respond account from store: address=%s", address)
+		sp.AddAccount(address, ankrcmm.AccountGenesis)
+		return 0, nil
 	}
 
 	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
@@ -193,7 +202,7 @@ func (sp *IavlStoreApp) AddAccount(address string, accType ankrcmm.AccountType) 
 		accInfo.Nonce   = 0
 		accInfo.Address = address
 		accInfo.PubKey  = ""
-		accInfo.Amounts= []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
+		accInfo.Amounts= []ankrcmm.Amount{{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
 
 		sp.addAccountInfo(&accInfo)
 	}
@@ -206,7 +215,7 @@ func (sp *IavlStoreApp) SetBalance(address string, amount ankrcmm.Amount) {
 		accInfo.Nonce   = 0
 		accInfo.Address = address
 		accInfo.PubKey  = ""
-		accInfo.Amounts= []ankrcmm.Amount{amount}
+		accInfo.Amounts = []ankrcmm.Amount{amount}
 
 		sp.addAccountInfo(&accInfo)
 	}else {
@@ -221,6 +230,15 @@ func (sp *IavlStoreApp) Balance(address string, symbol string) (*big.Int, error)
 	}
 
 	return new(big.Int).SetBytes(assert.Value), nil
+}
+
+func (sp *IavlStoreApp) BalanceQuery(address string, symbol string) (*ankrcmm.BalanceQueryResp, error) {
+	bal, err := sp.Balance(address, symbol)
+	if err != nil || bal == nil {
+		return nil, err
+	}
+
+	return &ankrcmm.BalanceQueryResp{bal.String()}, err
 }
 
 func (sp *IavlStoreApp) SetAllowance(addrSender string, addrSpender string, amount ankrcmm.Amount) {

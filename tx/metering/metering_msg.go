@@ -61,6 +61,7 @@ func (m *MeteringMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOn
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
+		{Key: []byte("app.fromaddress"), Value: []byte(m.FromAddr)},
 		{Key: []byte("app.metering"), Value: []byte(m.DCName + ":" + m.NSName)},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeMeteringMsg)},

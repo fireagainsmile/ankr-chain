@@ -7,11 +7,11 @@ import (
 )
 
 type TxMsgHeader struct {
-	ChID     ankrcmm.ChainID
-	Fee      tx.TxFee
-	GasPrice ankrcmm.Amount
-	Memo     string
-	Version  string
+	ChID      ankrcmm.ChainID
+	GasLimit  []byte
+	GasPrice  ankrcmm.Amount
+	Memo      string
+	Version   string
 }
 
 type TxMsgBuilder struct {
@@ -26,25 +26,26 @@ func NewTxMsgBuilder(msgHeader TxMsgHeader, msgData tx.ImplTxMsg, serializer tx.
 }
 
 func (builder *TxMsgBuilder) BuildOnly(nonce uint64) ([]byte, error) {
-	txMsg := &tx.TxMsg{ChID: builder.msgHeader.ChID, Nonce: nonce, Fee: builder.msgHeader.Fee, GasPrice: builder.msgHeader.GasPrice, Memo: builder.msgHeader.Memo, Version: builder.msgHeader.Version, ImplTxMsg: builder.msgData}
+	txMsg := &tx.TxMsg{ChID: builder.msgHeader.ChID, Nonce: nonce, GasLimit: builder.msgHeader.GasLimit, GasPrice: builder.msgHeader.GasPrice, Memo: builder.msgHeader.Memo, Version: builder.msgHeader.Version, ImplTxMsg: builder.msgData}
 
 	return  txMsg.SignAndMarshal(builder.serializer, builder.key)
 }
 
-func (builder *TxMsgBuilder) BuildAndCommit(c *Client) (txHash string, commitHeight int64, err error){
+func (builder *TxMsgBuilder) BuildAndCommit(c *Client) (txHash string, commitHeight int64, log string, err error){
 	signer := builder.msgData.SignerAddr()
-	resp, err := c.Query("/store/account", &ankrcmm.NonceQueryReq{signer[0]})
+	resp := &ankrcmm.NonceQueryResp{}
+	err = c.Query("/store/nonce", &ankrcmm.NonceQueryReq{signer[0]}, resp)
 	if err != nil {
-		return "", -1, err
+		return "", -1, "", err
     }
 
-	nonce := resp.(ankrcmm.NonceQueryResp).Nonce
+	nonce := resp.Nonce
 
-	txMsg := &tx.TxMsg{ChID: builder.msgHeader.ChID, Nonce: nonce, Fee: builder.msgHeader.Fee, GasPrice: builder.msgHeader.GasPrice, Memo: builder.msgHeader.Memo, Version: builder.msgHeader.Version, ImplTxMsg: builder.msgData}
+	txMsg := &tx.TxMsg{ChID: builder.msgHeader.ChID, Nonce: nonce, GasLimit: builder.msgHeader.GasLimit, GasPrice: builder.msgHeader.GasPrice, Memo: builder.msgHeader.Memo, Version: builder.msgHeader.Version, ImplTxMsg: builder.msgData}
 
 	txBytes, err := txMsg.SignAndMarshal(builder.serializer, builder.key)
 	if err != nil {
-		return "", -1, err
+		return "", -1, "", err
 	}
 
 	return c.BroadcastTxCommit(txBytes)

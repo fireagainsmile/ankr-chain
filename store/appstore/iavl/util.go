@@ -11,7 +11,7 @@ func containPrefix(key string, prefix string) string {
 
 func stripKeyPrefix(key string, prefix string) (string, error) {
 	strSlice := strings.Split(key, ":")
-	if strSlice[0] != prefix {
+	if strSlice[0]+":" != prefix {
 		return "", fmt.Errorf("invalid key with prefix: key = %s, prefix = %s", key, prefix)
 	}
 

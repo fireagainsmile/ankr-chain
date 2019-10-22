@@ -1,4 +1,4 @@
-package key
+package main
 
 import (
 	"encoding/base64"

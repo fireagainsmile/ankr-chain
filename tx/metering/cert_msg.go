@@ -1,9 +1,7 @@
 package metering
 
-
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/Ankr-network/ankr-chain/account"
@@ -20,7 +18,6 @@ import (
 type SetCertMsg struct {
 	FromAddr  string  `json:"fromaddr"`
 	DCName    string  `json:"dcname"`
-	NSName    string  `json:"nsname"`
 	PemBase64 string  `json:"pembase64"`
 }
 
@@ -47,17 +44,17 @@ func (sc *SetCertMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (sc *SetCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := store.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME))
-	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering))
+	adminPubkeyBase64 := string(store.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME)))
+	if len(adminPubkeyBase64) == 0 {
+		adminPubkeyBase64 = account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
 	}
 
-	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
+	adminPubKey, err := ankrcmm.DeserilizePubKey(adminPubkeyBase64)
 	if err != nil {
 		return false
 	}
 
-	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
+	return  bytes.Equal(pubKey, adminPubKey.Bytes())
 }
 
 func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
@@ -69,7 +66,7 @@ func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOn
 		return code.CodeTypeOK, "", nil
 	}
 
-	context.AppStore().SetCertKey(sc.DCName, sc.NSName, sc.PemBase64)
+	context.AppStore().SetCertKey(sc.DCName, sc.PemBase64)
 
 	context.AppStore().IncNonce(sc.FromAddr)
 
@@ -117,17 +114,17 @@ func (rc *RemoveCertMsg) SecretKey() ankrcrypto.SecretKey {
 }
 
 func (sc *RemoveCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
-	adminPubkey := store.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME))
-	if len(adminPubkey) == 0 {
-		adminPubkey = []byte(account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering))
+	adminPubkeyBase64 := string(store.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME)))
+	if len(adminPubkeyBase64) == 0 {
+		adminPubkeyBase64 = account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
 	}
 
-	adminPubKeyStr, err := base64.StdEncoding.DecodeString(string(adminPubkey))
+	adminPubKey, err := ankrcmm.DeserilizePubKey(adminPubkeyBase64)
 	if err != nil {
 		return false
 	}
 
-	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
+	return  bytes.Equal(pubKey, adminPubKey.Bytes())
 }
 
 func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {

@@ -7,13 +7,17 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
+	"github.com/tendermint/tendermint/crypto"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/common"
 )
 
 type SecretKeyPem struct {
-	PrivPEM string
+	PrivPEM   string
+	PEMBase64 string
+	Extra     string
 }
 
 func ParseEcdsaPrivateKeyFromPemStr(privPEM string) (*ecdsa.PrivateKey, error) {
@@ -45,6 +49,10 @@ func ParseEcdsaPublicKeyFromPemStr(pubPEM string) (*ecdsa.PublicKey, error) {
 	return pub, nil
 }
 
+func NewSecretKeyPem(PrivPEM string, PEMBase64 string, Extra string) *SecretKeyPem {
+	return &SecretKeyPem {PrivPEM, PEMBase64, Extra}
+}
+
 func (skp *SecretKeyPem) PubKey() (string, error) {
 	return "", errors.New("SecretKeyPem not support method PubKey")
 }
@@ -54,7 +62,21 @@ func (skp *SecretKeyPem) PriKey() (string, error) {
 }
 
 func (skp *SecretKeyPem) Address() (common.Address, error) {
-	return nil, errors.New("SecretKeyPem not support method Address")
+	privKey, err := ParseEcdsaPrivateKeyFromPemStr(skp.PrivPEM)
+	if err != nil {
+		return nil, err
+	}
+
+	pubKeyBytes := append(privKey.X.Bytes(), privKey.Y.Bytes()...)
+	if skp.Extra != "" {
+		pubKeyBytes = append(pubKeyBytes,skp.Extra...)
+	}
+
+	addrHex := crypto.AddressHash(pubKeyBytes)
+
+	fmt.Printf("addrHex=%v\n", addrHex)
+
+	return  common.Address(addrHex.String()), err
 }
 
 func (skp *SecretKeyPem) Sign(msg []byte) (*Signature, error) {
@@ -69,7 +91,7 @@ func (skp *SecretKeyPem) Sign(msg []byte) (*Signature, error) {
     	return nil, err
 	}
 
-	return &Signature{R:r.String(), S: s.String()}, nil
+	return &Signature{R:r.String(), S: s.String(), PubPEM: skp.PEMBase64}, nil
 }
 
 func (skp *SecretKeyPem) Verify(msg []byte, signature *Signature) bool {

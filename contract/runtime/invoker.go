@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -74,6 +75,7 @@ func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, ca
 	return akvm.Execute(fnIndex, rtnType, args...)
 }
 
+/*
 func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
 	r.context = ankrcontext.CreateContextAKVM(context,appStore)
 	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, context, code, r.log)
@@ -116,6 +118,42 @@ func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore app
 	}
 
 	akvmResult, err := akvm.Execute(fnIndex, rtnType, args...)
+	if err != nil {
+		return &ankrcmm.ContractResult{false, rtnType, nil}, err
+	}
+
+	if reflect.ValueOf(akvmResult).Type().Name() == rtnType  {
+		return &ankrcmm.ContractResult{true, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
+	}else {
+		return &ankrcmm.ContractResult{false, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
+	}
+}*/
+
+
+func (r *RuntimeInvoke) Invoke(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
+	r.context = ankrcontext.CreateContextAKVM(context,appStore)
+	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, context, code, r.log)
+	if akvm == nil {
+		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("can't creat vitual machiane: contractName=%s, method=%s", contractName, method)
+	}
+
+	akvm.SetContrInvoker(r)
+
+	methodIndex, _ := akvm.SetBytes([]byte(method))
+	fnIndex := akvm.ExportFnIndex("ContractEntry")
+	if fnIndex == -1 {
+		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("can't get valid fnIndex: method=%s", method)
+	}
+
+	fSig := akvm.FuncSig(fnIndex)
+	if len(fSig.Sig.ParamTypes) != (len(param) + 1) {
+		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("input params' len invlid: len=%d", len(param))
+	}
+
+	valBytes, _ := json.Marshal(param[0].Value)
+	arg, _ := akvm.SetBytes(valBytes)
+
+	akvmResult, err := akvm.Execute(fnIndex, rtnType, []uint64{methodIndex, arg}...)
 	if err != nil {
 		return &ankrcmm.ContractResult{false, rtnType, nil}, err
 	}
