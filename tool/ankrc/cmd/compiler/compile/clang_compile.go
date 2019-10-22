@@ -2,8 +2,8 @@ package compile
 
 import (
 	"errors"
+	abi2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/abi"
 	"os/exec"
-	"strings"
 )
 
 var (
@@ -57,21 +57,9 @@ func NewClangOption() *ClangOptions {
 
 // compile c/c++ file into object
 func (co *ClangOptions)Execute(args []string) error  {
-	srcFile := filterSrcFile(args)
-	if srcFile.name == "" {
-		return errors.New("no input file")
-	}
-
-	//var co = &DefaultClangOptions
-	switch srcFile.fileType {
-	case cType:
-		co.withC()
-	case cPlusType:
-		co.withCpp()
-	}
 
 	clangArgs := co.Options()
-	clangArgs = append(clangArgs, srcFile.name)
+	clangArgs = append(clangArgs, abi2.TempCppFile)
 
 	out, err := exec.Command(co.Compiler, clangArgs...).Output()
 	if err != nil {
@@ -81,24 +69,4 @@ func (co *ClangOptions)Execute(args []string) error  {
 		return errors.New(string(out))
 	}
 	return nil
-}
-
-func filterSrcFile(args []string) srcContract {
-	var src srcContract
-	for _, arg := range args {
-		argSlice := strings.Split(arg, ".")
-		if len(argSlice) == 2{
-			switch argSlice[1] {
-			case "cpp", "cc":
-				src.name = arg
-				src.fileType = cPlusType
-				return src
-			case "c":
-				src.name = arg
-				src.fileType = cType
-				return src
-			}
-		}
-	}
-	return src
 }
