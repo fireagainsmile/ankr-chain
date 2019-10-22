@@ -12,15 +12,16 @@ type Executable interface {
 
 // rootCmd represents the base command when called without any subcommands
 var DecompileCmd= &cobra.Command{
+  Args:cobra.MinimumNArgs(1),
   Use:   "decompile",
-  Short: "A brief description of your application",
+  Short: "Read a file in the WebAssembly binary format, and convert it to the WebAssembly text format.",
   Run: decompile,
   //	Run: func(cmd *cobra.Command, args []string) { },
 }
 
 func decompile(cmd *cobra.Command, args []string) {
   if len(args) != 1 {
-    fmt.Println("Invalid arguments")
+    fmt.Println("expected filename argument.")
     cmd.Help()
     return
   }

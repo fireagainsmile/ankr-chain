@@ -5,14 +5,13 @@ import (
 	"os"
 	"strings"
 	abi2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/abi"
-	compile3 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/compile"
+	compile2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/compile"
 	parser2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/parser"
 	"github.com/spf13/cobra"
 )
 
 var (
 	outputFlag = "output"
-	genAbi bool
 )
 
 type CompileOptions interface {
@@ -28,7 +27,7 @@ var CompileCmd= &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Use:   "compile",
 	Short: "ankr smart contract compile tool",
-	Long:  `This is used to compile C/C++ source file into wasm format`,
+	Long:  `Compile ankr smart contract and generate WebAssembly binary format`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: compile,
@@ -36,7 +35,8 @@ var CompileCmd= &cobra.Command{
 
 func compile(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		fmt.Println("Invalid input arguments")
+		fmt.Println("expected filename argument.")
+		cmd.Help()
 		return
 	}
 
@@ -47,7 +47,7 @@ func compile(cmd *cobra.Command, args []string) {
 	}
 
 	//exec clang commands
-	err = exeCommand(compile3.NewClangOption(), args)
+	err = exeCommand(compile2.NewClangOption(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -62,7 +62,7 @@ func compile(cmd *cobra.Command, args []string) {
 	}
 
 	//exec wasm-ld to generate binary file
-	err = exeCommand(compile3.NewDefaultWasmOptions(), args)
+	err = exeCommand(compile2.NewDefaultWasmOptions(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -78,7 +78,6 @@ func exeCommand(cmd Executable, args []string) error {
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	CompileCmd.SetArgs([]string{"TestContract.cpp", "--gen-abi","--output", "./temp"})
 	if err := CompileCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -86,7 +85,7 @@ func Execute() {
 }
 
 func init() {
-	CompileCmd.Flags().StringVar(&compile3.OutPutDir, outputFlag, "./", "output file directory")
+	CompileCmd.Flags().StringVar(&compile2.OutPutDir, outputFlag, "./", "output file directory")
 	CompileCmd.Flags().BoolVar(&abi2.GenerateAbi, "gen-abi", false, "generate abi")
 }
 
