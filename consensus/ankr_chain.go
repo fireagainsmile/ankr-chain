@@ -152,6 +152,7 @@ func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	txMsg, codeVal, logStr := app.dispossTx(tx)
 	if codeVal == code.CodeTypeOK {
+		app.app.IncTotalTx()
 		return txMsg.DeliverTx(app)
 	}
 

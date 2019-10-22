@@ -37,6 +37,8 @@ type TxStore interface {
 	Set(key []byte, val []byte)
 	Delete(key []byte)
 	Has(key []byte) bool
+	TotalTx() int64
+	IncTotalTx() int64
 }
 
 type ContractStore interface {
