@@ -15,21 +15,73 @@ var(
 	//expression to match invoke_action and invoke_func labeled functions
 	invokeRegexp = `(INVOKE_ACTION|INVOKE_FUNC) \( "\b[\w]+`
 	baseRegexp   = `class [\w]+( : public akchain : : Contract)`
+	TempCppFile = "temp.cpp"
+	GenerateAbi bool
+	ABIPrefix = NewBinPrefix(ContractTypeRuntime, ContractVMTypeWASM, ContractPatternTypeUnknown)
 )
+
+
+func (b *BinPrefix)SetOption(op [ExtensionLen]byte) *BinPrefix {
+	b.Extension = op
+	return b
+}
+
+func (b BinPrefix)Byte() (out [CodePrefixLen]byte) {
+	out[0] = byte(b.TypeBin)
+	out[1] = byte(b.VMTypeBin)
+	out[2] = byte(b.VMTypeBin)
+	for i, b := range b.Extension {
+		out[i + 3] = b
+	}
+	return out
+}
 
 type InvokeType struct {
 	name string
 	invokeType []string
 }
 
-func GenAbi(file string) error {
-	cc := NewContractClass()
+func (cc *ContractClass)Execute(args []string) error  {
+	file := args[0]
 	err := parseClassFromFile(file, cc)
 	if err != nil {
 		return err
 	}
+
+	// collect functions in action entry
+	functions := collectFunctions(file)
+	if len(functions) != 0 {
+		ABIPrefix.PattenTypeBin = ContractPatternType2
+		// copy source file into temp for clang and wasm-ld compile
+		fByte, _ := ioutil.ReadFile(file)
+		f, err := os.OpenFile(TempCppFile, os.O_CREATE | os.O_TRUNC, 0600)
+		defer f.Close()
+		if err != nil {
+			return err
+		}
+
+		f.Write(fByte)
+	}else {
+		ABIPrefix.PattenTypeBin = ContractPatternType1
+		err = cc.GenCode(file)
+		if err != nil {
+			return err
+		}
+	}
+
+	if GenerateAbi {
+		return cc.genAbi(file, functions)
+	}
+	return nil
+}
+
+func collectFunctions(file string) []InvokeType {
 	contractContent := readContract(file)
 	functions := getActionAndFunc(contractContent)
+	return functions
+}
+
+func (cc *ContractClass)genAbi(file string, functions []InvokeType) error {
 	m := getActionEntry(functions, cc)
 	jsonByte, err := json.MarshalIndent(m, "", "\t")
 	if err != nil {
@@ -40,11 +92,7 @@ func GenAbi(file string) error {
 	if err != nil {
 		return err
 	}
-	// if no action entry is found, auto generate extern code
-	if len(functions) == 0 {
-		err = cc.GenCode(file)
-	}
-	return err
+	return nil
 }
 
 func getAbiFileName(srcFile string) string {

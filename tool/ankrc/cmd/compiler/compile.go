@@ -1,18 +1,17 @@
-package cmd
+package compiler
 
 import (
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
-	compile2 "github.com/Ankr-network/ankr-chain/tool/compiler/compile"
-	"github.com/Ankr-network/ankr-chain/tool/compiler/parser"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	abi2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/abi"
+	compile2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/compile"
+	parser2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/parser"
+	"github.com/spf13/cobra"
 )
 
 var (
 	outputFlag = "output"
-	genAbi bool
 )
 
 type CompileOptions interface {
@@ -24,24 +23,31 @@ type Executable interface {
 }
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+var CompileCmd= &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Use:   "compile",
 	Short: "ankr smart contract compile tool",
-	Long:  `This is used to compile C/C++ source file into wasm format`,
+	Long:  `Compile ankr smart contract and generate WebAssembly binary format`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: compile,
 }
 
 func compile(cmd *cobra.Command, args []string) {
-	if len(args) < 1 {
-		fmt.Println("error: no input file")
+	if len(args) != 1 {
+		fmt.Println("expected filename argument.")
+		cmd.Help()
+		return
+	}
+
+	err := exeCommand(abi2.NewContractClass(), args)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
 	//exec clang commands
-	err := exeCommand(compile2.NewClangOption(), args)
+	err = exeCommand(compile2.NewClangOption(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -49,20 +55,12 @@ func compile(cmd *cobra.Command, args []string) {
 
 	//exec smart contract rule check
 	sourceFile := getSrcFile(args)
-	err = exeCommand(parser.NewRegexpParser(), []string{sourceFile})
+	err = exeCommand(parser2.NewRegexpParser(), []string{sourceFile})
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	//exec smart contract abi gen
-	if genAbi{
-		err = abi.GenAbi(sourceFile)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
 	//exec wasm-ld to generate binary file
 	err = exeCommand(compile2.NewDefaultWasmOptions(), args)
 	if err != nil {
@@ -80,15 +78,15 @@ func exeCommand(cmd Executable, args []string) error {
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := CompileCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&compile2.OutPutDir, outputFlag, "", "output file directory")
-	rootCmd.Flags().BoolVar(&genAbi, "gen-abi", false, "generate abi")
+	CompileCmd.Flags().StringVar(&compile2.OutPutDir, outputFlag, "./", "output file directory")
+	CompileCmd.Flags().BoolVar(&abi2.GenerateAbi, "gen-abi", false, "generate abi")
 }
 
 func getSrcFile(args []string) string {

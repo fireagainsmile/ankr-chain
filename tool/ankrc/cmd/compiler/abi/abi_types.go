@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	//"os"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -16,6 +16,48 @@ var (
 	inputRegexp = `\( (([\w]+|,|\*)\s)*\)`
 	exportRegexp = `extern(\s)*"(C|c)"(\s)*{(\s)*([^\{]*\{[^\}]*\})*(\s)*}`
 )
+const (
+	CodePrefixLen = 10
+	ExtensionLen = 7
+)
+
+type ContractType int
+const (
+	_ ContractType = iota
+	ContractTypeNative  = 0x01
+	ContractTypeRuntime = 0x02 //~
+	ContractTypeUnknown = 0x03
+)
+
+type ContractVMType int
+const (
+	_ ContractVMType = iota
+	ContractVMTypeWASM    = 0x01 //~
+	ContractVMTypeUnknown = 0x02
+)
+
+type ContractPatternType int
+const (
+	_  ContractPatternType = iota
+	ContractPatternType1       = 0x01 //action entry
+	ContractPatternType2       = 0x02
+	ContractPatternTypeUnknown = 0x03
+)
+
+type BinPrefix struct {
+	TypeBin ContractType
+	VMTypeBin ContractVMType
+	PattenTypeBin ContractPatternType
+	Extension [ExtensionLen]byte
+}
+
+func NewBinPrefix(contractType ContractType, contractVmType ContractVMType, contractPattenType ContractPatternType) *BinPrefix {
+	return &BinPrefix{
+		TypeBin: contractType,
+		VMTypeBin: contractVmType,
+		PattenTypeBin: contractPattenType,
+	}
+}
 
 type Method struct {
 	Name string `json:"name"`
@@ -93,6 +135,7 @@ func NewContractClass() *ContractClass {
 	}
 }
 
+//copy contract source code to temp file
 func (c ContractClass)GenCode(file string) error {
 	contractContent, _ := ioutil.ReadFile(file)
 	reg, _ := regexp.Compile(exportRegexp)
@@ -119,13 +162,19 @@ func (c ContractClass)GenCode(file string) error {
 	codeEnd := fmt.Sprintf("}\n")
 	result = append(result, codeEnd...)
 	var newResult []byte
-	if len(matched) != 0 {
-		newResult = reg.ReplaceAll(contractContent, result)
-	}else {
+	if len(matched) == 0 {
 		result = append([]byte("\n"),result...)
 		newResult = append(contractContent, result...)
+	}else {
+		newResult = reg.ReplaceAll(contractContent, result)
 	}
-	ioutil.WriteFile(file, newResult, 0600)
+
+	f, err := os.OpenFile(TempCppFile, os.O_CREATE|os.O_TRUNC, 0600)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+	f.Write(newResult)
 	return nil
 }
 
