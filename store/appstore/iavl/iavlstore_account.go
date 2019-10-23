@@ -208,6 +208,23 @@ func (sp *IavlStoreApp) AddAccount(address string, accType ankrcmm.AccountType) 
 	}
 }
 
+func (sp *IavlStoreApp) AccountQuery(address string) (*ankrcmm.AccountQueryResp, error) {
+	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
+		accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
+		accInfo := account.DecodeAccount(sp.cdc, accBytes)
+
+		return &ankrcmm.AccountQueryResp{
+			accInfo.AccType,
+			accInfo.Nonce,
+			accInfo.Address,
+			accInfo.PubKey,
+			accInfo.Amounts,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("there is no responding account info: addr=%s", address)
+}
+
 func (sp *IavlStoreApp) SetBalance(address string, amount ankrcmm.Amount) {
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
 		var accInfo ankrcmm.AccountInfo
@@ -264,9 +281,9 @@ func (sp *IavlStoreApp) Allowance(addrSender string, addrSpender string, symbol 
 	return rtnI, nil
 }
 
-func (sp *IavlStoreApp) AccountList() ([]byte, uint64) {
+func (sp *IavlStoreApp) AccountList() ([]string, uint64) {
 	addrCount := uint64(0)
-	addressList := ""
+	var addressList []string
 
 	endBytes := prefixEndBytes([]byte(StoreAccountPrefix))
 
@@ -277,7 +294,7 @@ func (sp *IavlStoreApp) AccountList() ([]byte, uint64) {
 				sp.storeLog.Error("stripAccountKeyPrefix error", "err", err)
 			}else {
 				addrCount++
-				addressList += addressList + ";" + accAddr
+				addressList = append(addressList, accAddr)
 			}
 		}
 
@@ -286,7 +303,7 @@ func (sp *IavlStoreApp) AccountList() ([]byte, uint64) {
 
 	if addrCount > 0 {
 		addressList = addressList[1:]
-		return []byte(addressList), addrCount
+		return addressList, addrCount
 	}else {
 		return nil, addrCount
 	}

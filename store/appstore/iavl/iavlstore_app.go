@@ -134,6 +134,8 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
 	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
 	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["account"]  = &storeQueryHandler{&ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["statisticalinfo"]  = &storeQueryHandler{&ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 }
@@ -430,6 +432,14 @@ func (sp *IavlStoreApp) APPHash() []byte {
 
 func (sp *IavlStoreApp) DB() dbm.DB {
 	return sp.iavlSM.db
+}
+
+func (sp *IavlStoreApp) StatisticalInfoQuery()(*ankrcmm.StatisticalInfoResp, error) {
+	addrArry, _ := sp.AccountList()
+	return &ankrcmm.StatisticalInfoResp{
+		addrArry,
+		sp.TotalTx(),
+	}, nil
 }
 
 func (sp *IavlStoreApp) IsExist(cAddr string) bool {
