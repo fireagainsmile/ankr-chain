@@ -1,11 +1,10 @@
-package serializer
+package v0
 
 import (
 	"errors"
 	"strings"
 
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
-	"github.com/Ankr-network/ankr-chain/tx"
 )
 
 func ParseTxPrefix(tx []byte) (string, error) {
@@ -35,20 +34,23 @@ func ParseTxPrefix(tx []byte) (string, error) {
 type TxSerializerV0 struct {
 }
 
-func (txdv1 *TxSerializerV0) Deserialize(txBytes []byte) (*tx.TxMsg, error) {
+func (txs *TxSerializerV0) Deserialize(txBytes []byte) (txType string, data interface{}, err error) {
 	if len(txBytes) == 0 {
-		return nil, errors.New("nil tx")
+		txType = ""
+		data   = nil
+		err    = errors.New("nil tx")
+		return
 	}
 
-	_, err := ParseTxPrefix(txBytes)
+	txPrefix, err := ParseTxPrefix(txBytes)
 	if err != nil {
-		//txType = ""
-		//data   = nil
-		return  nil, err
+		txType = ""
+		data   = nil
+		return "", nil, err
 	}
 
-	//txType = txPrefix
-	//data   = strings.Split(string(txBytes[len(txPrefix):]), ":")
+	txType = txPrefix
+	data   = strings.Split(string(txBytes[len(txPrefix):]), ":")
 
-	return nil, nil
+	return
 }

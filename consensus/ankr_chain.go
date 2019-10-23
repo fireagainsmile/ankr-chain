@@ -16,6 +16,7 @@ import (
 	_ "github.com/Ankr-network/ankr-chain/tx/metering"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	_ "github.com/Ankr-network/ankr-chain/tx/token"
+	"github.com/Ankr-network/ankr-chain/tx/v0"
 	val "github.com/Ankr-network/ankr-chain/tx/validator"
 	akver "github.com/Ankr-network/ankr-chain/version"
 	"github.com/tendermint/tendermint/abci/types"
@@ -89,7 +90,6 @@ func (app *AnkrChainApplication) SetLogger(l log.Logger) {
 	app.logger = l
 }
 
-
 func (app *AnkrChainApplication) MinGasPrice() ankrcmm.Amount {
 	return app.minGasPrice
 }
@@ -156,7 +156,9 @@ func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 		return txMsg.DeliverTx(app)
 	}
 
-	return types.ResponseDeliverTx{ Code: codeVal, Log: logStr}
+	app.logger.Info("AnkrChainApplication DeliverTx new tx serialize error, switch to V0 tx", "logStr", logStr)
+
+	return v0.MsgRouterInstance().DeliverTx(tx, app.AppStore())
 }
 
 func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {

@@ -273,8 +273,8 @@ func (sp *IavlStoreApp) CertKeyQuery(dcName string) (*ankrcmm.CertKeyQueryResp, 
 	return &ankrcmm.CertKeyQueryResp{sp.CertKey(dcName)}, nil
 }
 
-func (sp *IavlStoreApp) DeleteCertKey(dcName string, nsName string) {
-	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+func (sp *IavlStoreApp) DeleteCertKey(dcName string) {
+	key := []byte(containCertKeyPrefix(dcName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove(key)
 }
 

@@ -136,7 +136,7 @@ func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, i
 		return code.CodeTypeOK, "", nil
 	}
 
-	context.AppStore().DeleteCertKey(rc.DCName, rc.NSName)
+	context.AppStore().DeleteCertKey(rc.DCName)
 
 	context.AppStore().IncNonce(rc.FromAddr)
 
