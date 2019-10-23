@@ -3,12 +3,12 @@ package v0
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/crypto"
-	"github.com/Ankr-network/新建文件夹/ankr-chain/common"
 	"strconv"
 	"time"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -61,7 +61,7 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 	pem := string(pemByte)
 
-	bResult := common.EcdsaVerify(pem, dcS+nsS+valueS+nonceS, sigxS, sigyS)
+	bResult := ankrcmm.EcdsaVerify(pem, dcS+nsS+valueS+nonceS, sigxS, sigyS)
 	if !bResult {
 		return  types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("metering signature wrong. Got %v,%v", sigxS, sigyS) }
 	}

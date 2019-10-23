@@ -38,7 +38,7 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	var admin_pubkey_str = ""
 	admin_pubkey := appStore.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(admin_pubkey) == 0 {
-		fmt.Println("use default ADMIN_OP_METERING_PUBKEY_NAME")
+		//use default ADMIN_OP_METERING_PUBKEY_NAME
 		admin_pubkey_str = account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
 	} else {
 		admin_pubkey_str = string(admin_pubkey)
@@ -93,7 +93,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	var admin_pubkey_str = ""
 	admin_pubkey := appStore.Get([]byte(ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME))
 	if len(admin_pubkey) == 0 {
-		fmt.Println("use default ADMIN_OP_METERING_PUBKEY_NAME")
+		//use default ADMIN_OP_METERING_PUBKEY_NAME
 		admin_pubkey_str = account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
 	} else {
 		admin_pubkey_str = string(admin_pubkey)

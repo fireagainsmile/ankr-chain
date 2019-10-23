@@ -3,7 +3,6 @@ package v0
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/Ankr-network/新建文件夹/ankr-chain/common"
 	"math/big"
 	"strconv"
 	"time"
@@ -97,7 +96,7 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Deserilize pubkey failure. Got %v", pubkeyS) }
 	}
 
-	s256 := common.ConvertBySha256([]byte(fmt.Sprintf("%s%s%s%s", fromS, toS, amountS, nonceS)))
+	s256 := ankrcmm.ConvertBySha256([]byte(fmt.Sprintf("%s%s%s%s", fromS, toS, amountS, nonceS)))
 	bb := pubKeyObject.VerifyBytes(s256[:32], pDec)
 	if !bb {
 		fmt.Println("Bad signature, transaction failed.", sigS)

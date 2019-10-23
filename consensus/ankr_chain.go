@@ -150,9 +150,10 @@ func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string
 
 // tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
+	app.app.IncTotalTx()
+
 	txMsg, codeVal, logStr := app.dispossTx(tx)
 	if codeVal == code.CodeTypeOK {
-		app.app.IncTotalTx()
 		return txMsg.DeliverTx(app)
 	}
 

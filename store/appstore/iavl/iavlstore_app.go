@@ -205,7 +205,7 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
     sp.lastCommitID.Version = commitID.Version
 	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, appHash...)
 
-	return types.ResponseCommit{Data: commitID.Hash}
+	return types.ResponseCommit{Data: appHash}
 }
 
 func (sp *IavlStoreApp) parsePath(path string)(storeName string, subPath string) {

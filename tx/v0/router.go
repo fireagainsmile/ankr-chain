@@ -68,7 +68,7 @@ func MsgRouterInstance() *MsgRouter {
 		instanceMR.AddTxMessageHandler(ankrcmm.TrxSendPrefix, new(transferMsg))
 		instanceMR.AddTxMessageHandler(ankrcmm.SetCertPrefix, new(setCertMsg))
 		instanceMR.AddTxMessageHandler(ankrcmm.RemoveCertPrefix, new(removeCertMsg))
-		instanceMR.AddTxMessageHandler(ankrcmm.MeteringPrefix, new(meteringMsg))
+		instanceMR.AddTxMessageHandler(ankrcmm.SetMeteringPrefix, new(meteringMsg))
 	})
 
 	return instanceMR
