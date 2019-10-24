@@ -197,17 +197,14 @@ func (sp *IavlStoreApp) LastCommit() *ankrcmm.CommitID{
 }
 
 func (sp *IavlStoreApp) Commit() types.ResponseCommit {
-    commitID := sp.iavlSM.Commit(sp.lastCommitID.Version)
-
-	appHash := make([]byte, 8)
-	binary.PutVarint(appHash, sp.totalTx)
+    commitID := sp.iavlSM.Commit(sp.lastCommitID.Version, sp.totalTx)
 
 	sp.lastCommitID.Hash = sp.lastCommitID.Hash[0:0]
 
     sp.lastCommitID.Version = commitID.Version
-	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, appHash...)
+	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, commitID.Hash...)
 
-	return types.ResponseCommit{Data: appHash}
+	return types.ResponseCommit{Data: commitID.Hash}
 }
 
 func (sp *IavlStoreApp) parsePath(path string)(storeName string, subPath string) {
