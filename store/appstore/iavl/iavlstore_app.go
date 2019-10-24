@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
@@ -68,6 +70,16 @@ type storeQueryHandler struct {
 }
 
 func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
+	kvPath := filepath.Join(dbDir, "kvstore.db")
+	isKVPathExist, err := ankrcmm.PathExists(kvPath)
+	if err != nil {
+		panic(err)
+	}
+
+	if isKVPathExist {
+		os.RemoveAll(kvPath)
+	}
+
 	var lcmmID ankrcmm.CommitID
 
 	db, err := dbm.NewGoLevelDB("appstore", dbDir)
@@ -107,12 +119,14 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	iavlSApp.queryHandleMap = make(map[string]*storeQueryHandler)
 
-	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},  iavlSApp.NonceQuery}
-	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
-	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
-	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
-	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
-	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["nonce"]            = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
+	iavlSApp.queryHandleMap["balance"]          = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
+	iavlSApp.queryHandleMap["certkey"]          = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
+	iavlSApp.queryHandleMap["metering"]         = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
+	iavlSApp.queryHandleMap["validator"]        = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
+	iavlSApp.queryHandleMap["contract"]         = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["account"]          = &storeQueryHandler{&ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["statisticalinfo"] = &storeQueryHandler{&ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return iavlSApp
 }
@@ -128,14 +142,14 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 
 	iavlSApp.queryHandleMap = make(map[string]*storeQueryHandler)
 
-	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
-	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
-	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
-	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
-	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
-	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
-	iavlSApp.queryHandleMap["account"]  = &storeQueryHandler{&ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
-	iavlSApp.queryHandleMap["statisticalinfo"]  = &storeQueryHandler{&ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
+	iavlSApp.queryHandleMap["nonce"]            = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
+	iavlSApp.queryHandleMap["balance"]          = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
+	iavlSApp.queryHandleMap["certkey"]          = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
+	iavlSApp.queryHandleMap["metering"]         = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
+	iavlSApp.queryHandleMap["validator"]        = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
+	iavlSApp.queryHandleMap["contract"]         = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["account"]          = &storeQueryHandler{&ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["statisticalinfo"] = &storeQueryHandler{&ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 }
