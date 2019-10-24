@@ -87,14 +87,6 @@ func (rc *RemoveCertMsg) SignerAddr() []string {
 	return []string {rc.FromAddr}
 }
 
-func (rc *RemoveCertMsg) GasWanted() int64 {
-	return 0
-}
-
-func (rc *RemoveCertMsg) GasUsed() int64 {
-	return 0
-}
-
 func (rc *RemoveCertMsg) Type() string {
 	return txcmm.TxMsgTypeRemoveCertMsg
 }
