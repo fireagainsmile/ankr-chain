@@ -231,5 +231,4 @@ func TestContractInvokeWithNode(t *testing.T) {
 	json.Unmarshal([]byte(contractResultJson), &contractR)
 
 	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractR=%v", txHash, cHeight, contractR)
-
 }
