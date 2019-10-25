@@ -3,6 +3,7 @@ package compile
 import (
 	"errors"
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -11,63 +12,6 @@ import (
 )
 
 var OutPutDir string
-const (
-	CodePrefixLen = 10
-	ExtensionLen = 7
-)
-
-type ContractType int
-const (
-	_ ContractType = iota
-	ContractTypeNative  = 0x01
-	ContractTypeRuntime = 0x02
-	ContractTypeUnknown = 0x03
-)
-
-type ContractVMType int
-const (
-	_ ContractVMType = iota
-	ContractVMTypeWASM    = 0x01
-	ContractVMTypeUnknown = 0x02
-)
-
-type ContractPatternType int
-const (
-	_  ContractPatternType = iota
-	ContractPatternType1       = 0x01
-	ContractPatternType2       = 0x02
-	ContractPatternTypeUnknown = 0x03
-)
-type BinPrefix struct {
-	TypeBin ContractType
-	VMTypeBin ContractVMType
-	PattenTypeBin ContractPatternType
-	Extension [ExtensionLen]byte
-}
-
-func NewBinPrefix(contractType ContractType, contractVmType ContractVMType, contractPattenType ContractPatternType) *BinPrefix {
-	return &BinPrefix{
-		TypeBin: contractType,
-		VMTypeBin: contractVmType,
-		PattenTypeBin: contractPattenType,
-	}
-}
-
-func (b *BinPrefix)SetOption(op [ExtensionLen]byte) *BinPrefix {
-	b.Extension = op
-	return b
-}
-
-func (b BinPrefix)Byte() []byte {
-	out := make([]byte, CodePrefixLen, CodePrefixLen)
-	out[0] = byte(b.TypeBin)
-	out[1] = byte(b.VMTypeBin)
-	out[2] = byte(b.VMTypeBin)
-	for i, b := range b.Extension {
-		out[i + 3] = b
-	}
-	return out
-}
 
 type WasmOptions struct {
 	Compiler string
@@ -95,10 +39,11 @@ func (wo *WasmOptions) Options() []string {
 // and remove
 
 func (wasmOp *WasmOptions)Execute(args []string) error {
-	srcFile := filterSrcFile(args).name
-	srcFileSlice := strings.Split(srcFile, ".")
-	srcFile = fmt.Sprintf("%s.o", srcFileSlice[0])
-	distFile := fmt.Sprintf("%s.wasm", srcFileSlice[0])
+	srcFileSlice := strings.Split(abi.TempCppFile, ".")
+	srcFile := fmt.Sprintf("%s.o", srcFileSlice[0])
+	distFile := args[0]
+	distSlice := strings.Split(distFile, ".")
+	distFile = fmt.Sprintf("%s.wasm", distSlice[0])
 	//wasmOp := NewDefaultWasmOptions()
 	wasmArgs := wasmOp.Options()
 	wasmArgs = append(wasmArgs, srcFile, "-o", distFile)
@@ -110,8 +55,7 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 		return errors.New(string(out))
 	}
 
-	prefix := NewBinPrefix(ContractTypeRuntime, ContractVMTypeWASM, ContractPatternType1)
-	err = addPrefixToFile(distFile, *prefix)
+	err = addPrefixToFile(distFile, *abi.ABIPrefix)
 	if err != nil {
 		return err
 	}
@@ -120,15 +64,37 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 	if err != nil {
 		return err
 	}
+	err = os.Remove(abi.TempCppFile)
+	if err != nil {
+		return err
+	}
+
 	renameFile := path.Join(OutPutDir, distFile)
+	//os.Create(renameFile)
+	if _, err = os.Stat(OutPutDir); os.IsNotExist(err) {
+		err = os.MkdirAll(OutPutDir, 0600)
+		if err != nil {
+			return err
+		}
+	}
 	return os.Rename(distFile, renameFile)
 }
 
-func addPrefixToFile(fileName string, prefix BinPrefix) error {
+func addPrefixToFile(fileName string, prefix abi.BinPrefix) error {
 	srcByte, err := ioutil.ReadFile(fileName)
 	if err != nil{
 		return err
 	}
-	newByte := append(prefix.Byte(), srcByte...)
-	return ioutil.WriteFile(fileName, newByte, 0600)
+	prefixArray := prefix.Byte()
+	newByte := append(prefixArray[:], srcByte...)
+	f, err := os.OpenFile(fileName, os.O_TRUNC|os.O_CREATE, 0600)
+	defer f.Close()
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(newByte)
+	if err != nil {
+		return err
+	}
+	return nil
 }

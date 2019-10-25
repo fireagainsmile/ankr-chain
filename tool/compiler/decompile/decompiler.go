@@ -1,9 +1,9 @@
-package decompiler
+package decompile
 
 import (
   "fmt"
-  "os"
   "github.com/spf13/cobra"
+  "os"
 )
 
 type Executable interface {

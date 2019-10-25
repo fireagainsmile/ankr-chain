@@ -1,13 +1,13 @@
-package compiler
+package compile
 
 import (
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/decompile"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/parser"
+	"github.com/spf13/cobra"
 	"os"
 	"strings"
-	abi2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/abi"
-	compile2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/compile"
-	parser2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/parser"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -33,6 +33,10 @@ var CompileCmd= &cobra.Command{
 	Run: compile,
 }
 
+func init()  {
+	CompileCmd.AddCommand(decompile.DecompileCmd)
+}
+
 func compile(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
 		fmt.Println("expected filename argument.")
@@ -40,14 +44,14 @@ func compile(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err := exeCommand(abi2.NewContractClass(), args)
+	err := exeCommand(abi.NewContractClass(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	//exec clang commands
-	err = exeCommand(compile2.NewClangOption(), args)
+	err = exeCommand(NewClangOption(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -55,14 +59,14 @@ func compile(cmd *cobra.Command, args []string) {
 
 	//exec smart contract rule check
 	sourceFile := getSrcFile(args)
-	err = exeCommand(parser2.NewRegexpParser(), []string{sourceFile})
+	err = exeCommand(parser.NewRegexpParser(), []string{sourceFile})
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	//exec wasm-ld to generate binary file
-	err = exeCommand(compile2.NewDefaultWasmOptions(), args)
+	err = exeCommand(NewDefaultWasmOptions(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -85,8 +89,8 @@ func Execute() {
 }
 
 func init() {
-	CompileCmd.Flags().StringVar(&compile2.OutPutDir, outputFlag, "./", "output file directory")
-	CompileCmd.Flags().BoolVar(&abi2.GenerateAbi, "gen-abi", false, "generate abi")
+	CompileCmd.Flags().StringVar(&OutPutDir, outputFlag, "./", "output file directory")
+	CompileCmd.Flags().BoolVar(&abi.GenerateAbi, "gen-abi", false, "generate abi")
 }
 
 func getSrcFile(args []string) string {
