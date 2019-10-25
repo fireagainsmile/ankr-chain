@@ -11,6 +11,7 @@ import (
 var bcContext ContextAKVM
 
 type ContextAKVM interface {
+	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
 	SetBalance(address string, amount ankrcmm.Amount)
