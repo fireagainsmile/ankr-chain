@@ -30,6 +30,13 @@ char *JsonGetString(int jsonObjectIndex, const char *argName);
 void JsonPutString(int jsonObjectIndex, const char* key, const char* value);
 char *JsonToString(int jsonObjectIndex);
 int TrigEvent(const char* eventSrc, const char* data);
+char *SenderAddr();
+int SetBalance(const char* addr, const char* symbol, const char* amount);
+char* Balance(const char* addr, const char* symbol);
+int SetAllowance(const char* addrSender, const char* addrSpender, const char* symbol, const char* amount);
+int Allowance(const char* addrSender, const char* addrSpender, const char* symbol);
+int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr)
+int Height()
 
 #ifdef __cplusplus
 }

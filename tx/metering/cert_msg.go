@@ -87,14 +87,6 @@ func (rc *RemoveCertMsg) SignerAddr() []string {
 	return []string {rc.FromAddr}
 }
 
-func (rc *RemoveCertMsg) GasWanted() int64 {
-	return 0
-}
-
-func (rc *RemoveCertMsg) GasUsed() int64 {
-	return 0
-}
-
 func (rc *RemoveCertMsg) Type() string {
 	return txcmm.TxMsgTypeRemoveCertMsg
 }
@@ -136,7 +128,7 @@ func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, i
 		return code.CodeTypeOK, "", nil
 	}
 
-	context.AppStore().DeleteCertKey(rc.DCName, rc.NSName)
+	context.AppStore().DeleteCertKey(rc.DCName)
 
 	context.AppStore().IncNonce(rc.FromAddr)
 

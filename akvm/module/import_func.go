@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -14,20 +15,27 @@ import (
 )
 
 const (
-	PrintSFunc               = "print_s"
-	PrintIFunc               = "print_i"
-	StrlenFunc               = "strlen"
-	StrcmpFunc               = "strcmp"
-	JsonObjectIndexFunc      = "JsonObjectIndex"
-	JsonCreateObjectFunc     = "JsonCreateObject"
-	JsonGetIntFunc           = "JsonGetInt"
-	JsonGetStringFunc        = "JsonGetString"
-	JsonPutIntFunc           = "JsonPutInt"
-	JsonPutStringFunc        = "JsonPutString"
-	JsonToStringFunc         = "JsonToString"
-	ContractCallFunc         = "ContractCall"
-	ContractDelegateCallFunc = "ContractDelegateCall"
-	TrigEventFunc            = "TrigEvent"
+	PrintSFunc                = "print_s"
+	PrintIFunc                = "print_i"
+	StrlenFunc                = "strlen"
+	StrcmpFunc                = "strcmp"
+	JsonObjectIndexFunc       = "JsonObjectIndex"
+	JsonCreateObjectFunc      = "JsonCreateObject"
+	JsonGetIntFunc            = "JsonGetInt"
+	JsonGetStringFunc         = "JsonGetString"
+	JsonPutIntFunc            = "JsonPutInt"
+	JsonPutStringFunc         = "JsonPutString"
+	JsonToStringFunc          = "JsonToString"
+	ContractCallFunc          = "ContractCall"
+	ContractDelegateCallFunc  = "ContractDelegateCall"
+	TrigEventFunc             = "TrigEvent"
+	SenderAddrFunc            = "SenderAddr"
+	SetBalanceFunc            = "SetBalance"
+	BalanceFunc               = "Balance"
+	SetAllowanceFunc          = "SetAllowance"
+	AllowanceFunc             = "Allowance"
+	BuildCurrencyCAddrMapFunc = "BuildCurrencyCAddrMap"
+	HeightFunc                = "Height"
 )
 
 func Print_s(proc *exec.Process, strIdx int32) {
@@ -383,3 +391,178 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 
 	return 0
 }
+
+func SenderAddr(proc *exec.Process) int32 {
+	addr := ankrcontext.GetBCContext().SenderAddr()
+	pointer, err := proc.VM().SetBytes([]byte(addr))
+	if err != nil {
+		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
+		return -1
+	}
+
+	return int32(pointer)
+}
+
+func SetBalance(proc *exec.Process, addrIndex int32, symbolIndex int32, amountIndex int32) int32 {
+	addr, err := proc.ReadString(int64(addrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetBalance can't read addr", "err", err)
+		return -1
+	}
+
+	symbol, err := proc.ReadString(int64(symbolIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetBalance can't read symbol", "err", err)
+		return -1
+	}
+
+	curInfo, err := ankrcontext.GetBCContext().CurrencyInfo(symbol)
+	if err != nil {
+		proc.VM().Logger().Error("SetBalance can't get currency", "err", err, "symbol", symbol)
+	}
+
+	amount, err := proc.ReadString(int64(amountIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetBalance can't read amount", "err", err)
+		return -1
+	}
+
+	amountInt, isSuc := new(big.Int).SetString(amount, 10)
+	if !isSuc {
+		proc.VM().Logger().Error("SetBalance invalid amountstr", "amountstr", amount)
+		return -1
+	}
+
+	ankrcontext.GetBCContext().SetBalance(addr, ankrcmm.Amount{ankrcmm.Currency{symbol, curInfo.Decimal}, amountInt.Bytes()})
+
+	return 0
+}
+
+func Balance(proc *exec.Process,  addrIndex int32, symbolIndex int32) int32 {
+	addr, err := proc.ReadString(int64(addrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("Balance can't read addr", "err", err)
+		return -1
+	}
+
+	symbol, err := proc.ReadString(int64(symbolIndex))
+	if err != nil {
+		proc.VM().Logger().Error("Balance can't read symbol", "err", err)
+		return -1
+	}
+
+	balInt, err := ankrcontext.GetBCContext().Balance(addr, symbol)
+	if err != nil {
+		proc.VM().Logger().Error("Balance load balance", "err", err, "addr", addr, "symbol", symbol)
+	}
+
+	pointer, err := proc.VM().SetBytes([]byte(balInt.Bytes()))
+	if err != nil {
+		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
+		return -1
+	}
+
+	return int32(pointer)
+}
+
+func SetAllowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32, symbolIndex int32, amountIndex int32) int32 {
+	addrSender, err := proc.ReadString(int64(addrSenderIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetAllowance can't read addrSender", "err", err)
+		return -1
+	}
+
+	addrSpender, err := proc.ReadString(int64(addrSpenderIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetAllowance can't read addrSpender", "err", err)
+		return -1
+	}
+
+	symbol, err := proc.ReadString(int64(symbolIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetAllowance can't read symbol", "err", err)
+		return -1
+	}
+
+	curInfo, err := ankrcontext.GetBCContext().CurrencyInfo(symbol)
+	if err != nil {
+		proc.VM().Logger().Error("SetAllowance can't get currency", "err", err, "symbol", symbol)
+	}
+
+	amount, err := proc.ReadString(int64(amountIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetAllowance can't read amount", "err", err)
+		return -1
+	}
+
+	amountInt, isSuc := new(big.Int).SetString(amount, 10)
+	if !isSuc {
+		proc.VM().Logger().Error("SetAllowance invalid amountstr", "amountstr", amount)
+		return -1
+	}
+
+	ankrcontext.GetBCContext().SetAllowance(addrSender, addrSpender, ankrcmm.Amount{ankrcmm.Currency{symbol, curInfo.Decimal}, amountInt.Bytes()})
+
+	return 0
+}
+
+func Allowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32, symbolIndex int32) int32 {
+	addrSender, err := proc.ReadString(int64(addrSenderIndex))
+	if err != nil {
+		proc.VM().Logger().Error("Allowance can't read addrSender", "err", err)
+		return -1
+	}
+
+	addrSpender, err := proc.ReadString(int64(addrSpenderIndex))
+	if err != nil {
+		proc.VM().Logger().Error("Allowance can't read addrSpender", "err", err)
+		return -1
+	}
+
+	symbol, err := proc.ReadString(int64(symbolIndex))
+	if err != nil {
+		proc.VM().Logger().Error("Allowance can't read symbol", "err", err)
+		return -1
+	}
+
+	amountInt, err := ankrcontext.GetBCContext().Allowance(addrSender, addrSpender, symbol)
+	if err != nil {
+		proc.VM().Logger().Error("Allowance error", "err", err, "addrSender", addrSender, "addrSpender", addrSpender, "symbol", symbol)
+	}
+
+	pointer, err := proc.VM().SetBytes(amountInt.Bytes())
+	if err != nil {
+		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
+		return -1
+	}
+
+	return int32(pointer)
+}
+
+func BuildCurrencyCAddrMap(proc *exec.Process, symbolIndex int32, cAddrIndex int32) int32 {
+	symbol, err := proc.ReadString(int64(symbolIndex))
+	if err != nil {
+		proc.VM().Logger().Error("BuildCurrencyCAddrMap can't read symbol", "err", err)
+		return -1
+	}
+
+	cAddr, err := proc.ReadString(int64(cAddrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("BuildCurrencyCAddrMap can't read cAddr", "err", err)
+		return -1
+	}
+
+	ankrcontext.GetBCContext().BuildCurrencyCAddrMap(symbol, cAddr)
+
+	return 0
+}
+
+func Height(proc *exec.Process) int32 {
+	height := ankrcontext.GetBCContext().Height()
+
+	return int32(height)
+}
+
+
+
+

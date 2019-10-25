@@ -47,7 +47,7 @@ type ContractQueryResp struct {
 }
 
 type ValidatorQueryReq struct {
-	ValAddr  string  `json:"address"`
+	ValAddr  string  `json:"valaddr"`
 }
 
 type ValidatorQueryResp struct {
@@ -58,4 +58,24 @@ type ValidatorQueryResp struct {
 	StakeAddress string     `json:"stakeaddress"`
 	StakeAmount  Amount     `json:"stakeamount"`
 	ValidHeight  uint64     `json:"validheight"`
+}
+
+type AccountQueryReq struct {
+	Addr string  `json:"addr"`
+}
+
+type AccountQueryResp struct {
+	AccType  AccountType `json:"accounttype"`
+	Nonce    uint64      `json:"nonce"`
+	Address  string      `json:"address"`
+	PubKey   string      `json:"pubkey"`
+	Amounts  []Amount    `json:"asserts"`
+}
+
+type StatisticalInfoReq struct {
+}
+
+type StatisticalInfoResp struct {
+	Addrs   []string  `json:"addrs"`
+    TotalTx int64     `json:"totaltx"`
 }

@@ -16,10 +16,6 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-const (
-	MIN_TOKEN_SEND = "5000000000000000000" // 5 tokens
-)
-
 type ContractDeployMsg struct {
 	FromAddr string   `json:"fromaddr"`
 	Name     string   `json:"name"`

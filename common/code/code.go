@@ -34,4 +34,5 @@ const (
 	CodeTypeContractCantFound        uint32 = 26
 	CodeTypeQueryInvalidStoreName    uint32 = 27
 	CodeTypeQueryInvalidQueryReqData uint32 = 28
+	CodeTypeNoV0TxHandler            uint32 = 29
 )

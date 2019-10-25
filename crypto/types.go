@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	CryptoED25519   = "CryptoED25519"
-	CryptoSECP256K1 = "CryptoSECP256K1"
+	CryptoED25519   = "ed25519"
+	CryptoSECP256K1 = "secp256k1"
 )
 
 type Signature struct {

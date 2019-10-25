@@ -1,8 +1,9 @@
 package module
 
 import (
-	"github.com/go-interpreter/wagon/wasm"
 	"reflect"
+
+	"github.com/go-interpreter/wagon/wasm"
 )
 
 type ModuleEnv struct {
@@ -112,6 +113,55 @@ func NewModuleEnv() *ModuleEnv {
 		Body: &wasm.FunctionBody{},
 		Host: reflect.ValueOf(TrigEvent),
 		Name: TrigEventFunc,
+	})
+
+	mEnv.RegisterImportedFunc(SenderAddrFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(SenderAddr),
+		Name: SenderAddrFunc,
+	})
+
+	mEnv.RegisterImportedFunc(SetBalanceFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(SetBalance),
+		Name: SetBalanceFunc,
+	})
+
+	mEnv.RegisterImportedFunc(BalanceFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(Balance),
+		Name: BalanceFunc,
+	})
+
+	mEnv.RegisterImportedFunc(SetAllowanceFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(SetAllowance),
+		Name: SetAllowanceFunc,
+	})
+
+	mEnv.RegisterImportedFunc(AllowanceFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(Allowance),
+		Name: AllowanceFunc,
+	})
+
+	mEnv.RegisterImportedFunc(BuildCurrencyCAddrMapFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(BuildCurrencyCAddrMap),
+		Name: BuildCurrencyCAddrMapFunc,
+	})
+
+	mEnv.RegisterImportedFunc(HeightFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(Height),
+		Name: HeightFunc,
 	})
 
 	return mEnv

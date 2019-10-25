@@ -160,7 +160,7 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-hQYhLJ",
+		ChID: "test-chain-i3SRfk",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractDeploy",
@@ -231,5 +231,4 @@ func TestContractInvokeWithNode(t *testing.T) {
 	json.Unmarshal([]byte(contractResultJson), &contractR)
 
 	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractR=%v", txHash, cHeight, contractR)
-
 }

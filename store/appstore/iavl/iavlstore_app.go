@@ -1,19 +1,17 @@
 package iavl
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"math/big"
 	"os"
 	"path/filepath"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
-	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
@@ -23,6 +21,7 @@ import (
 
 const (
 	ChainIDKey = "chainidkey"
+	TotalTxKey = "totaltxkey"
 )
 
 const (
@@ -37,6 +36,7 @@ const (
 type IavlStoreApp struct {
 	iavlSM          *IavlStoreMulti
 	lastCommitID    ankrcmm.CommitID
+	totalTx         int64
 	storeLog        log.Logger
 	cdc             *amino.Codec
 	queryHandleMap  map[string]*storeQueryHandler
@@ -76,18 +76,11 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		panic(err)
 	}
 
-	var kvDB dbm.DB
-	var lcmmID ankrcmm.CommitID
 	if isKVPathExist {
-		kvDB, err = dbm.NewGoLevelDB("kvstore", dbDir)
-		if err != nil {
-			panic(err)
-		}
-
-		oldState := apscomm.LoadState(kvDB)
-		lcmmID.Version = oldState.Height
-		lcmmID.Hash    = oldState.AppHash
+		os.RemoveAll(kvPath)
 	}
+
+	var lcmmID ankrcmm.CommitID
 
 	db, err := dbm.NewGoLevelDB("appstore", dbDir)
 	if err != nil {
@@ -96,26 +89,44 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	iavlSM := NewIavlStoreMulti(db, storeLog)
 
-	if !isKVPathExist {
-		lcmmID = iavlSM.lastCommit()
-	}
+	lcmmID = iavlSM.lastCommit()
 
 	iavlSM.Load()
 
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 
-	if isKVPathExist {
-		iavlSApp.Prefixed(kvDB, kvPath)
+	if !iavlSM.storeMap[IAvlStoreMainKey].Has([]byte(TotalTxKey)) {
+		buf := make([]byte, binary.MaxVarintLen64)
+		n := binary.PutVarint(buf, int64(0))
+		iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
+	} else {
+		totalTxBytes, err := iavlSM.storeMap[IAvlStoreMainKey].Get([]byte(TotalTxKey))
+		if err == nil {
+			iavlSApp.totalTx, _ = binary.Varint(totalTxBytes)
+		}else {
+			storeLog.Error("load txtal tx error", "err", err)
+		}
 	}
+
+	lastHash := make([]byte, 8)
+	binary.PutVarint(lastHash, iavlSApp.totalTx)
+
+	if lcmmID.Hash != nil {
+		lcmmID.Hash = lastHash
+	}
+
+	iavlSApp.lastCommitID = lcmmID
 
 	iavlSApp.queryHandleMap = make(map[string]*storeQueryHandler)
 
-	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},  iavlSApp.NonceQuery}
-	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
-	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
-	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
-	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
-	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["nonce"]            = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
+	iavlSApp.queryHandleMap["balance"]          = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
+	iavlSApp.queryHandleMap["certkey"]          = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
+	iavlSApp.queryHandleMap["metering"]         = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
+	iavlSApp.queryHandleMap["validator"]        = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
+	iavlSApp.queryHandleMap["contract"]         = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["account"]          = &storeQueryHandler{&ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["statisticalinfo"] = &storeQueryHandler{&ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return iavlSApp
 }
@@ -131,12 +142,14 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 
 	iavlSApp.queryHandleMap = make(map[string]*storeQueryHandler)
 
-	iavlSApp.queryHandleMap["nonce"]     = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
-	iavlSApp.queryHandleMap["balance"]   = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
-	iavlSApp.queryHandleMap["certkey"]   = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
-	iavlSApp.queryHandleMap["metering"]  = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
-	iavlSApp.queryHandleMap["validator"] = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
-	iavlSApp.queryHandleMap["contract"]  = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["nonce"]            = &storeQueryHandler{&ankrcmm.NonceQueryReq{},    iavlSApp.NonceQuery}
+	iavlSApp.queryHandleMap["balance"]          = &storeQueryHandler{&ankrcmm.BalanceQueryReq{},  iavlSApp.BalanceQuery}
+	iavlSApp.queryHandleMap["certkey"]          = &storeQueryHandler{&ankrcmm.CertKeyQueryReq{},  iavlSApp.CertKeyQuery}
+	iavlSApp.queryHandleMap["metering"]         = &storeQueryHandler{&ankrcmm.MeteringQueryReq{}, iavlSApp.MeteringQuery}
+	iavlSApp.queryHandleMap["validator"]        = &storeQueryHandler{&ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
+	iavlSApp.queryHandleMap["contract"]         = &storeQueryHandler{&ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
+	iavlSApp.queryHandleMap["account"]          = &storeQueryHandler{&ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["statisticalinfo"] = &storeQueryHandler{&ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
 }
@@ -180,49 +193,6 @@ func (sp* IavlStoreApp) queryHandlerWapper(queryKey string, reqData []byte) (res
 	return
 }
 
-func (sp* IavlStoreApp) Prefixed(kvDB dbm.DB, kvPath string) error {
-	var iavlStore *IavlStore
-	it := kvDB.Iterator(nil, nil)
-
-	if it != nil {
-		for it.Valid() {
-			if len(it.Key()) >= len(ankrcmm.AccountBlancePrefix) && string(it.Key()[0:len(ankrcmm.AccountBlancePrefix)]) == ankrcmm.AccountBlancePrefix {
-				iavlStore = sp.iavlSM.IavlStore(IavlStoreAccountKey)
-				keyStrList := strings.Split(string(it.Key()), ":")
-				valStrList := strings.Split(string(it.Value()), ":")
-				if len(keyStrList) != 2 || len(valStrList) != 2 {
-					sp.storeLog.Error("invalid old account store will be ignored", "keyStrList's len", len(keyStrList), "valStrList's len", len(valStrList))
-				}
-
-				_, err := strconv.ParseInt(valStrList[1], 10, 64)
-				if err == nil {
-					valI, _ := new(big.Int).SetString(valStrList[0], 10)
-					sp.SetBalance(keyStrList[1], ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, valI.Bytes()})
-				}else {
-					if err != nil {
-						sp.storeLog.Error("invalid old account store will be ignored: parse bal fails", "err", err)
-					}
-				}
-			}else {
-				iavlStore = sp.iavlSM.IavlStore(IAvlStoreMainKey)
-				if len(it.Key()) >= len(ankrcmm.CertPrefix) && string(it.Key()[0:len(ankrcmm.CertPrefix)]) == ankrcmm.CertPrefix {
-					//sp.SetCertKey(it.Key(), it.Value())
-				} else {
-					iavlStore.Set(it.Key(), it.Value())
-				}
-			}
-			it.Next()
-		}
-	}
-
-	it.Close()
-	kvDB.Close()
-
-	err := os.RemoveAll(kvPath)
-
-	return err
-}
-
 func (sp *IavlStoreApp) SetChainID(chainID string) {
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Set([]byte(ChainIDKey), []byte(chainID))
 }
@@ -241,7 +211,7 @@ func (sp *IavlStoreApp) LastCommit() *ankrcmm.CommitID{
 }
 
 func (sp *IavlStoreApp) Commit() types.ResponseCommit {
-    commitID := sp.iavlSM.Commit(sp.lastCommitID.Version)
+    commitID := sp.iavlSM.Commit(sp.lastCommitID.Version, sp.totalTx)
 
 	sp.lastCommitID.Hash = sp.lastCommitID.Hash[0:0]
 
@@ -316,8 +286,8 @@ func (sp *IavlStoreApp) CertKeyQuery(dcName string) (*ankrcmm.CertKeyQueryResp, 
 	return &ankrcmm.CertKeyQueryResp{sp.CertKey(dcName)}, nil
 }
 
-func (sp *IavlStoreApp) DeleteCertKey(dcName string, nsName string) {
-	key := []byte(containCertKeyPrefix(dcName+"_"+nsName))
+func (sp *IavlStoreApp) DeleteCertKey(dcName string) {
+	key := []byte(containCertKeyPrefix(dcName))
 	sp.iavlSM.IavlStore(IAvlStoreMainKey).Remove(key)
 }
 
@@ -453,12 +423,34 @@ func (sp *IavlStoreApp) Height() int64 {
 	return sp.lastCommitID.Version
 }
 
+func (sp *IavlStoreApp) TotalTx() int64 {
+	return sp.totalTx
+}
+
+func (sp *IavlStoreApp) IncTotalTx() int64 {
+	sp.totalTx++
+
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutVarint(buf, sp.totalTx)
+	sp.iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
+
+	return sp.totalTx
+}
+
 func (sp *IavlStoreApp) APPHash() []byte {
 	return sp.lastCommitID.Hash
 }
 
 func (sp *IavlStoreApp) DB() dbm.DB {
 	return sp.iavlSM.db
+}
+
+func (sp *IavlStoreApp) StatisticalInfoQuery()(*ankrcmm.StatisticalInfoResp, error) {
+	addrArry, _ := sp.AccountList()
+	return &ankrcmm.StatisticalInfoResp{
+		addrArry,
+		sp.TotalTx(),
+	}, nil
 }
 
 func (sp *IavlStoreApp) IsExist(cAddr string) bool {

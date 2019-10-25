@@ -9,7 +9,6 @@ import (
 )
 
 //ERC20 standard interface
-
 type ContractERC20 interface {
 	Name() string
 	Symbol() string

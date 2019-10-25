@@ -62,12 +62,12 @@ func (skp *SecretKeyPem) PriKey() (string, error) {
 }
 
 func (skp *SecretKeyPem) Address() (common.Address, error) {
-	privKey, err := ParseEcdsaPrivateKeyFromPemStr(skp.PrivPEM)
+	pubKey, err := ParseEcdsaPublicKeyFromPemStr(skp.PEMBase64)
 	if err != nil {
 		return nil, err
 	}
 
-	pubKeyBytes := append(privKey.X.Bytes(), privKey.Y.Bytes()...)
+	pubKeyBytes := append(pubKey.X.Bytes(), pubKey.Y.Bytes()...)
 	if skp.Extra != "" {
 		pubKeyBytes = append(pubKeyBytes,skp.Extra...)
 	}

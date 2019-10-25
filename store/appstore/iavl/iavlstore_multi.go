@@ -1,10 +1,10 @@
 package iavl
 
 import (
+	"encoding/binary"
 	"fmt"
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/crypto/merkle"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -41,7 +41,8 @@ type storeCommitID struct {
 
 type commitInfo struct {
 	Version int64
-	Commits  []storeCommitID
+	AppHash []byte
+	Commits []storeCommitID
 }
 
 func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
@@ -140,13 +141,7 @@ func (ms *IavlStoreMulti) lastCommit() ankrcmm.CommitID {
     		ms.log.Error("error commitinfo, mmInfos.version != latestVer", "latestVer", latestVer, "commitInfoVer", cmmInfos.Version)
 		}
 
-		hashM := make(map[string][]byte)
-		for _, s := range cmmInfos.Commits {
-			hashM[s.Name] = s.CID.Hash
-		}
-		reHash := merkle.SimpleHashFromMap(hashM)
-
-		return ankrcmm.CommitID{latestVer, reHash}
+		return ankrcmm.CommitID{latestVer, cmmInfos.AppHash}
 	}else {
 		ms.log.Error("can't get the latest commitinfo", "latestVer", latestVer)
 	}
@@ -154,12 +149,16 @@ func (ms *IavlStoreMulti) lastCommit() ankrcmm.CommitID {
     return ankrcmm.CommitID{}
 }
 
-func (ms *IavlStoreMulti) Commit(version int64) ankrcmm.CommitID {
+func (ms *IavlStoreMulti) Commit(version int64, totalTx int64) ankrcmm.CommitID {
 	var cmmInfo commitInfo
 
 	version += 1
 
+	appHash := make([]byte, 8)
+	binary.PutVarint(appHash, totalTx)
+
 	cmmInfo.Version = version
+	cmmInfo.AppHash = appHash
 
 	hashM := make(map[string][]byte)
 	for k, s := range ms.storeMap {
@@ -173,15 +172,15 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrcmm.CommitID {
 		cmmInfo.Commits = append(cmmInfo.Commits, storeCommitID{k,commitID})
 	}
 
-	reHash := merkle.SimpleHashFromMap(hashM)
-
 	batch := ms.db.NewBatch()
+	defer batch.Close()
+
 	ms.setCommitInfo(batch, version, cmmInfo)
 	ms.setLatestVersion(batch, version)
 
 	batch.Write()
 
-	return ankrcmm.CommitID{version, reHash}
+	return ankrcmm.CommitID{version, cmmInfo.AppHash}
 }
 
 

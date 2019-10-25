@@ -26,7 +26,7 @@ type TxStore interface {
 	Commit() types.ResponseCommit
 	SetCertKey(dcName string, pemBase64 string)
 	CertKey(dcName string) string
-	DeleteCertKey(dcName string, nsName string)
+	DeleteCertKey(dcName string)
 	SetMetering(dcName string, nsName string, value string)
 	Metering(dcName string, nsName string) string
 	SetValidator(valInfo *ankrcmm.ValidatorInfo)
@@ -37,6 +37,8 @@ type TxStore interface {
 	Set(key []byte, val []byte)
 	Delete(key []byte)
 	Has(key []byte) bool
+	TotalTx() int64
+	IncTotalTx() int64
 }
 
 type ContractStore interface {
