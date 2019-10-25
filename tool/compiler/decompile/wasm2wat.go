@@ -1,4 +1,4 @@
-package decompiler
+package decompile
 
 import (
 	"errors"

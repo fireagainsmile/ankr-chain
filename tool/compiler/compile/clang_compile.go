@@ -2,7 +2,7 @@ package compile
 
 import (
 	"errors"
-	abi2 "github.com/Ankr-network/ankr-chain/tool/ankrc/cmd/compiler/abi"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"os/exec"
 )
 
@@ -59,7 +59,7 @@ func NewClangOption() *ClangOptions {
 func (co *ClangOptions)Execute(args []string) error  {
 
 	clangArgs := co.Options()
-	clangArgs = append(clangArgs, abi2.TempCppFile)
+	clangArgs = append(clangArgs, abi.TempCppFile)
 
 	out, err := exec.Command(co.Compiler, clangArgs...).Output()
 	if err != nil {
