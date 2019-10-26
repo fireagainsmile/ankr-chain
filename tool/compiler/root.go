@@ -8,7 +8,7 @@ import (
 
 var rootCmd= &cobra.Command{
 	Args:cobra.MinimumNArgs(1),
-	Use:   "compiler",
+	Use:   "contract-compiler",
 	Short: "ankr smart contract compiler",
 }
 

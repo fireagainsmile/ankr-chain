@@ -35,8 +35,8 @@ int SetBalance(const char* addr, const char* symbol, const char* amount);
 char* Balance(const char* addr, const char* symbol);
 int SetAllowance(const char* addrSender, const char* addrSpender, const char* symbol, const char* amount);
 int Allowance(const char* addrSender, const char* addrSpender, const char* symbol);
-int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr)
-int Height()
+int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr);
+int Height();
 
 #ifdef __cplusplus
 }
