@@ -9,6 +9,7 @@ import (
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	contContr "github.com/Ankr-network/ankr-chain/context"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/types"
 )
 
 func TrigEvent(evSrc string, jsonData string, log log.Logger, contextCont contContr.ContextContract) int32 {
@@ -38,7 +39,7 @@ func TrigEvent(evSrc string, jsonData string, log log.Logger, contextCont contCo
 		tags[tagName] = tagValue
 	}
 
-	contextCont.PublishWithTags(context.Background(),"contract", tags)
+	contextCont.PublishWithTags(context.Background(), types.EventDataString("contract"), tags)
 
 	return 0
 }

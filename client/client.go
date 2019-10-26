@@ -1,10 +1,13 @@
 package client
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/tendermint/go-amino"
+	"github.com/tendermint/tendermint/libs/pubsub/query"
 	"github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
@@ -135,3 +138,27 @@ func (c *Client) Validators(height *int64) (*ctypes.ResultValidators, error) {
 	return c.cHttp.Validators(height)
 }
 
+func (c *Client) SubscribeAndWait(subscriber string, queryStr string, waitTimeOut time.Duration, maxSubCap int, out chan ctypes.ResultEvent) error {
+	c.cHttp.Start()
+
+	q := query.MustParse(queryStr)
+
+	ctx, cancel := context.WithTimeout(context.Background(), waitTimeOut)
+	defer cancel()
+
+	eventCh, err := c.cHttp.Subscribe(ctx, subscriber, q.String(), maxSubCap)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			select {
+			case evt := <-eventCh:
+				out <- evt
+			}
+		}
+	}()
+
+	return nil
+}

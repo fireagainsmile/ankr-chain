@@ -387,7 +387,7 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 		tags[tagName] = tagValue
 	}
 
-	proc.VMContext().Publisher().PublishWithTags(context.Background(),"contract", tags)
+	proc.VMContext().Publisher().PublishWithTags(context.Background(), types.EventDataString("contract"), tags)
 
 	return 0
 }

@@ -24,10 +24,11 @@ type AnkrCoin struct {
 func NewAnkrCoin(store appstore.AppStore, log log.Logger) *AnkrCoin {
 	addrBytes := make([]byte, ankrcmm.KeyAddressLen/2)
 	addrBytes[ankrcmm.KeyAddressLen/2-1] = 0x01
+	addr := fmt.Sprintf("%X", addrBytes)
 	codePrefixBytes := ankrcmm.GenerateContractCodePrefix(ankrcmm.ContractTypeNative, ankrcmm.ContractVMTypeUnknown, ankrcmm.ContractPatternTypeUnknown)
 	store.CreateCurrency("ANKR", &ankrcmm.Currency{"ANKR", 18})
-	store.BuildCurrencyCAddrMap("ANKR", string(addrBytes))
-	store.SaveContract(string(addrBytes), &ankrcmm.ContractInfo{string(addrBytes), "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), codePrefixBytes, ""})
+	store.BuildCurrencyCAddrMap("ANKR", addr)
+	store.SaveContract(string(addr), &ankrcmm.ContractInfo{addr, "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), codePrefixBytes, ""})
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
 	store.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},totalSup.Bytes()})
 	return &AnkrCoin{
