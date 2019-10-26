@@ -371,8 +371,8 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 	//argStr := strings.TrimRight(evSrcSegs[1], ")")
 	//argTyps := strings.Split(argStr, ",")
 
-	params := make([]*ankrcmm.Param, 0)
-	err =  json.Unmarshal([]byte(evData), params)
+	var params []*ankrcmm.Param
+	err =  json.Unmarshal([]byte(evData), &params)
 	if err != nil {
 		proc.VM().Logger().Error("TrigEvent event json.Unmarshal err", "evData", evData, "err", err)
 		return -1

@@ -1,12 +1,14 @@
 package native
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/Ankr-network/ankr-chain/account"
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	"github.com/go-interpreter/wagon/exec/gas"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -23,6 +25,7 @@ func NewAnkrCoin(store appstore.AppStore, log log.Logger) *AnkrCoin {
 	addrBytes := make([]byte, ankrcmm.KeyAddressLen/2)
 	addrBytes[ankrcmm.KeyAddressLen/2-1] = 0x01
 	codePrefixBytes := ankrcmm.GenerateContractCodePrefix(ankrcmm.ContractTypeNative, ankrcmm.ContractVMTypeUnknown, ankrcmm.ContractPatternTypeUnknown)
+	store.CreateCurrency("ANKR", &ankrcmm.Currency{"ANKR", 18})
 	store.BuildCurrencyCAddrMap("ANKR", string(addrBytes))
 	store.SaveContract(string(addrBytes), &ankrcmm.ContractInfo{string(addrBytes), "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), codePrefixBytes, ""})
 	totalSup, _ := new(big.Int).SetString("10000000000000000000000000000", 10)
@@ -94,10 +97,28 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 
 	balSender = new(big.Int).Sub(balSender, value)
 	balTo     = new(big.Int).Add(balTo, value)
+
+	stepGas := gas.GasSlowStep * 2
+	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balSender.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
-	//emit event(to do)
+	gasUsed := uint64(len(balSender.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	gasUsed = uint64(len(balTo.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	toAddrParam   := fmt.Sprintf("\"%s\"", toAddr)
+	amountParam   := fmt.Sprintf("\"%s\"", amount)
+
+	jsonArgFromat := "[{\"index\":1,\"Name\":\"toAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		              "{\"index\":2,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":%s}]"
+
+	jsonArg := fmt.Sprintf(jsonArgFromat, toAddrParam, amountParam)
+
+	TrigEvent("Transfer(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }
@@ -131,10 +152,30 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	balFrom = new(big.Int).Sub(balFrom, value)
 	balTo   = new(big.Int).Add(balTo, value)
+
+	stepGas := gas.GasSlowStep * 2
+	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol,18}, balFrom.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
-	//emit event(to do)
+	gasUsed := uint64(len(balFrom.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	gasUsed = uint64(len(balTo.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	fromAddrParam := fmt.Sprintf("\"%s\"", fromAddr)
+	toAddrParam   := fmt.Sprintf("\"%s\"", toAddr)
+	amountParam   := fmt.Sprintf("\"%s\"", amount)
+
+	jsonArgFromat := "[{\"index\":1,\"Name\":\"fromAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		              "{\"index\":2,\"Name\":\"toAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		              "{\"index\":3,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":%s}]"
+
+	jsonArg := fmt.Sprintf(jsonArgFromat, fromAddrParam, toAddrParam, amountParam)
+
+	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }
@@ -147,7 +188,18 @@ func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
 
 	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18},value.Bytes()})
 
-	//emit event(to do)
+	gasUsed := uint64(len(value.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	spenderAddrParam   := fmt.Sprintf("\"%s\"", spenderAddr)
+	amountParam   := fmt.Sprintf("\"%s\"", amount)
+
+	jsonArgFromat := "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		              "{\"index\":2,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":%s}]"
+
+	jsonArg := fmt.Sprintf(jsonArgFromat, spenderAddrParam, amountParam)
+
+	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }
@@ -173,9 +225,25 @@ func (ac *AnkrCoin) IncreaseApproval(spenderAddr string, addedAmount string) boo
 		return false
 	}
 
-	allowVal = allowVal.Add(allowVal, addedValue)
+	allowVal = new(big.Int).Add(allowVal, addedValue)
 
-	//emit event(to do)
+	stepGas := gas.GasSlowStep
+	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+
+	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},allowVal.Bytes()})
+
+	gasUsed := uint64(len(allowVal.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	spenderAddrParam := fmt.Sprintf("\"%s\"", spenderAddr)
+	addedAmountParam := fmt.Sprintf("\"%s\"", addedAmount)
+
+	jsonArgFromat := "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		"{\"index\":2,\"Name\":\"addedAmount\",\"ParamType\":\"string\",\"Value\":%s}]"
+
+	jsonArg := fmt.Sprintf(jsonArgFromat, spenderAddrParam, addedAmountParam)
+
+	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }
@@ -192,9 +260,24 @@ func (ac *AnkrCoin) DecreaseApproval(spenderAddr string, subtractedAmount string
 		return false
 	}
 
-	allowVal = allowVal.Sub(allowVal, subtractedValue)
+	allowVal = new(big.Int).Sub(allowVal, subtractedValue)
+	stepGas := gas.GasSlowStep
+	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
 
-	//emit event(to do)
+	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},allowVal.Bytes()})
+
+	gasUsed := uint64(len(allowVal.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	spenderAddrParam      := fmt.Sprintf("\"%s\"", spenderAddr)
+	subtractedAmountParam := fmt.Sprintf("\"%s\"", subtractedAmount)
+
+	jsonArgFromat := "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		              "{\"index\":2,\"Name\":\"subtractedAmount\",\"ParamType\":\"string\",\"Value\":%s}]"
+
+	jsonArg := fmt.Sprintf(jsonArgFromat, spenderAddrParam, subtractedAmountParam)
+
+	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }

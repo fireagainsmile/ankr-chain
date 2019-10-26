@@ -14,7 +14,14 @@ type TxMsgCallBack interface {
 	SenderAddr() string
 }
 
+type CurrencyInterface interface {
+	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
+	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+}
+
 type ContextContract interface {
+	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
+	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
 	OwnerAddr() string
@@ -28,6 +35,7 @@ type ContextContract interface {
 }
 
 type ContextContractImpl struct {
+	CurrencyInterface
 	gas.GasMetric
 	TxMsgCallBack
 	ankrcmm.ContractInterface
@@ -35,8 +43,8 @@ type ContextContractImpl struct {
 	vmevent.Publisher
 }
 
-func NewContextContract(gasMetric gas.GasMetric, txCallBack TxMsgCallBack, contI ankrcmm.ContractInterface, accStore appstore.AccountStore, publisher vmevent.Publisher) ContextContract {
-	return &ContextContractImpl{gasMetric, txCallBack, contI,accStore, publisher}
+func NewContextContract(curI CurrencyInterface, gasMetric gas.GasMetric, txCallBack TxMsgCallBack, contI ankrcmm.ContractInterface, accStore appstore.AccountStore, publisher vmevent.Publisher) ContextContract {
+	return &ContextContractImpl{curI,gasMetric, txCallBack, contI,accStore, publisher}
 }
 
 

@@ -11,6 +11,7 @@ import (
 var bcContext ContextAKVM
 
 type ContextAKVM interface {
+	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
 	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
@@ -33,9 +34,14 @@ func GetBCContext() ContextAKVM {
 	return bcContext
 }
 
+type ContractStoreAKVM interface {
+	BuildCurrencyCAddrMap(symbol string, cAddr string) error
+	LoadContract(cAddr string) (*ankrcmm.ContractInfo, error)
+}
+
 type ContextAKVMImpl struct {
 	ContextContract
-	appstore.ContractStore
+	ContractStoreAKVM
 	appstore.BCStore
 }
 

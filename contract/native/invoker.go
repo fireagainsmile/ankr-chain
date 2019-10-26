@@ -33,7 +33,7 @@ func (invoker *NativeInvoker) SetContextContract(context context.ContextContract
 	}
 }
 
-func (invoker *NativeInvoker) Invoke(context context.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, params []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
+func (invoker *NativeInvoker) Invoke(context context.ContextContract, conPatt ankrcmm.ContractPatternType, appStore appstore.AppStore, code []byte, contractName string, method string, params []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
 	invoker.SetContextContract(context)
 	natiContractI, ok := invoker.nativeConracts[contractName]
 	if !ok {

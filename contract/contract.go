@@ -13,6 +13,7 @@ type Contract interface {
 	Call(context     context.ContextContract,
 		appStore     appstore.AppStore,
 		conType      ankrcmm.ContractType,
+		conPatt      ankrcmm.ContractPatternType,
 		code         []byte,
 		contractName string,
 		method       string,
@@ -44,6 +45,6 @@ func (c *ContractImpl) registerInvoker(store appstore.AppStore, log log.Logger){
 	c.invokerMap[ankrcmm.ContractTypeRuntime] = runtimeInvoker
 }
 
-func (c *ContractImpl) Call(context context.ContextContract, appStore appstore.AppStore, conType ankrcmm.ContractType, code []byte, contractName string, method string, params []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
-	return c.invokerMap[conType].Invoke(context, appStore, code, contractName, method, params, rtnType)
+func (c *ContractImpl) Call(context context.ContextContract, appStore appstore.AppStore, conType ankrcmm.ContractType, conPatt ankrcmm.ContractPatternType, code []byte, contractName string, method string, params []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
+	return c.invokerMap[conType].Invoke(context, conPatt, appStore, code, contractName, method, params, rtnType)
 }
