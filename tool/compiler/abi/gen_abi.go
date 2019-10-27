@@ -29,7 +29,7 @@ func (b *BinPrefix)SetOption(op [ExtensionLen]byte) *BinPrefix {
 func (b BinPrefix)Byte() (out [CodePrefixLen]byte) {
 	out[0] = byte(b.TypeBin)
 	out[1] = byte(b.VMTypeBin)
-	out[2] = byte(b.VMTypeBin)
+	out[2] = byte(b.PattenTypeBin)
 	for i, b := range b.Extension {
 		out[i + 3] = b
 	}

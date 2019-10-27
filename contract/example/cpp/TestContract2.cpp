@@ -32,7 +32,7 @@ int TestContract::testFuncWithInt(const char *testStr) {
 char* TestContract::testFuncWithString(const char *testStr) {
     print_s("TestContract::testFuncWithString");
 
-    char* data= "{\"Param\":\"testStr\"}";
+    char* data= "[{\"index\":1,\"Name\":\"testStr\",\"ParamType\":\"string\",\"Value\":\"testStrVal\"}]";
 
     TrigEvent("testFunc(string)", data);
 

@@ -160,7 +160,7 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-i3SRfk",
+		ChID: "test-chain-xPPj8k",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractDeploy",
@@ -200,7 +200,7 @@ func TestContractInvokeWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-i3SRfk",
+		ChID: "test-chain-xPPj8k",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractInvoke",
@@ -211,7 +211,84 @@ func TestContractInvokeWithNode(t *testing.T) {
 
 	cdMsg := &contract.ContractInvokeMsg{
 		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ContractAddr: "08EBB423FBDF6428480B8013216FB538D909FA0B492CDF",
+		ContractAddr: "AD11BED29F81AE1DD51DE7127A5A99859DB60E1E7B19B2",
+		Method:       "testFuncWithString",
+		Args:         jsonArg,
+		RtnType:      "string",
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, cdMsg,  txSerializer, key)
+
+	txHash, cHeight, contractResultJson, err := builder.BuildAndCommit(c)
+
+	assert.Equal(t, err, nil)
+
+	var contractR ankrcmm.ContractResult
+	json.Unmarshal([]byte(contractResultJson), &contractR)
+
+	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractR=%v", txHash, cHeight, contractR)
+}
+
+func TestContractDeployWithNodePattern2(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-xPPj8k",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		Memo: "test ContractDeploy",
+		Version: "1.0",
+	}
+
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract2.wasm")
+	if err != nil {
+		t.Errorf("can't read wasm file: %s", err.Error())
+	}
+
+	cdMsg := &contract.ContractDeployMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		Name:     "TestContract",
+		Codes:     rawBytes,
+		CodesDesc: "",
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, cdMsg,  txSerializer, key)
+
+	txHash, cHeight, contractAddr, err := builder.BuildAndCommit(c)
+
+	assert.Equal(t, err, nil)
+
+	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractAddr=%s", txHash, cHeight, contractAddr)
+
+	resp := &ankrcmm.ContractQueryResp{}
+	c.Query("/store/contract", &ankrcmm.ContractQueryReq{contractAddr}, resp)
+
+	t.Logf("conract=%v", resp)
+}
+
+func TestContractInvokeWithNodePattern2(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-xPPj8k",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		Memo: "test ContractInvoke",
+		Version: "1.0",
+	}
+
+	jsonArg := "[{\"index\":1,\"Name\":\"args\",\"ParamType\":\"string\",\"Value\":\"testFuncWithInt arg\"}]"
+
+	cdMsg := &contract.ContractInvokeMsg{
+		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ContractAddr: "8957252DD25E0EE5F27840BEAAAFEDCC67EB847BFD08F3",
 		Method:       "testFuncWithString",
 		Args:         jsonArg,
 		RtnType:      "string",

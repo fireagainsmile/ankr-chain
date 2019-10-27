@@ -75,7 +75,7 @@ func (r *RuntimeInvoke) InvokeInternal(contractAddr string, ownerAddr string, ca
 	return akvm.Execute(fnIndex, rtnType, args...)
 }
 
-func (r *RuntimeInvoke) InvokePattern2(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
+func (r *RuntimeInvoke) InvokePattern1(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
 	r.context = ankrcontext.CreateContextAKVM(context, appStore)
 	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, context, code, r.log)
 	if akvm == nil {
@@ -128,7 +128,7 @@ func (r *RuntimeInvoke) InvokePattern2(context ankrcontext.ContextContract, appS
 	}
 }
 
-func (r *RuntimeInvoke) InvokePattern1(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
+func (r *RuntimeInvoke) InvokePattern2(context ankrcontext.ContextContract, appStore appstore.AppStore, code []byte, contractName string, method string, param []*ankrcmm.Param, rtnType string) (*ankrcmm.ContractResult, error) {
 	r.context = ankrcontext.CreateContextAKVM(context,appStore)
 	akvm := akexe.NewWASMVirtualMachine(context.ContractAddr(), context.OwnerAddr(), context.SenderAddr(), context, context, code, r.log)
 	if akvm == nil {
