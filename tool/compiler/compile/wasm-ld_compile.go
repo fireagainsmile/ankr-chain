@@ -39,7 +39,7 @@ func (wo *WasmOptions) Options() []string {
 // and remove
 
 func (wasmOp *WasmOptions)Execute(args []string) error {
-	srcFileSlice := strings.Split(abi.TempCppFile, ".")
+	srcFileSlice := strings.Split(abi.ContractMainFile, ".")
 	srcFile := fmt.Sprintf("%s.o", srcFileSlice[0])
 	distFile := args[0]
 	distSlice := strings.Split(distFile, ".")
@@ -64,11 +64,12 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = os.Remove(abi.TempCppFile)
-	if err != nil {
-		return err
+	if abi.ContractMainFile == abi.TempCppFile {
+		err = os.Remove(abi.TempCppFile)
+		if err != nil {
+			return err
+		}
 	}
-
 	renameFile := path.Join(OutPutDir, distFile)
 	//os.Create(renameFile)
 	if _, err = os.Stat(OutPutDir); os.IsNotExist(err) {

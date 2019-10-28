@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"os"
 	"strings"
 	"text/scanner"
@@ -28,8 +29,8 @@ func (r *RegexpParser)doMatch(ruleId int, str string) {
 }
 
 func (p *RegexpParser)Execute(args []string) error {
-	sourceFile := args[0]
-	p.ParseFile(sourceFile)
+	//sourceFile := args[0]
+	p.ParseFile(abi.ClassDefineFile)
 	return p.ValidContract()
 }
 

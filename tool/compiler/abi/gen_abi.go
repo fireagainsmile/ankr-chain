@@ -16,6 +16,8 @@ var(
 	invokeRegexp = `(INVOKE_ACTION|INVOKE_FUNC) \( "\b[\w]+`
 	baseRegexp   = `class [\w]+( : public akchain : : Contract)`
 	TempCppFile = "temp.cpp"
+	includeRegexp = `# include \"[^\"]+\"`
+	headerRegexp = `\"[^\"]+\"`
 	GenerateAbi bool
 	ABIPrefix = NewBinPrefix(ContractTypeRuntime, ContractVMTypeWASM, ContractPatternTypeUnknown)
 )
@@ -52,17 +54,10 @@ func (cc *ContractClass)Execute(args []string) error  {
 	functions := collectFunctions(file)
 	if len(functions) != 0 {
 		ABIPrefix.PattenTypeBin = ContractPatternType2
-		// copy source file into temp for clang and wasm-ld compile
-		fByte, _ := ioutil.ReadFile(file)
-		f, err := os.OpenFile(TempCppFile, os.O_CREATE | os.O_TRUNC, 0600)
-		defer f.Close()
-		if err != nil {
-			return err
-		}
-
-		f.Write(fByte)
+		ContractMainFile = file
 	}else {
 		ABIPrefix.PattenTypeBin = ContractPatternType1
+		ContractMainFile = TempCppFile
 		err = cc.GenCode(file)
 		if err != nil {
 			return err
@@ -109,12 +104,50 @@ func writeABI(abi []byte, fileName string) error {
 
 func parseClassFromFile(file string, cc *ContractClass) error {
 	cl := searchClass(file)
+	if len(cl) != 0 {
+		ClassDefineFile = file
+	}else {
+		includes := searchIncludes(file)
+		for _, include := range includes {
+			cl = searchClass(include)
+			if len(cl) != 0 {
+				ClassDefineFile = include
+				break
+			}
+		}
+	}
 	if len(cl) == 0 {
 		return errors.New("no class found! ")
 	}
 	//fmt.Println(cl)
 	err := cc.ParseClass(cl)
 	return err
+}
+
+func searchIncludes(file string) (includes []string) {
+	f, err := os.Open(file)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	var sc scanner.Scanner
+	sc.Init(f)
+	var contractTokens []string
+	for tok := sc.Scan(); tok != scanner.EOF; tok = sc.Scan() {
+		contractTokens = append(contractTokens, sc.TokenText())
+	}
+	reg, _ := regexp.Compile(includeRegexp)
+	in := reg.FindAllString(strings.Join(contractTokens, " "), -1)
+	reg, _  = regexp.Compile(headerRegexp)
+	for _, v := range in {
+		head := reg.FindString(v)
+		head = strings.TrimLeft(head, "\"")
+		head = strings.TrimRight(head, "\"")
+		head = strings.TrimLeft(head, " ")
+		head = strings.TrimRight(head, " ")
+		includes = append(includes, head)
+	}
+	return
 }
 
 //read contract
@@ -185,6 +218,7 @@ func searchClass(file string) (class []string) {
 	fileBuffer, err := os.Open(file)
 	defer fileBuffer.Close()
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	sc.Init(fileBuffer)

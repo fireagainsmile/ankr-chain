@@ -60,7 +60,7 @@ func NewClangOption() *ClangOptions {
 func (co *ClangOptions)Execute(args []string) error  {
 
 	clangArgs := co.Options()
-	clangArgs = append(clangArgs, abi.TempCppFile)
+	clangArgs = append(clangArgs, abi.ContractMainFile)
 
 	out, err := exec.Command(co.Compiler, clangArgs...).Output()
 	if err != nil {
