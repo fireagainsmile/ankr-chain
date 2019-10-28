@@ -49,7 +49,7 @@ int ERC20::transfer(const char* toAddr, const char* amount) {
     char* balSender = balanceOf(senderAddr);
     char* balTo     = balanceOf(toAddr);
 
-    if (balSender == NULL || BigCmp(balSender,amount) <= 0) {
+    if (balSender == nullptr || BigCmp(balSender,amount) <= 0) {
         return -1;
     }
 
@@ -58,6 +58,11 @@ int ERC20::transfer(const char* toAddr, const char* amount) {
 
     SetBalance(senderAddr, "TESTCOIN", balSender);
     SetBalance(toAddr, "TESTCOIN", balTo);
+
+    char* jsonArg = "[{\"index\":1,\"Name\":\"toAddr\",\"ParamType\":\"string\",\"Value\":\"toAddrVal\"},"
+    		         "{\"index\":2,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":\"amontVal\"}]";
+
+    TrigEvent("transfer(string, string)", jsonArg);
 
     return 0;
 }
@@ -70,7 +75,7 @@ int ERC20::transferFrom(const char* fromAddr, const char* toAddr, const char* am
     char* balFrom = balanceOf(fromAddr);
     char* balTo   = balanceOf(toAddr);
 
-    if (balFrom == NULL || BigCmp(balFrom,amount) <= 0) {
+    if (balFrom == nullptr || BigCmp(balFrom,amount) <= 0) {
         return -1;
     }
 
@@ -79,27 +84,56 @@ int ERC20::transferFrom(const char* fromAddr, const char* toAddr, const char* am
 
     SetBalance(fromAddr, "TESTCOIN", balFrom);
     SetBalance(toAddr, "TESTCOIN", balTo);
+
+     char* jsonArg = "[{\"index\":1,\"Name\":\"fromAddr\",\"ParamType\":\"string\",\"Value\":\"fromAddrVal\"},"
+                      "{\"index\":1,\"Name\":\"toAddr\",\"ParamType\":\"string\",\"Value\":\"toAddrVal\"},"
+        		      "{\"index\":2,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":\"amontVal\"}]";
+
+     TrigEvent("transferFrom(string, string, string)", jsonArg);
+
+    return 0;
 }
 
 int ERC20::approve(const char* spenderAddr, const char* amount) {
     char* senderAddr = SenderAddr();
-    return SetAllowance(senderAddr, spenderAddr, "TESTCOIN", amount)
+    int iRtn = SetAllowance(senderAddr, spenderAddr, "TESTCOIN", amount);
+
+    char* jsonArg = "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":\"spenderAddrVal\"},"
+                     "{\"index\":2,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":\"amontVal\"}]";
+
+    TrigEvent("approve(string, string)", jsonArg);
+
+    return iRtn;
 }
 
 char* ERC20::allowance(const char* ownerAddr, const char* spenderAddr) {
-    return Allowance(ownerAddr, spenderAddr, "TESTCOIN")
+    return Allowance(ownerAddr, spenderAddr, "TESTCOIN");
 }
 
 int ERC20::increaseApproval(const char* spenderAddr, const char* addedAmount) {
     char* senderAddr = SenderAddr();
     char* curAllow = Allowance(senderAddr, spenderAddr, "TESTCOIN");
     char* allow = BigAdd(curAllow, addedAmount);
-    return SetAllowance(senderAddr, spenderAddr, "TESTCOIN", allow)
+    int iRtn = SetAllowance(senderAddr, spenderAddr, "TESTCOIN", allow);
+
+    char* jsonArg = "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":\"spenderAddrVal\"},"
+                     "{\"index\":2,\"Name\":\"addedAmount\",\"ParamType\":\"string\",\"Value\":\"addedAmountVal\"}]";
+
+    TrigEvent("increaseApproval(string, string)", jsonArg);
+
+    return iRtn;
 }
 
 int ERC20::decreaseApproval(const char* spenderAddr, const char* subtractedAmount) {
     char* senderAddr = SenderAddr();
     char* curAllow = Allowance(senderAddr, spenderAddr, "TESTCOIN");
     char* allow = BigSub(curAllow, subtractedAmount);
-    return SetAllowance(senderAddr, spenderAddr, "TESTCOIN", allow)
+    int iRtn = SetAllowance(senderAddr, spenderAddr, "TESTCOIN", allow);
+
+    char* jsonArg = "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":\"spenderAddrVal\"},"
+                     "{\"index\":2,\"Name\":\"subtractedAmount\",\"ParamType\":\"string\",\"Value\":\"subtractedAmountVal\"}]";
+
+    TrigEvent("decreaseApproval(string, string)", jsonArg);
+
+    return iRtn;
 }
