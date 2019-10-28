@@ -240,14 +240,16 @@ func getInputs(foo string) []*InputType {
 
 	// parse single input name and type
 	for _, input := range inputsSlice {
+		input = strings.TrimRight(input, " ")
+		input = strings.TrimLeft(input, " ")
 		if len(input) == 0 {
 			continue
 		}
 		in := new(InputType)
-		inputSlice := strings.Split(input, " ")
-		length := len(inputSlice)
-		in.Name = inputSlice[length-1]
-		for _, v := range inputSlice {
+		inputS := strings.Split(input, " ")
+		length := len(inputS)
+		in.Name = inputS[length-1]
+		for _, v := range inputS {
 			switch v {
 			// find type, in case static or const  exist
  			case "int","void", "bool":
