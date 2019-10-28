@@ -127,8 +127,9 @@ func (e *entryMatcher)Match(c *ContractState, str string) error  {
 	reg, _ := regexp.Compile(e.reg)
 	if reg.MatchString(str) {
 		c.requiredRule[CONTRACTENTRY] = true
+		return nil
 	}
-	return nil
+	return errors.New("no contract entry found. ")
 }
 
 type actionEntryMatcher struct {

@@ -16,6 +16,11 @@ var (
 	inputRegexp = `\( (([\w]+|,|\*)\s)*\)`
 	exportRegexp = `extern(\s)*"(C|c)"(\s)*{(\s)*([^\{]*\{[^\}]*\})*(\s)*}`
 )
+var (
+	ClassDefineFile  string
+	ContractMainFile string
+)
+
 const (
 	CodePrefixLen = 10
 	ExtensionLen = 7
