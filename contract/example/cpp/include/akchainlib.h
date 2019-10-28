@@ -1,5 +1,5 @@
-#ifndef ANCHAIN_LIB_H_
-#define ANCHAIN_LIB_H_
+#ifndef AKCHAIN_LIB_H_
+#define AKCHAIN_LIB_H_
 
 typedef char* string;
 typedef void* JsonRoot;
@@ -26,6 +26,9 @@ int strcmp(const char *s1, const char *s2);
 char* strcat(const char *s1, const char *s2);
 int Atoi(const char *s);
 char* Itoa(int iVal);
+char* BigSub(const char *bigVal1, const char *bigVal2);
+char* BigAdd(const char *bigVal1, const char *bigVal2);
+int BigCmp(const char *bigVal1, const char *bigVal2);
 int JsonObjectIndex(const char *s);
 int JsonCreateObject(void);
 int JsonGetInt(int jsonObjectIndex, const char* argName);
@@ -37,7 +40,9 @@ char *SenderAddr();
 int SetBalance(const char* addr, const char* symbol, const char* amount);
 char* Balance(const char* addr, const char* symbol);
 int SetAllowance(const char* addrSender, const char* addrSpender, const char* symbol, const char* amount);
-int Allowance(const char* addrSender, const char* addrSpender, const char* symbol);
+char* Allowance(const char* addrSender, const char* addrSpender, const char* symbol);
+char* ContractAddr();
+int CreateCurrency(const char* symbol, int decimals);
 int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr);
 int Height();
 
@@ -45,4 +50,4 @@ int Height();
 }
 #endif
 
-#endif/*ANCHAIN_LIB_H_*/
+#endif/*AKCHAIN_LIB_H_*/

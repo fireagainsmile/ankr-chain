@@ -19,6 +19,8 @@ type ContextAKVM interface {
 	Balance(address string, symbol string) (*big.Int, error)
 	SetAllowance(addrSender string, addrSpender string, amount ankrcmm.Amount)
 	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
+	OwnerAddr() string
+	ContractAddr() string
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	LoadContract(cAddr string) (*ankrcmm.ContractInfo, error)
 	Height() int64
