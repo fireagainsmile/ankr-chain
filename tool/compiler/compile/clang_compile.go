@@ -1,7 +1,7 @@
 package compile
 
 import (
-	"errors"
+	"fmt"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"os/exec"
 )
@@ -62,11 +62,11 @@ func (co *ClangOptions)Execute(args []string) error  {
 	clangArgs = append(clangArgs, abi.TempCppFile)
 
 	out, err := exec.Command(co.Compiler, clangArgs...).Output()
+	if len(out) != 0 {
+		fmt.Println(string(out))
+	}
 	if err != nil {
 		return err
-	}
-	if string(out) != "" {
-		return errors.New(string(out))
 	}
 	return nil
 }
