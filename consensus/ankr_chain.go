@@ -1,6 +1,7 @@
 package ankrchain
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 	"strings"
@@ -114,8 +115,26 @@ func (app *AnkrChainApplication) SetPubSubServer(server *tmpubsub.Server) {
 	app.pubsubServer = server
 }
 
-func (app *AnkrChainApplication) PubSubServer() *tmpubsub.Server {
-	return app.pubsubServer
+func (app *AnkrChainApplication) Publisher() tx.Publisher {
+	return app
+}
+
+func (app *AnkrChainApplication) Publish(ctx context.Context, msg interface{}) error {
+	if app.pubsubServer == nil {
+		app.logger.Error("current Publish not available", "msg", msg)
+		return fmt.Errorf("current Publish not available: msg=%v", msg)
+	}
+
+	return app.pubsubServer.Publish(ctx, msg)
+}
+
+func (app *AnkrChainApplication) PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error {
+	if app.pubsubServer == nil {
+		app.logger.Error("current PublishWithTags not available", "msg", msg)
+		return fmt.Errorf("current PublishWithTags not available: msg=%v", msg)
+	}
+
+	return app.pubsubServer.PublishWithTags(ctx, msg, tags)
 }
 
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {

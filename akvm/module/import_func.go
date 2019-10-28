@@ -12,6 +12,7 @@ import (
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	"github.com/go-interpreter/wagon/exec"
+	"github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -19,6 +20,9 @@ const (
 	PrintIFunc                = "print_i"
 	StrlenFunc                = "strlen"
 	StrcmpFunc                = "strcmp"
+	StrcatFunc                = "Strcat"
+	AtoiFunc                  = "Atoi"
+    ItoaFunc                  = "Itoa"
 	JsonObjectIndexFunc       = "JsonObjectIndex"
 	JsonCreateObjectFunc      = "JsonCreateObject"
 	JsonGetIntFunc            = "JsonGetInt"
@@ -62,6 +66,52 @@ func Strlen(proc *exec.Process, strIdx int32) int {
 func Strcmp(proc *exec.Process, strIdx1 int32, strIdx2 int32) int32 {
 	cmpR, _ := proc.VM().Strcmp(uint(strIdx1), uint(strIdx2))
 	return int32(cmpR)
+}
+
+func Strcat(proc *exec.Process, strIdx1 int32, strIdx2 int32) uint64 {
+	str1, err := proc.ReadString(int64(strIdx1))
+	if err != nil {
+		proc.VM().Logger().Error("Strcat str1", "err", err)
+	}
+
+	str2, err := proc.ReadString(int64(strIdx2))
+	if err != nil {
+		proc.VM().Logger().Error("Strcat str2", "err", err)
+	}
+
+	str := str1 + str2
+
+	pointer, err := proc.VM().SetBytes([]byte(str))
+	if err != nil {
+		proc.VM().Logger().Error("Strcat SetBytes", "err", err)
+	}
+
+	return pointer
+}
+
+func Atoi(proc *exec.Process, strIdx int32) int32 {
+	str, err := proc.ReadString(int64(strIdx))
+	if err != nil {
+		proc.VM().Logger().Error("Atoi", "err", err)
+	}
+
+	iRtn, err := strconv.Atoi(str)
+	if err != nil {
+		proc.VM().Logger().Error("Atoi convert error", "err", err)
+	}
+
+	return int32(iRtn)
+}
+
+func Itoa(proc *exec.Process, iValue int32) uint64 {
+	valStr := strconv.FormatInt(int64(iValue), 10)
+
+	pointer, err := proc.VM().SetBytes([]byte(valStr))
+	if err != nil {
+		proc.VM().Logger().Error("ItoA SetBytes", "err", err)
+	}
+
+	return pointer
 }
 
 func JsonObjectIndex(proc *exec.Process, jsonStrIdx int32) int32 {
@@ -371,8 +421,8 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 	//argStr := strings.TrimRight(evSrcSegs[1], ")")
 	//argTyps := strings.Split(argStr, ",")
 
-	params := make([]*ankrcmm.Param, 0)
-	err =  json.Unmarshal([]byte(evData), params)
+	var params []*ankrcmm.Param
+	err =  json.Unmarshal([]byte(evData), &params)
 	if err != nil {
 		proc.VM().Logger().Error("TrigEvent event json.Unmarshal err", "evData", evData, "err", err)
 		return -1
@@ -387,7 +437,7 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 		tags[tagName] = tagValue
 	}
 
-	proc.VMContext().Publisher().PublishWithTags(context.Background(),"contract", tags)
+	proc.VMContext().Publisher().PublishWithTags(context.Background(), types.EventDataString("contract"), tags)
 
 	return 0
 }

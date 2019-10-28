@@ -45,6 +45,27 @@ func NewModuleEnv() *ModuleEnv {
 		Name: StrcmpFunc,
 	})
 
+	mEnv.RegisterImportedFunc(StrcatFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(Strcat),
+		Name: StrcatFunc,
+	})
+
+	mEnv.RegisterImportedFunc(AtoiFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(Atoi),
+		Name: AtoiFunc,
+	})
+
+	mEnv.RegisterImportedFunc(ItoaFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(Itoa),
+		Name: ItoaFunc,
+	})
+
 	mEnv.RegisterImportedFunc(JsonObjectIndexFunc, &wasm.Function{
 		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
 		Body: &wasm.FunctionBody{},

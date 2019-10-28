@@ -23,6 +23,9 @@ void print_s(const char *s);
 void print_i(int t);
 int strlen(const char *s);
 int strcmp(const char *s1, const char *s2);
+char* strcat(const char *s1, const char *s2);
+int Atoi(const char *s);
+char* Itoa(int iVal);
 int JsonObjectIndex(const char *s);
 int JsonCreateObject(void);
 int JsonGetInt(int jsonObjectIndex, const char* argName);
@@ -35,8 +38,8 @@ int SetBalance(const char* addr, const char* symbol, const char* amount);
 char* Balance(const char* addr, const char* symbol);
 int SetAllowance(const char* addrSender, const char* addrSpender, const char* symbol, const char* amount);
 int Allowance(const char* addrSender, const char* addrSpender, const char* symbol);
-int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr)
-int Height()
+int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr);
+int Height();
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-package main
+package root
 
 import (
 	"github.com/Ankr-network/ankr-chain/tool/compiler/compile"
@@ -6,12 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd= &cobra.Command{
+var RootCmd = &cobra.Command{
 	Args:cobra.MinimumNArgs(1),
-	Use:   "compiler",
+	Use:   "contract-compiler",
 	Short: "ankr smart contract compiler",
 }
 
 func init(){
-	rootCmd.AddCommand(compile.CompileCmd, decompile.DecompileCmd)
+	RootCmd.AddCommand(compile.CompileCmd, decompile.DecompileCmd)
 }

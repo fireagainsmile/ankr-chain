@@ -29,6 +29,7 @@ const (
 	StoreMeteringPrefix = "merting:"
 	StoreContractInfoPrefix = "continfo:"
 	StoreContractCurrencyPrefix = "contcur:"
+	StoreCurrencyPrefix = "cur:"
 )
 
 //type storeQueryHandler func(store *IavlStoreApp, reqData []byte) (resQuery types.ResponseQuery)
@@ -58,6 +59,10 @@ func containContractInfoPrefix(cAddr string) string {
 
 func containContractCurrencyPrefix(symbol string) string {
 	return containPrefix(symbol, StoreContractCurrencyPrefix)
+}
+
+func containCurrencyPrefix(symbol string) string {
+	return containPrefix(symbol, StoreCurrencyPrefix)
 }
 
 func stripCertKeyPrefix(key string) (string, error) {
@@ -455,6 +460,38 @@ func (sp *IavlStoreApp) StatisticalInfoQuery()(*ankrcmm.StatisticalInfoResp, err
 
 func (sp *IavlStoreApp) IsExist(cAddr string) bool {
 	return sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(cAddr))
+}
+
+func (sp *IavlStoreApp) CreateCurrency(symbol string, currency *ankrcmm.Currency) error {
+	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(containCurrencyPrefix(symbol))) {
+		return fmt.Errorf("can't create currency, has existed, symbol=%s", symbol)
+	}
+
+	curBytes, _ := sp.cdc.MarshalJSON(currency)
+
+	isSucess := sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containCurrencyPrefix(symbol)), curBytes)
+	if !isSucess {
+		return fmt.Errorf("create currency error, symbol=%s", symbol)
+	}
+
+	return nil
+}
+
+func (sp *IavlStoreApp) CurrencyInfo(symbol string) (*ankrcmm.Currency, error) {
+	curBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containCurrencyPrefix(symbol)))
+	if err != nil || len(curBytes) == 0{
+		sp.storeLog.Error("can't get the currency", "symbol", symbol)
+		return nil, err
+	}
+
+	var curInfo ankrcmm.Currency
+
+	err = sp.cdc.UnmarshalJSON(curBytes, &curInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &curInfo, nil
 }
 
 func (sp *IavlStoreApp) BuildCurrencyCAddrMap(symbol string, cAddr string) error {
