@@ -9,6 +9,7 @@ import (
 
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/tx"
@@ -80,6 +81,19 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 	}
 
 	cInfo = &ankrcmm.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
+
+	contractType    := ankrcmm.ContractType(cInfo.Codes[0])
+	contractPatt    := ankrcmm.ContractPatternType(cInfo.Codes[2])
+	contractContext := ankrcontext.NewContextContract(context.AppStore(), metric, cd, cInfo, context.AppStore(), context.Publisher())
+	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, contractPatt, cInfo.Codes[ankrcmm.CodePrefixLen:], cInfo.Name, "init", nil, "string")
+	if err != nil {
+		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=init, err=%v", contractAddr, err), nil
+	}
+
+	if !rtn.IsSuccess {
+		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=init", contractAddr), nil
+	}
+
 	context.AppStore().SaveContract(contractAddr, cInfo)
 
 	context.AppStore().AddAccount(contractAddr, ankrcmm.AccountContract)
