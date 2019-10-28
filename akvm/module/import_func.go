@@ -42,6 +42,7 @@ const (
 	SetAllowanceFunc          = "SetAllowance"
 	AllowanceFunc             = "Allowance"
 	CreateCurrencyFunc        = "CreateCurrency"
+	ContractAddrFunc          = "ContractAddr"
 	BuildCurrencyCAddrMapFunc = "BuildCurrencyCAddrMap"
 	HeightFunc                = "Height"
 )
@@ -126,17 +127,17 @@ func BigIntSub(proc *exec.Process, bigIntIndex1 int32, bigIntIndex2 int32) uint6
 	}
 	bigInt1, isSucess := new(big.Int).SetString(bigIntStr1, 10)
 	if !isSucess {
-		proc.VM().Logger().Error("BigIntSub bigInt1", "err", err)
+		proc.VM().Logger().Error("BigIntSub bigInt1", "bigIntStr1", bigIntStr1)
 		return 0
 	}
 
-	bigIntStr2, err := proc.ReadString(int64(bigIntIndex1))
+	bigIntStr2, err := proc.ReadString(int64(bigIntIndex2))
 	if err != nil {
 		proc.VM().Logger().Error("BigIntSub bigIntStr2", "err", err)
 	}
 	bigInt2, isSucess := new(big.Int).SetString(bigIntStr2, 10)
 	if !isSucess {
-		proc.VM().Logger().Error("BigIntSub bigInt2", "err", err)
+		proc.VM().Logger().Error("BigIntSub bigInt2", "bigIntStr2", bigIntStr2)
 		return 0
 	}
 
@@ -158,13 +159,14 @@ func BigIntAdd(proc *exec.Process, bigIntIndex1 int32, bigIntIndex2 int32) uint6
 	}
 	bigInt1, isSucess := new(big.Int).SetString(bigIntStr1, 10)
 	if !isSucess {
-		proc.VM().Logger().Error("BigIntAdd bigInt1", "err", err)
+		proc.VM().Logger().Error("BigIntAdd bigInt1", "bigIntStr1", bigIntStr1)
 		return 0
 	}
 
-	bigIntStr2, err := proc.ReadString(int64(bigIntIndex1))
+	bigIntStr2, err := proc.ReadString(int64(bigIntIndex2))
 	if err != nil {
-		proc.VM().Logger().Error("BigIntAdd bigIntStr2", "err", err)
+		proc.VM().Logger().Error("BigIntAdd bigIntStr2", "bigIntStr2", bigIntStr2)
+		return 0
 	}
 	bigInt2, isSucess := new(big.Int).SetString(bigIntStr2, 10)
 	if !isSucess {
@@ -190,18 +192,18 @@ func BigIntCmp(proc *exec.Process, bigIntIndex1 int32, bigIntIndex2 int32) int32
 		return 0
 	}
 	bigInt1, isSucess := new(big.Int).SetString(bigIntStr1, 10)
-	if !isSucess {
-		proc.VM().Logger().Error("BigIntCmp bigInt1", "err", err)
+	if !isSucess || bigInt1 == nil {
+		proc.VM().Logger().Error("BigIntCmp bigInt1", "bigIntStr1", bigIntStr1)
 		return 0
 	}
 
-	bigIntStr2, err := proc.ReadString(int64(bigIntIndex1))
+	bigIntStr2, err := proc.ReadString(int64(bigIntIndex2))
 	if err != nil {
 		proc.VM().Logger().Error("BigIntCmp bigIntStr2", "err", err)
 	}
 	bigInt2, isSucess := new(big.Int).SetString(bigIntStr2, 10)
-	if !isSucess {
-		proc.VM().Logger().Error("BigIntCmp bigInt2", "err", err)
+	if !isSucess || bigInt2 == nil {
+		proc.VM().Logger().Error("BigIntCmp bigInt2", "bigIntStr2", bigIntStr2)
 		return 0
 	}
 
@@ -538,15 +540,15 @@ func TrigEvent(proc *exec.Process, evSrcIndex int32, dataIndex int32) int32 {
 	return 0
 }
 
-func SenderAddr(proc *exec.Process) int32 {
+func SenderAddr(proc *exec.Process) uint64 {
 	addr := ankrcontext.GetBCContext().SenderAddr()
 	pointer, err := proc.VM().SetBytes([]byte(addr))
 	if err != nil {
 		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
-		return -1
+		return 0
 	}
 
-	return int32(pointer)
+	return pointer
 }
 
 func SetBalance(proc *exec.Process, addrIndex int32, symbolIndex int32, amountIndex int32) int32 {
@@ -584,31 +586,32 @@ func SetBalance(proc *exec.Process, addrIndex int32, symbolIndex int32, amountIn
 	return 0
 }
 
-func Balance(proc *exec.Process,  addrIndex int32, symbolIndex int32) int32 {
+func Balance(proc *exec.Process,  addrIndex int32, symbolIndex int32) uint64 {
 	addr, err := proc.ReadString(int64(addrIndex))
 	if err != nil {
 		proc.VM().Logger().Error("Balance can't read addr", "err", err)
-		return -1
+		return 0
 	}
 
 	symbol, err := proc.ReadString(int64(symbolIndex))
 	if err != nil {
 		proc.VM().Logger().Error("Balance can't read symbol", "err", err)
-		return -1
+		return 0
 	}
 
 	balInt, err := ankrcontext.GetBCContext().Balance(addr, symbol)
-	if err != nil {
+	if err != nil || balInt == nil{
 		proc.VM().Logger().Error("Balance load balance", "err", err, "addr", addr, "symbol", symbol)
+		balInt = new(big.Int).SetUint64(0)
 	}
 
-	pointer, err := proc.VM().SetBytes([]byte(balInt.Bytes()))
+	pointer, err := proc.VM().SetBytes([]byte(balInt.String()))
 	if err != nil {
 		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
-		return -1
+		return 0
 	}
 
-	return int32(pointer)
+	return pointer
 }
 
 func SetAllowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32, symbolIndex int32, amountIndex int32) int32 {
@@ -631,8 +634,9 @@ func SetAllowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex in
 	}
 
 	curInfo, err := ankrcontext.GetBCContext().CurrencyInfo(symbol)
-	if err != nil {
+	if err != nil || curInfo == nil {
 		proc.VM().Logger().Error("SetAllowance can't get currency", "err", err, "symbol", symbol)
+		return -1
 	}
 
 	amount, err := proc.ReadString(int64(amountIndex))
@@ -652,37 +656,38 @@ func SetAllowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex in
 	return 0
 }
 
-func Allowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32, symbolIndex int32) int32 {
+func Allowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32, symbolIndex int32) uint64 {
 	addrSender, err := proc.ReadString(int64(addrSenderIndex))
 	if err != nil {
 		proc.VM().Logger().Error("Allowance can't read addrSender", "err", err)
-		return -1
+		return 0
 	}
 
 	addrSpender, err := proc.ReadString(int64(addrSpenderIndex))
 	if err != nil {
 		proc.VM().Logger().Error("Allowance can't read addrSpender", "err", err)
-		return -1
+		return 0
 	}
 
 	symbol, err := proc.ReadString(int64(symbolIndex))
 	if err != nil {
 		proc.VM().Logger().Error("Allowance can't read symbol", "err", err)
-		return -1
+		return 0
 	}
 
 	amountInt, err := ankrcontext.GetBCContext().Allowance(addrSender, addrSpender, symbol)
 	if err != nil {
 		proc.VM().Logger().Error("Allowance error", "err", err, "addrSender", addrSender, "addrSpender", addrSpender, "symbol", symbol)
+		amountInt = new(big.Int).SetUint64(0)
 	}
 
-	pointer, err := proc.VM().SetBytes(amountInt.Bytes())
+	pointer, err := proc.VM().SetBytes([]byte(amountInt.String()))
 	if err != nil {
 		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
-		return -1
+		return 0
 	}
 
-	return int32(pointer)
+	return pointer
 }
 
 func CreateCurrency(proc *exec.Process, symbolIndex int32, decimal int32) int32 {
@@ -699,6 +704,17 @@ func CreateCurrency(proc *exec.Process, symbolIndex int32, decimal int32) int32 
 	}
 
 	return 0
+}
+
+func ContractAddr(proc *exec.Process) uint64 {
+	cAddr := ankrcontext.GetBCContext().ContractAddr()
+	pointer, err := proc.VM().SetBytes([]byte(cAddr))
+	if err != nil {
+		proc.VM().Logger().Error("SenderAddr SetBytes", "err", err)
+		return 0
+	}
+
+	return pointer
 }
 
 func BuildCurrencyCAddrMap(proc *exec.Process, symbolIndex int32, cAddrIndex int32) int32 {

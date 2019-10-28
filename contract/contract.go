@@ -37,7 +37,6 @@ func (c *ContractImpl) init(store appstore.AppStore, log log.Logger) {
 }
 
 func (c *ContractImpl) registerInvoker(store appstore.AppStore, log log.Logger){
-
 	nativeInvoker := native.NewNativeInvoker(store, log)
 	c.invokerMap[ankrcmm.ContractTypeNative] = nativeInvoker
 

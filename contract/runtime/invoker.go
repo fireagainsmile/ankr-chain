@@ -121,7 +121,7 @@ func (r *RuntimeInvoke) InvokePattern1(context ankrcontext.ContextContract, appS
 		return &ankrcmm.ContractResult{false, rtnType, nil}, err
 	}
 
-	if reflect.ValueOf(akvmResult).Type().Name() == rtnType {
+	if reflect.ValueOf(akvmResult).Type().Name() == rtnType || rtnType == "bool" {
 		return &ankrcmm.ContractResult{true, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err
 	} else {
 		return &ankrcmm.ContractResult{false, reflect.ValueOf(akvmResult).Type().Name(), akvmResult}, err

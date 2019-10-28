@@ -18,9 +18,13 @@ public:
  };
 
 char* ERC20::init() {
-    CreateCurrency("TESTCOIN", 18);
     char* cAddr = ContractAddr();
-    BuildCurrencyCAddrMap("TESTCOIN", cAddr);
+    char* senderAddr = SenderAddr();
+    CreateCurrency(symbol(), decimals());
+    BuildCurrencyCAddrMap(symbol(), cAddr);
+    SetBalance(senderAddr, symbol(),totalSupply());
+
+    return "";
 }
 
 char* ERC20::name() {
@@ -49,12 +53,16 @@ int ERC20::transfer(const char* toAddr, const char* amount) {
     char* balSender = balanceOf(senderAddr);
     char* balTo     = balanceOf(toAddr);
 
-    if (balSender == nullptr || BigCmp(balSender,amount) <= 0) {
+     if (balSender == nullptr || BigIntCmp(balSender,amount) <= 0) {
         return -1;
-    }
+     }
 
-    balSender = BigSub(balSender, amount);
-    balTo     = BigAdd(balTo, amount);
+     if (balTo == nullptr || strcmp(balTo, "") == 0) {
+        balTo = "0";
+     }
+
+    balSender = BigIntSub(balSender, amount);
+    balTo     = BigIntAdd(balTo, amount);
 
     SetBalance(senderAddr, "TESTCOIN", balSender);
     SetBalance(toAddr, "TESTCOIN", balTo);
@@ -75,12 +83,16 @@ int ERC20::transferFrom(const char* fromAddr, const char* toAddr, const char* am
     char* balFrom = balanceOf(fromAddr);
     char* balTo   = balanceOf(toAddr);
 
-    if (balFrom == nullptr || BigCmp(balFrom,amount) <= 0) {
+    if (balFrom == nullptr || BigIntCmp(balFrom,amount) <= 0) {
         return -1;
     }
 
-    balFrom = BigSub(balFrom, amount);
-    balTo   = BigAdd(balTo, amount);
+    if (balTo == nullptr || strcmp(balTo, "") == 0) {
+        balTo = "0";
+    }
+
+    balFrom = BigIntSub(balFrom, amount);
+    balTo   = BigIntAdd(balTo, amount);
 
     SetBalance(fromAddr, "TESTCOIN", balFrom);
     SetBalance(toAddr, "TESTCOIN", balTo);
@@ -113,7 +125,7 @@ char* ERC20::allowance(const char* ownerAddr, const char* spenderAddr) {
 int ERC20::increaseApproval(const char* spenderAddr, const char* addedAmount) {
     char* senderAddr = SenderAddr();
     char* curAllow = Allowance(senderAddr, spenderAddr, "TESTCOIN");
-    char* allow = BigAdd(curAllow, addedAmount);
+    char* allow = BigIntAdd(curAllow, addedAmount);
     int iRtn = SetAllowance(senderAddr, spenderAddr, "TESTCOIN", allow);
 
     char* jsonArg = "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":\"spenderAddrVal\"},"
@@ -127,7 +139,7 @@ int ERC20::increaseApproval(const char* spenderAddr, const char* addedAmount) {
 int ERC20::decreaseApproval(const char* spenderAddr, const char* subtractedAmount) {
     char* senderAddr = SenderAddr();
     char* curAllow = Allowance(senderAddr, spenderAddr, "TESTCOIN");
-    char* allow = BigSub(curAllow, subtractedAmount);
+    char* allow = BigIntSub(curAllow, subtractedAmount);
     int iRtn = SetAllowance(senderAddr, spenderAddr, "TESTCOIN", allow);
 
     char* jsonArg = "[{\"index\":1,\"Name\":\"spenderAddr\",\"ParamType\":\"string\",\"Value\":\"spenderAddrVal\"},"

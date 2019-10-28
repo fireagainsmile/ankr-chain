@@ -87,13 +87,13 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 	contractType    := ankrcmm.ContractType(tokenContract.Codes[0])
 	contractPatt    := ankrcmm.ContractPatternType(tokenContract.Codes[2])
 	contractContext := ankrcontext.NewContextContract(context.AppStore(), metric, tf, tokenContract, context.AppStore(), context.Publisher())
-    rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, contractPatt, tokenContract.Codes[ankrcmm.CodePrefixLen:], "ANKR", "TransferFrom", params, "bool")
+    rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, contractPatt, tokenContract.Codes[ankrcmm.CodePrefixLen:], trAmount.Cur.Symbol, "transferFrom", params, "bool")
     if err != nil {
-    	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
+    	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=transferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
 	}
 
     if !rtn.IsSuccess {
-		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=TransferFrom", tf.Amounts[0].Cur.Symbol), nil
+		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=transferFrom", tf.Amounts[0].Cur.Symbol), nil
 	}
 
 	context.AppStore().IncNonce(tf.FromAddr)
