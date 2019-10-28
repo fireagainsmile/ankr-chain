@@ -1,7 +1,6 @@
 package compile
 
 import (
-	"errors"
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"io/ioutil"
@@ -48,11 +47,11 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 	wasmArgs := wasmOp.Options()
 	wasmArgs = append(wasmArgs, srcFile, "-o", distFile)
 	out, err := exec.Command("wasm-ld.exe", wasmArgs...).Output()
+	if len(out) != 0 {
+		fmt.Println(string(out))
+	}
 	if err != nil {
 		return err
-	}
-	if string(out) != "" {
-		return errors.New(string(out))
 	}
 
 	err = addPrefixToFile(distFile, *abi.ABIPrefix)
