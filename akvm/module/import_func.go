@@ -23,6 +23,9 @@ const (
 	StrcatFunc                = "Strcat"
 	AtoiFunc                  = "Atoi"
     ItoaFunc                  = "Itoa"
+	BigIntSubFunc             =  "BigIntSub"
+	BigIntAddFunc             =  "BigIntAdd"
+	BigIntCmpFunc             =  "BigIntCmp"
 	JsonObjectIndexFunc       = "JsonObjectIndex"
 	JsonCreateObjectFunc      = "JsonCreateObject"
 	JsonGetIntFunc            = "JsonGetInt"
@@ -38,6 +41,7 @@ const (
 	BalanceFunc               = "Balance"
 	SetAllowanceFunc          = "SetAllowance"
 	AllowanceFunc             = "Allowance"
+	CreateCurrencyFunc        = "CreateCurrency"
 	BuildCurrencyCAddrMapFunc = "BuildCurrencyCAddrMap"
 	HeightFunc                = "Height"
 )
@@ -112,6 +116,98 @@ func Itoa(proc *exec.Process, iValue int32) uint64 {
 	}
 
 	return pointer
+}
+
+func BigIntSub(proc *exec.Process, bigIntIndex1 int32, bigIntIndex2 int32) uint64 {
+	bigIntStr1, err := proc.ReadString(int64(bigIntIndex1))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntSub bigIntStr1", "err", err)
+		return 0
+	}
+	bigInt1, isSucess := new(big.Int).SetString(bigIntStr1, 10)
+	if !isSucess {
+		proc.VM().Logger().Error("BigIntSub bigInt1", "err", err)
+		return 0
+	}
+
+	bigIntStr2, err := proc.ReadString(int64(bigIntIndex1))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntSub bigIntStr2", "err", err)
+	}
+	bigInt2, isSucess := new(big.Int).SetString(bigIntStr2, 10)
+	if !isSucess {
+		proc.VM().Logger().Error("BigIntSub bigInt2", "err", err)
+		return 0
+	}
+
+	subBigIntStr := new(big.Int).Sub(bigInt1, bigInt2).String()
+
+	pointer, err := proc.VM().SetBytes([]byte(subBigIntStr))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntSub SetBytes", "err", err)
+	}
+
+	return pointer
+}
+
+func BigIntAdd(proc *exec.Process, bigIntIndex1 int32, bigIntIndex2 int32) uint64 {
+	bigIntStr1, err := proc.ReadString(int64(bigIntIndex1))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntAdd bigIntStr1", "err", err)
+		return 0
+	}
+	bigInt1, isSucess := new(big.Int).SetString(bigIntStr1, 10)
+	if !isSucess {
+		proc.VM().Logger().Error("BigIntAdd bigInt1", "err", err)
+		return 0
+	}
+
+	bigIntStr2, err := proc.ReadString(int64(bigIntIndex1))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntAdd bigIntStr2", "err", err)
+	}
+	bigInt2, isSucess := new(big.Int).SetString(bigIntStr2, 10)
+	if !isSucess {
+		proc.VM().Logger().Error("BigIntAdd bigInt2", "err", err)
+		return 0
+	}
+
+	addBigIntStr := new(big.Int).Add(bigInt1, bigInt2).String()
+
+	pointer, err := proc.VM().SetBytes([]byte(addBigIntStr))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntAdd SetBytes", "err", err)
+	}
+
+
+	return pointer
+}
+
+func BigIntCmp(proc *exec.Process, bigIntIndex1 int32, bigIntIndex2 int32) int32 {
+	bigIntStr1, err := proc.ReadString(int64(bigIntIndex1))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntCmp bigIntStr1", "err", err)
+		return 0
+	}
+	bigInt1, isSucess := new(big.Int).SetString(bigIntStr1, 10)
+	if !isSucess {
+		proc.VM().Logger().Error("BigIntCmp bigInt1", "err", err)
+		return 0
+	}
+
+	bigIntStr2, err := proc.ReadString(int64(bigIntIndex1))
+	if err != nil {
+		proc.VM().Logger().Error("BigIntCmp bigIntStr2", "err", err)
+	}
+	bigInt2, isSucess := new(big.Int).SetString(bigIntStr2, 10)
+	if !isSucess {
+		proc.VM().Logger().Error("BigIntCmp bigInt2", "err", err)
+		return 0
+	}
+
+	cmpR := bigInt1.Cmp(bigInt2)
+
+	return int32(cmpR)
 }
 
 func JsonObjectIndex(proc *exec.Process, jsonStrIdx int32) int32 {
@@ -587,6 +683,22 @@ func Allowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32
 	}
 
 	return int32(pointer)
+}
+
+func CreateCurrency(proc *exec.Process, symbolIndex int32, decimal int32) int32 {
+	symbol, err := proc.ReadString(int64(symbolIndex))
+	if err != nil {
+		proc.VM().Logger().Error("CreateCurrency can't read symbol", "err", err)
+		return -1
+	}
+
+	err = ankrcontext.GetBCContext().CreateCurrency(symbol, &ankrcmm.Currency{symbol, int64(decimal)})
+	if err != nil {
+		proc.VM().Logger().Error("CreateCurrency can't read symbol", "err", err)
+		return -1
+	}
+
+	return 0
 }
 
 func BuildCurrencyCAddrMap(proc *exec.Process, symbolIndex int32, cAddrIndex int32) int32 {

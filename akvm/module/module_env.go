@@ -66,6 +66,27 @@ func NewModuleEnv() *ModuleEnv {
 		Name: ItoaFunc,
 	})
 
+	mEnv.RegisterImportedFunc(BigIntSubFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(BigIntSub),
+		Name: BigIntSubFunc,
+	})
+
+	mEnv.RegisterImportedFunc(BigIntAddFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(BigIntAdd),
+		Name: BigIntAddFunc,
+	})
+
+	mEnv.RegisterImportedFunc(BigIntCmpFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(BigIntCmp),
+		Name: BigIntCmpFunc,
+	})
+
 	mEnv.RegisterImportedFunc(JsonObjectIndexFunc, &wasm.Function{
 		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
 		Body: &wasm.FunctionBody{},
@@ -169,6 +190,13 @@ func NewModuleEnv() *ModuleEnv {
 		Body: &wasm.FunctionBody{},
 		Host: reflect.ValueOf(Allowance),
 		Name: AllowanceFunc,
+	})
+
+	mEnv.RegisterImportedFunc(CreateCurrencyFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(CreateCurrency),
+		Name: CreateCurrencyFunc,
 	})
 
 	mEnv.RegisterImportedFunc(BuildCurrencyCAddrMapFunc, &wasm.Function{
