@@ -181,7 +181,7 @@ func getActionEntry(funcs []InvokeType, cc *ContractClass) []*Method {
 		funcSig := cc.FuncSigs[v.name]
 		if funcSig != nil {
 			if len(v.invokeType) != 0 {
-				funcSig.Type = v.invokeType
+				funcSig.Type = append(funcSig.Type, v.invokeType...)
 			}
 			m = append(m, funcSig)
 		}
