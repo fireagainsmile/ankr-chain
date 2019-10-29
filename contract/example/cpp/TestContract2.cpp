@@ -6,7 +6,7 @@ public:
     [[ACTION]]char* init();
     [[ACTION]][[EVENT]] void testFunc(const char *testStr);
     [[ACTION]] int testFuncWithInt(const char *testStr);
-    [[ACTION]][[EVENT]]char *testFuncWithString(const char *testStr);
+    [[ACTION]][[EVENT]][[OWNERABLE]] char *testFuncWithString(const char *testStr);
  };
 
  char* TestContract::init() {
