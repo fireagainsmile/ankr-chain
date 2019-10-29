@@ -6,7 +6,7 @@ public:
     char* init();
     void testFunc(const char *testStr);
     int testFuncWithInt(const char *testStr);
-    char *testFuncWithString(const char *testStr);
+    [[OWNERABLE]] char *testFuncWithString(const char *testStr);
     char* actionEntry(const char* action_name, const char *args);
  };
 

@@ -199,6 +199,13 @@ func NewModuleEnv() *ModuleEnv {
 		Name: CreateCurrencyFunc,
 	})
 
+	mEnv.RegisterImportedFunc(ContractAddrFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(ContractAddr),
+		Name: ContractAddrFunc,
+	})
+
 	mEnv.RegisterImportedFunc(BuildCurrencyCAddrMapFunc, &wasm.Function{
 		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
 		Body: &wasm.FunctionBody{},

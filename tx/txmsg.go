@@ -159,6 +159,12 @@ func (tx *TxMsg) BasicVerify(context ContextTx) (uint32, string) {
     return code.CodeTypeOK, ""
 }
 
+func (tx *TxMsg) verifyFromAddress() {
+	if tx.SignerAddr()[0] != "" {
+		//addr := tx.SecretKey().Address()
+	}
+}
+
 func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 	codeT, log := tx.BasicVerify(context)
 	if codeT != code.CodeTypeOK {

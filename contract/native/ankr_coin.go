@@ -176,7 +176,7 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	jsonArg := fmt.Sprintf(jsonArgFromat, fromAddrParam, toAddrParam, amountParam)
 
-	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
+	TrigEvent("transferFrom(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }
