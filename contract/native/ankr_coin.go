@@ -124,7 +124,7 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	return true
 }
 
-func (ac *AnkrCoin) transferFrom(fromAddr string, toAddr string, amount string) bool {
+func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) bool {
 	value, isSucess := new(big.Int).SetString(amount, 10)
 	if !isSucess || value == nil{
 		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSucess", isSucess)
@@ -176,7 +176,7 @@ func (ac *AnkrCoin) transferFrom(fromAddr string, toAddr string, amount string) 
 
 	jsonArg := fmt.Sprintf(jsonArgFromat, fromAddrParam, toAddrParam, amountParam)
 
-	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
+	TrigEvent("transferFrom(string, string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }

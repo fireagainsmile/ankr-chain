@@ -4,54 +4,54 @@
 class ERC20 : public akchain::Contract {
 public:
     [[ACTION]]char* init();
-    [[ACTION]]char* name();
-    [[ACTION]]char* symbol();
-    [[ACTION]]int decimals();
-    [[ACTION]]char* totalSupply();
-    [[ACTION]]char* balanceOf(const char* addr);
-    [[ACTION]][[EVENT]]int transfer(const char* toAddr, const char* amount);
-    [[ACTION]][[EVENT]]int transferFrom(const char* fromAddr, const char* toAddr, const char* amount);
-    [[ACTION]][[EVENT]]int approve(const char* spenderAddr, const char* amount);
-    [[ACTION]]char* allowance(const char* ownerAddr, const char* spenderAddr);
-    [[ACTION]][[EVENT]]int increaseApproval(const char* spenderAddr, const char* addedAmount);
-    [[ACTION]][[EVENT]]int decreaseApproval(const char* spenderAddr, const char* addedAmount);
+    [[ACTION]]char* Name();
+    [[ACTION]]char* Symbol();
+    [[ACTION]]int Decimals();
+    [[ACTION]]char* TotalSupply();
+    [[ACTION]]char* BalanceOf(const char* addr);
+    [[ACTION]][[EVENT]]int Transfer(const char* toAddr, const char* amount);
+    [[ACTION]][[EVENT]]int TransferFrom(const char* fromAddr, const char* toAddr, const char* amount);
+    [[ACTION]][[EVENT]]int Approve(const char* spenderAddr, const char* amount);
+    [[ACTION]]char* AllowanceERC20(const char* ownerAddr, const char* spenderAddr);
+    [[ACTION]][[EVENT]]int IncreaseApproval(const char* spenderAddr, const char* addedAmount);
+    [[ACTION]][[EVENT]]int DecreaseApproval(const char* spenderAddr, const char* addedAmount);
  };
 
 char* ERC20::init() {
     char* cAddr = ContractAddr();
     char* senderAddr = SenderAddr();
-    CreateCurrency(symbol(), decimals());
-    BuildCurrencyCAddrMap(symbol(), cAddr);
-    SetBalance(senderAddr, symbol(),totalSupply());
+    CreateCurrency(Symbol(), Decimals());
+    BuildCurrencyCAddrMap(Symbol(), cAddr);
+    SetBalance(senderAddr, Symbol(),TotalSupply());
 
     return "";
 }
 
-char* ERC20::name() {
+char* ERC20::Name() {
     return "ERC20";
 }
-char* ERC20::symbol() {
+char* ERC20::Symbol() {
     return "TESTCOIN";
 }
 
-int ERC20::decimals() {
+int ERC20::Decimals() {
     return 18;
 }
-char* ERC20::totalSupply() {
+char* ERC20::TotalSupply() {
     return "1000000000000000000000000000";
 }
 
-char* ERC20::balanceOf(const char* addr) {
+char* ERC20::BalanceOf(const char* addr) {
     return Balance(addr, "TESTCOIN");
 }
 
-int ERC20::transfer(const char* toAddr, const char* amount) {
+int ERC20::Transfer(const char* toAddr, const char* amount) {
     if (strcmp(toAddr, "") == 0 || strcmp(amount, "") == 0){
         return -1;
     }
     char* senderAddr = SenderAddr();
-    char* balSender = balanceOf(senderAddr);
-    char* balTo     = balanceOf(toAddr);
+    char* balSender = BalanceOf(senderAddr);
+    char* balTo     = BalanceOf(toAddr);
 
      if (balSender == nullptr || BigIntCmp(balSender,amount) <= 0) {
         return -1;
@@ -75,13 +75,13 @@ int ERC20::transfer(const char* toAddr, const char* amount) {
     return 0;
 }
 
-int ERC20::transferFrom(const char* fromAddr, const char* toAddr, const char* amount) {
+int ERC20::TransferFrom(const char* fromAddr, const char* toAddr, const char* amount) {
      if (strcmp(fromAddr, "") == 0 || strcmp(toAddr, "") == 0 || strcmp(amount, "") == 0){
         return -1;
      }
 
-    char* balFrom = balanceOf(fromAddr);
-    char* balTo   = balanceOf(toAddr);
+    char* balFrom = BalanceOf(fromAddr);
+    char* balTo   = BalanceOf(toAddr);
 
     if (balFrom == nullptr || BigIntCmp(balFrom,amount) <= 0) {
         return -1;
@@ -106,7 +106,7 @@ int ERC20::transferFrom(const char* fromAddr, const char* toAddr, const char* am
     return 0;
 }
 
-int ERC20::approve(const char* spenderAddr, const char* amount) {
+int ERC20::Approve(const char* spenderAddr, const char* amount) {
     char* senderAddr = SenderAddr();
     int iRtn = SetAllowance(senderAddr, spenderAddr, "TESTCOIN", amount);
 
@@ -118,11 +118,11 @@ int ERC20::approve(const char* spenderAddr, const char* amount) {
     return iRtn;
 }
 
-char* ERC20::allowance(const char* ownerAddr, const char* spenderAddr) {
+char* ERC20::AllowanceERC20(const char* ownerAddr, const char* spenderAddr) {
     return Allowance(ownerAddr, spenderAddr, "TESTCOIN");
 }
 
-int ERC20::increaseApproval(const char* spenderAddr, const char* addedAmount) {
+int ERC20::IncreaseApproval(const char* spenderAddr, const char* addedAmount) {
     char* senderAddr = SenderAddr();
     char* curAllow = Allowance(senderAddr, spenderAddr, "TESTCOIN");
     char* allow = BigIntAdd(curAllow, addedAmount);
@@ -136,7 +136,7 @@ int ERC20::increaseApproval(const char* spenderAddr, const char* addedAmount) {
     return iRtn;
 }
 
-int ERC20::decreaseApproval(const char* spenderAddr, const char* subtractedAmount) {
+int ERC20::DecreaseApproval(const char* spenderAddr, const char* subtractedAmount) {
     char* senderAddr = SenderAddr();
     char* curAllow = Allowance(senderAddr, spenderAddr, "TESTCOIN");
     char* allow = BigIntSub(curAllow, subtractedAmount);
