@@ -44,9 +44,9 @@ func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-olIbuz",
+		ChID: "test-chain-rMQ8OX",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
 		Version: "1.0",
 	}
@@ -83,7 +83,7 @@ func TestCertMsgWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-hQYhLJ",
+		ChID: "test-chain-3vX5qQ",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test CertMsg",
@@ -314,4 +314,13 @@ func TestContractInvokeWithNodePattern2(t *testing.T) {
 	json.Unmarshal([]byte(contractResultJson), &contractR)
 
 	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractR=%v", txHash, cHeight, contractR)
+}
+
+func TestQueryAccountInfoWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	resp := &ankrcmm.AccountQueryResp{}
+	c.Query("/store/account", &ankrcmm.AccountQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67"}, resp)
+
+	t.Logf("account=%v", resp)
 }
