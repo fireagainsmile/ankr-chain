@@ -44,7 +44,10 @@
    ./contract-compiler compile ../../contract/example/cpp/TestContract2.cpp  --gen-abi --output <your abi file path>
   
 2.Deploy the example contracts by ankr-chain-cli under the subdirectory "build/tool": 
-   ankr_cli.exe transaction  deploy --chain-id "test-chain-Hk17dM" --gas-limit 2000 --gas-price "100000000000000000" --nodeurl "localhost:26657" --file "../../contract/example/cpp/TestContract2.wasm" --name "TestContract2" --keystore  --abi ""
+   ankr_cli.exe transaction deploy --chain-id "test-chain-Hk17dM" --gas-limit 2000 --gas-price "100000000000000000" --nodeurl "localhost:26657" --file "../../contract/example/cpp/TestContract2.wasm" --name "TestContract2" --keystore  --abi ""
+   
+3.Invoke the example contracts by ankr-chain-cli under the subdirectory "build/tool":
+  
    
    
    
