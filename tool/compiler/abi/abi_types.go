@@ -11,7 +11,7 @@ import (
 var (
 	//funcRegexp = `(\[ \[ (ACTION|EVENT) \] \] ){0,2}(char|void) [\w]+ \(`
 	//used inside class definition
-	funcRegexp = `(\[ \[ (ACTION|EVENT) \] \] ){0,2}(char|void|int|float|bool) (\*\s)*[\w]+ \( (([\w]+|,|\*)\s)*\)` //add more
+	funcRegexp = `(\[ \[ (ACTION|EVENT|OWNERABLE) \] \] ){0,3}(char|void|int|float|bool) (\*\s)*[\w]+ \( (([\w]+|,|\*)\s)*\)` //add more
 	pureFunc = `(char|void|int|float|bool) (\*\s)*[\w]+ \( (([\w]+|,|\*)\s)*\)`
 	inputRegexp = `\( (([\w]+|,|\*)\s)*\)`
 	exportRegexp = `extern(\s)*"(C|c)"(\s)*{(\s)*([^\{]*\{[^\}]*\})*(\s)*}`
@@ -19,6 +19,7 @@ var (
 var (
 	ClassDefineFile  string
 	ContractMainFile string
+	CurPath string
 )
 
 const (
@@ -223,6 +224,9 @@ func (m *Method)ParseFunction(foo string)  {
 
 	if strings.Contains(foo, "EVENT"){
 		m.addType("event")
+	}
+	if strings.Contains(foo, "OWNERABLE"){
+		m.addType("ownerable")
 	}
 
 	reg, _ := regexp.Compile(pureFunc)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 	"text/scanner"
@@ -104,14 +105,19 @@ func writeABI(abi []byte, fileName string) error {
 
 func parseClassFromFile(file string, cc *ContractClass) error {
 	cl := searchClass(file)
+	n := strings.LastIndex(file, "/")
+	CurPath = file[0:n]
 	if len(cl) != 0 {
 		ClassDefineFile = file
 	}else {
+		n := strings.LastIndex(file, "/")
+		CurPath = file[0:n]
 		includes := searchIncludes(file)
 		for _, include := range includes {
-			cl = searchClass(include)
+			defineFile := path.Join(CurPath, include)
+			cl = searchClass(defineFile)
 			if len(cl) != 0 {
-				ClassDefineFile = include
+				ClassDefineFile = defineFile
 				break
 			}
 		}
@@ -181,7 +187,7 @@ func getActionEntry(funcs []InvokeType, cc *ContractClass) []*Method {
 		funcSig := cc.FuncSigs[v.name]
 		if funcSig != nil {
 			if len(v.invokeType) != 0 {
-				funcSig.Type = v.invokeType
+				funcSig.Type = append(funcSig.Type, v.invokeType...)
 			}
 			m = append(m, funcSig)
 		}
