@@ -209,7 +209,7 @@ func (sp *IavlStoreApp) AddAccount(address string, accType ankrcmm.AccountType) 
 }
 
 func (sp *IavlStoreApp) AccountQuery(address string) (*ankrcmm.AccountQueryResp, error) {
-	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
+	if sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
 		accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
 		accInfo := account.DecodeAccount(sp.cdc, accBytes)
 

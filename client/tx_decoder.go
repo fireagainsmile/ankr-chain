@@ -51,8 +51,8 @@ func (d *TxDecoder) sendTxHandler(txMsgData interface{}) (*tx.TxMsg, error) {
 	pubkeyS := trxSendSlices[4]
 	sigS    := trxSendSlices[5]
 
-	amountInt, isSucess := new(big.Int).SetString(amountS, 10)
-	if !isSucess {
+	amountInt, isSuccess := new(big.Int).SetString(amountS, 10)
+	if !isSuccess {
 		return nil, fmt.Errorf("invalid send tx amountS: %s", amountS)
 	}
 
@@ -62,8 +62,8 @@ func (d *TxDecoder) sendTxHandler(txMsgData interface{}) (*tx.TxMsg, error) {
 		[]ankrcmm.Amount {{ankrcmm.Currency{"ANKR", 18}, amountInt.Bytes()}},
 	}
 
-	nonce, isSucess := new(big.Int).SetString(nonceS, 10)
-	if !isSucess {
+	nonce, isSuccess := new(big.Int).SetString(nonceS, 10)
+	if !isSuccess {
 		return nil, fmt.Errorf("invalid send tx nonceS: %s", nonceS)
 	}
 
@@ -143,8 +143,8 @@ func (d *TxDecoder) meteringHandler(txMsgData interface{}) (*tx.TxMsg, error) {
 
 	rcMsg := &metering.MeteringMsg{DCName: dcS, NSName: nsS, Value: valueS}
 
-	nonce, isSucess := new(big.Int).SetString(nonceS, 10)
-	if !isSucess {
+	nonce, isSuccess := new(big.Int).SetString(nonceS, 10)
+	if !isSuccess {
 		return nil, fmt.Errorf("invalid metering tx nonceS: %s", nonceS)
 	}
 

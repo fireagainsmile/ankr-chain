@@ -2,9 +2,9 @@ package tx
 
 import (
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/account"
 	"math/big"
 
+	"github.com/Ankr-network/ankr-chain/account"
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
@@ -94,7 +94,7 @@ func (tx *TxMsg) SpendGas(gas *big.Int) bool {
 
 	subGas := new(big.Int).Sub(gasUsedT, new(big.Int).SetBytes(tx.GasLimit))
 
-	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
+	if subGas.Cmp(big.NewInt(0)) == 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return false
 	}
 
@@ -133,7 +133,7 @@ func (tx *TxMsg) verifyMinGasPrice(context ContextTx) (uint32, string) {
 	minGasPrice := context.MinGasPrice()
 	gasPriceVal := new(big.Int).SetBytes(tx.GasPrice.Value)
 	minGasPriceVal :=  new(big.Int).SetBytes(minGasPrice.Value)
-	if tx.GasPrice.Cur.Symbol != minGasPrice.Cur.Symbol || gasPriceVal.Cmp(minGasPriceVal) < -1 || gasPriceVal.Cmp(minGasPriceVal) == 0{
+	if tx.GasPrice.Cur.Symbol != minGasPrice.Cur.Symbol || gasPriceVal.Cmp(minGasPriceVal) == -1 {
 		return code.CodeTypeGasPriceIrregular, fmt.Sprintf("irregular tx gas price: txGasSymbol=%s, txGasPriceVal=%s, minGasSymbol=%s, minGasPriceVal=%s",
 			tx.GasPrice.Cur.Symbol, gasPriceVal.String(),
 			minGasPrice.Cur.Symbol, minGasPriceVal.String())
@@ -159,10 +159,19 @@ func (tx *TxMsg) BasicVerify(context ContextTx) (uint32, string) {
     return code.CodeTypeOK, ""
 }
 
-func (tx *TxMsg) verifyFromAddress() {
-	if tx.SignerAddr()[0] != "" {
-		//addr := tx.SecretKey().Address()
+func (tx *TxMsg) verifyFromAddress() (uint32, string) {
+	if len(tx.SignerAddr()) > 0 && tx.SignerAddr()[0] != "" {
+		sk := tx.SecretKey()
+		switch sk.(type) {
+		case *ankrcrypto.SecretKeyEd25519:
+			addr := tx.Signs[0].PubKey.Address().String()
+			if string(addr) != tx.SignerAddr()[0] {
+				return code.CodeTypeInvalidFromAddr, fmt.Sprintf("mismatch from addr: got addr=%s, expected addr=%s", tx.SignerAddr()[0], addr)
+			}
+		}
 	}
+
+	return code.CodeTypeOK, ""
 }
 
 func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
@@ -172,6 +181,11 @@ func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 	}
 
 	codeT, log = tx.verifyMinGasPrice(context)
+	if codeT != code.CodeTypeOK {
+		return types.ResponseCheckTx{Code: codeT, Log: log}
+	}
+
+	codeT, log = tx.verifyFromAddress()
 	if codeT != code.CodeTypeOK {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
@@ -195,7 +209,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	}
 
 	subGas := new(big.Int).Sub(tx.GasUsed, new(big.Int).SetBytes(tx.GasLimit))
-	if subGas.Cmp(big.NewInt(0)) > 1 || subGas.Cmp(big.NewInt(0)) == 0 {
+	if subGas.Cmp(big.NewInt(0)) == 1 || subGas.Cmp(big.NewInt(0)) == 0 {
 		return types.ResponseDeliverTx{Code: code.CodeTypeGasNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, gas not enough, got %s", tx.GasUsed.String())}
 	}
 
@@ -204,7 +218,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	if err != nil {
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), tx.SignerAddr()[0])}
 	}
-	if usedFee.Cmp(balFrom) > 1 || usedFee.Cmp(balFrom) == 0 {
+	if usedFee.Cmp(balFrom) == 1 || usedFee.Cmp(balFrom) == 0 {
 		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), balFrom.String())}
 	}
 

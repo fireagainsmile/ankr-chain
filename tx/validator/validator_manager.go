@@ -124,9 +124,9 @@ func (vm *ValidatorManager) ValUpdates() []types.ValidatorUpdate {
 			requiredVals = append(requiredVals, validatorPair{k, v})
 		} else {
 			sort.Sort(requiredVals)
-			valInfo := requiredVals[len(requiredVals) -1]
-			if new(big.Int).SetBytes(v.StakeAmount.Value).Cmp(new(big.Int).SetBytes(valInfo.validatorInfo.StakeAmount.Value)) < -1 {
-				requiredVals[len(requiredVals) -1] = validatorPair{k, v}
+			valInfo := requiredVals[len(requiredVals)-1]
+			if new(big.Int).SetBytes(v.StakeAmount.Value).Cmp(new(big.Int).SetBytes(valInfo.validatorInfo.StakeAmount.Value)) == -1 {
+				requiredVals[len(requiredVals)-1] = validatorPair{k, v}
 			}
 		}
 	}

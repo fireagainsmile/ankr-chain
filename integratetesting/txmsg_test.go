@@ -55,3 +55,12 @@ func TestTxTransfer(t *testing.T) {
 	respDeliverTx := txM.DeliverTx(txContext)
 	assert.Equal(t, respDeliverTx.Code, code.CodeTypeOK)
 }
+
+func TestBigCmp(t *testing.T) {
+	bigOne := new(big.Int).SetUint64(10000000000000)
+	bigTwo, _ := new(big.Int).SetString("100000000000000", 10)
+
+	cmpR := bigOne.Cmp(bigTwo)
+
+	t.Logf("cmpR=%d", cmpR)
+}
