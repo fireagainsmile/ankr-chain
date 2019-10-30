@@ -99,9 +99,13 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 	context.AppStore().IncNonce(tf.FromAddr)
 
 	tvalue := time.Now().UnixNano()
+	addressIndexFrom := fmt.Sprintf("app.%s", tf.FromAddr)
+	addressIndexTo   := fmt.Sprintf("app.%s", tf.ToAddr)
 	tags := []cmn.KVPair{
 		{Key: []byte("app.fromaddress"), Value: []byte(tf.FromAddr)},
 		{Key: []byte("app.toaddress"), Value: []byte(tf.ToAddr)},
+		{Key: []byte(addressIndexFrom), Value: []byte(strconv.FormatInt(1, 10))},
+		{Key: []byte(addressIndexTo), Value: []byte(strconv.FormatInt(1, 10))},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeTransfer)},
 	}
