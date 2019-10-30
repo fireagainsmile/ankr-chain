@@ -85,8 +85,8 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		os.RemoveAll(kvPath)
 	}
 
-	//appStorePath := filepath.Join(dbDir, "appstore.db")
-	//os.RemoveAll(appStorePath)
+	appStorePath := filepath.Join(dbDir, "appstore.db")
+	os.RemoveAll(appStorePath)
 
 	var lcmmID ankrcmm.CommitID
 
