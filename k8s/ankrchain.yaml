@@ -153,11 +153,7 @@ spec:
         - name: ankrchain
           image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
           imagePullPolicy: Always
-          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.4.json config/node_key.json && mv config/priv_validator_key.4.json config/priv_validator_key.json && ankrchain node --log_level=debug --moniker=`hostname` --historydb.type=$TXHISTORY_DB_TYPE --historydb.host=$TXHISTORY_DB_HOST --historydb.name=$TXHISTORY_DB_NAME"]
-          env:
-            - name: TXHISTORY_DB_TYPE
-            - name: TXHISTORY_DB_HOST
-            - name: TXHISTORY_DB_NAME
+          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.4.json config/node_key.json && mv config/priv_validator_key.4.json config/priv_validator_key.json && ankrchain node --log_level=debug --moniker=`hostname`"]
           ports:
             - name: p2p-4
               containerPort: 26656
