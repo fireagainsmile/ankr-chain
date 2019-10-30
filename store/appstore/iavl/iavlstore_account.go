@@ -179,6 +179,22 @@ func (sp *IavlStoreApp) Nonce(address string) (uint64, error) {
 	return accInfo.Nonce, nil
 }
 
+func (sp *IavlStoreApp) SetNonce(address string, nonce uint64) error {
+	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
+		return fmt.Errorf("can't find the respond account from store: address=%s", address)
+	}
+
+	accBytes, _ := sp.iavlSM.storeMap[IavlStoreAccountKey].Get([]byte(containAccountPrefix(address)))
+	accInfo := account.DecodeAccount(sp.cdc, accBytes)
+	accInfo.Nonce = nonce
+
+	bytes := account.EncodeAccount(sp.cdc, &accInfo)
+
+	sp.iavlSM.storeMap[IavlStoreAccountKey].Set([]byte(containAccountPrefix(accInfo.Address)), bytes)
+
+	return nil
+}
+
 func (sp *IavlStoreApp) IncNonce(address string) (uint64, error) {
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		return 0, fmt.Errorf("can't find the respond account from store: address=%s", address)
