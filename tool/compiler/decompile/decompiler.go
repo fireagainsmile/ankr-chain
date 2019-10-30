@@ -25,11 +25,13 @@ func decompile(cmd *cobra.Command, args []string) {
     cmd.Help()
     return
   }
+  fmt.Println("Converting wasm to wast...")
   err := executeCommand(NewWasm2WatOp(), args)
   if err != nil {
     fmt.Println(err)
     return
   }
+  fmt.Println("Finished Converting wasm to wast...")
 }
 
 func executeCommand(exe Executable, args []string) error {

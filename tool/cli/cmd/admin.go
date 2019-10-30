@@ -112,6 +112,7 @@ func setCert(cmd *cobra.Command, args []string) {
 		return
 	}
 	builder :=client2.NewTxMsgBuilder(*header, txMsg, serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, _, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Set Cert failed.")
@@ -166,6 +167,7 @@ func setValidator(cmd *cobra.Command, args []string) {
 	keyAddr, _ := key.Address()
 	validatorMsg.FromAddress = fmt.Sprintf("%X", keyAddr)
 	builder := client2.NewTxMsgBuilder(*header, validatorMsg,serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, _, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Set Validator failed.")
@@ -263,6 +265,7 @@ func removeCert(cmd *cobra.Command, args []string) {
 	keyAddr, _ := key.Address()
 	txMsg.FromAddr = fmt.Sprintf("%X", keyAddr)
 	builder := client2.NewTxMsgBuilder(*header, txMsg, serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, _, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Remove cert failed.")

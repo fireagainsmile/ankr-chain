@@ -43,6 +43,7 @@ func compile(cmd *cobra.Command, args []string) {
 		cmd.Help()
 		return
 	}
+	fmt.Println("compiling ", args)
 
 	err := exeCommand(abi.NewContractClass(), args)
 	if err != nil {
@@ -71,7 +72,7 @@ func compile(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
-
+	fmt.Println("Compile smart contract finished.")
 }
 
 //helper function to execute commands

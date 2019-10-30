@@ -149,6 +149,7 @@ func transfer(cmd *cobra.Command, args []string) {
 	keyAddr, _ := key.Address()
 	transferMsg.FromAddr = fmt.Sprintf("%X", keyAddr)
 	builder := client2.NewTxMsgBuilder(*txMsgheader, transferMsg, serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, txHeight, _, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Transaction commit failed.")
@@ -204,6 +205,7 @@ func sendMetering(cmd *cobra.Command, args []string) {
 	key := crypto.NewSecretKeyPem(privPem, resp.PEMBase64, "@mert:"+"dc1_"+"ns1")
 
 	builder := client2.NewTxMsgBuilder(*txMsgheader, meteringMsg, serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, _, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Send CertMsg failed.")
@@ -273,6 +275,7 @@ func runDeploy(cmd *cobra.Command, args []string){
 	}
 	contractMsg.FromAddr = fmt.Sprintf("%X", keyAddr)
 	builder := client2.NewTxMsgBuilder(*header, contractMsg, serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, contractAddr, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Deploy smart contract failed!")
@@ -331,6 +334,7 @@ func runInvoke(cmd *cobra.Command, args []string)  {
 	keyAddr, _ := key.Address()
 	invokeMsg.FromAddr = fmt.Sprintf("%X",keyAddr)
 	builder := client2.NewTxMsgBuilder(*header, invokeMsg, serializer.NewTxSerializerCDC(), key)
+	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, contractResultJson, err := builder.BuildAndCommit(client)
 	if err != nil {
 		fmt.Println("Invoke contract failed.")
