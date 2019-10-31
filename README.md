@@ -31,31 +31,29 @@
      address:  B7665C86D4566627F3D9A2CF7E4518156ED139D80D216C
      
   5. Import the ankr chain testing account "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67"'s private key by the following ankr-chain-cli command: 
+  
      ./ankr-chain-cli account genkeystore --privkey "wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg=="
      
-  6. Query the ankr chain id by curl command: 
+  6. Query the ankr chain id by curl command:
+  
      curl 127.0.0.1:26659/status
      
- 5. Transfer some ANKR coins from testing account to "B7665C86D4566627F3D9A2CF7E4518156ED139D80D216C": 
+  7. Transfer some ANKR coins from testing account to "B7665C86D4566627F3D9A2CF7E4518156ED139D80D216C": 
+  
       ./ankr-chain-cli transaction  transfer --chain-id "test-chain-Hk17dM" --gas-limit 2000 --gas-price "100000000000000000" --nodeurl "localhost:26657" --amount 6 ANKR --to "B7665C86D4566627F3D9A2CF7E4518156ED139D80D216C" --keystore  <key store file>
   
-  You can also try ankr chain smart contracts by the following step: 
-1.Compile the example contracts by the tool contract-compiler under the subdirectory "build/tool":
+  You can also try ankr chain smart contracts by the following step:
+  
+1. Compile the example contracts by the tool contract-compiler under the subdirectory "build/tool":
+
    ./contract-compiler compile ../../contract/example/cpp/TestContract2.cpp  --gen-abi --output <your abi file path>
   
-2.Deploy the example contracts by ankr-chain-cli under the subdirectory "build/tool": 
-   ankr_cli.exe transaction deploy --chain-id "test-chain-Hk17dM" --gas-limit 2000 --gas-price "100000000000000000" --nodeurl "localhost:26657" --file "../../contract/example/cpp/TestContract2.wasm" --name "TestContract2" --keystore  --abi ""
+2. Deploy the example contracts by ankr-chain-cli under the subdirectory "build/tool": 
+
+   ./ankr-chain-cli transaction deploy --chain-id "test-chain-Hk17dM" --gas-limit 2000 --gas-price "100000000000000000" --nodeurl "localhost:26657" --file "../../contract/example/cpp/TestContract2.wasm" --name "TestContract2" --keystore  --abi ""
    
-3.Invoke the example contracts by ankr-chain-cli under the subdirectory "build/tool":
+3. Invoke the example contracts by ankr-chain-cli under the subdirectory "build/tool":
+
+   ./ankr-chain-cli transaction  invoke --method "testFuncWithString" --args "[{\"index\":1,\"Name\":\"args\",\"ParamType\":\"string\",\"Value\":\"testFuncWithInt arg\"}]" --rtn-type "string" --chain-id "test-chain-Hk17dM" --gas-limit 2000 --gas-price "100000000000000000" --nodeurl "localhost:26657" ---keystore  <key store file> --address "BFB8206804DC410AAFB8828ABDD36B488DCFB7FA8EF984"
   
-   
-   
-   
-     
-    
-     
-    
-   
-   
-   
-     
+  more detailed instruction, you can refer to the related document.
