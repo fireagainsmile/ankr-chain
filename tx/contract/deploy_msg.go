@@ -2,7 +2,7 @@ package contract
 
 import (
 	"fmt"
-	"github.com/go-interpreter/wagon/exec/gas"
+	"github.com/Ankr-network/wagon/exec/gas"
 	"math/big"
 	"strconv"
 	"time"

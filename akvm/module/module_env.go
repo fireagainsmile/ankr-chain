@@ -3,7 +3,7 @@ package module
 import (
 	"reflect"
 
-	"github.com/go-interpreter/wagon/wasm"
+	"github.com/Ankr-network/wagon/wasm"
 )
 
 type ModuleEnv struct {

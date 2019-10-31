@@ -11,7 +11,7 @@ import (
 	ankrcontext "github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/log"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	"github.com/go-interpreter/wagon/exec"
+	"github.com/Ankr-network/wagon/exec"
 )
 
 const (

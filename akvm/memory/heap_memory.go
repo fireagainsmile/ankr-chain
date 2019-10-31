@@ -3,7 +3,7 @@ package memory
 import (
 	"errors"
 
-	"github.com/go-interpreter/wagon/wasm"
+	"github.com/Ankr-network/wagon/wasm"
 )
 
 type HeapMemoryImpl struct {
