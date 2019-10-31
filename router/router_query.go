@@ -29,10 +29,8 @@ func (qr *QueryRouter) AddQueryHandler(path string, qHandler appstore.QueryHandl
 
 func (qr *QueryRouter) parseRouterPath(path string) (routerPath string, subPath string, err error) {
 	if path == "" {
-		routerPath = "store"
-		subPath    = ""
-		err        = nil
-		return
+		qr.qrLog.Error("invalid path for parseRouterPath, path blank",)
+		return "", "", fmt.Errorf("invalid path for parseRouterPath, path blank")
 	} else {
 		if !strings.HasPrefix(path,"/") || len(path) == 1 {
 			qr.qrLog.Error("invalid path for parseRouterPath", "path", path)
@@ -45,7 +43,7 @@ func (qr *QueryRouter) parseRouterPath(path string) (routerPath string, subPath 
 		}
 
 		if len(pathSegs) >= 2 {
-			subPath = path[len(pathSegs[0])+1:]
+			subPath = pathSegs[1]
 		}
 
 		return

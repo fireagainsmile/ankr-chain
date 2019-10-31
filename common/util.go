@@ -25,3 +25,11 @@ func UInt64ToBytes(i uint64) []byte {
 func BytesToUInt64(buf []byte) uint64 {
 	return binary.BigEndian.Uint64(buf)
 }
+
+func MaxUint(a, b uint) uint {
+	if a > b {
+		return a
+	}
+
+	return b
+}

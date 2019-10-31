@@ -1,18 +1,18 @@
 package iavl
 
 import (
+	"encoding/binary"
 	"fmt"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/crypto/merkle"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 const (
-	IavlStoreAccountKey  = "account"
-	IAvlStoreMainKey     = "main"
-	IAvlStoreContractKey = "contract"
+	IavlStoreAccountKey  = "ANKRCHAINACCOUNT"
+	IAvlStoreMainKey     = "ANKRCHAINMAIN"
+	IAvlStoreContractKey = "ANKRCHAINCONTRACT"
 
 	IavlStoreAccountDefCacheSize  = 10000
 	IAvlStoreTxDefCacheSize       = 10000
@@ -36,12 +36,13 @@ type IavlStoreMulti struct {
 
 type storeCommitID struct {
 	Name string
-	CID  ankrtypes.CommitID
+	CID  ankrcmm.CommitID
 }
 
 type commitInfo struct {
 	Version int64
-	Commits  []storeCommitID
+	AppHash []byte
+	Commits []storeCommitID
 }
 
 func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
@@ -56,13 +57,13 @@ func NewIavlStoreMulti(db dbm.DB, storeLog log.Logger) *IavlStoreMulti {
 	storeMap := make(map[string]*IavlStore)
 
 	dbAcc := dbm.NewPrefixDB(db, []byte("ankr:"+IavlStoreAccountKey+"/"))
-	storeMap[IavlStoreAccountKey] = NewIavlStore(dbAcc, IavlStoreAccountDefCacheSize, IAVLStoreAccountKeepVersionNum, storeLog.With("tx", "accountstore"))
+	storeMap[IavlStoreAccountKey] = NewIavlStore(dbAcc, IavlStoreAccountDefCacheSize, IAVLStoreAccountKeepVersionNum, storeLog.With("module", "accountstore"))
 
 	dbTran := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreMainKey+"/"))
-	storeMap[IAvlStoreMainKey] = NewIavlStore(dbTran, IAvlStoreTxDefCacheSize, IAVLStoreMainKeepVersionNum, storeLog.With("tx", "txstore"))
+	storeMap[IAvlStoreMainKey] = NewIavlStore(dbTran, IAvlStoreTxDefCacheSize, IAVLStoreMainKeepVersionNum, storeLog.With("module", "txstore"))
 
 	dbMt := dbm.NewPrefixDB(db, []byte("ankr:"+IAvlStoreContractKey+"/"))
-	storeMap[IAvlStoreContractKey] = NewIavlStore(dbMt, IAvlStoreContractDefCacheSize, IAVLStoreContractKeepVersionNum, storeLog.With("tx", "contractstore"))
+	storeMap[IAvlStoreContractKey] = NewIavlStore(dbMt, IAvlStoreContractDefCacheSize, IAVLStoreContractKeepVersionNum, storeLog.With("module", "contractstore"))
 
 	return &IavlStoreMulti{db, storeMap, storeLog, amino.NewCodec()}
 }
@@ -128,10 +129,10 @@ func (ms *IavlStoreMulti) setLatestVersion(batch dbm.Batch, version int64) {
 	batch.Set([]byte(LatestVerKey), latestVerBtest)
 }
 
-func (ms *IavlStoreMulti) lastCommit() ankrtypes.CommitID {
+func (ms *IavlStoreMulti) lastCommit() ankrcmm.CommitID {
 	latestVer := ms.latestVersion()
 	if latestVer == 0 {
-		return ankrtypes.CommitID{}
+		return ankrcmm.CommitID{}
 	}
 
     cmmInfos :=  ms.commitInfo(latestVer)
@@ -140,26 +141,24 @@ func (ms *IavlStoreMulti) lastCommit() ankrtypes.CommitID {
     		ms.log.Error("error commitinfo, mmInfos.version != latestVer", "latestVer", latestVer, "commitInfoVer", cmmInfos.Version)
 		}
 
-		hashM := make(map[string][]byte)
-		for _, s := range cmmInfos.Commits {
-			hashM[s.Name] = s.CID.Hash
-		}
-		reHash := merkle.SimpleHashFromMap(hashM)
-
-		return ankrtypes.CommitID{latestVer, reHash}
+		return ankrcmm.CommitID{latestVer, cmmInfos.AppHash}
 	}else {
 		ms.log.Error("can't get the latest commitinfo", "latestVer", latestVer)
 	}
 
-    return ankrtypes.CommitID{}
+    return ankrcmm.CommitID{}
 }
 
-func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
+func (ms *IavlStoreMulti) Commit(version int64, totalTx int64) ankrcmm.CommitID {
 	var cmmInfo commitInfo
 
 	version += 1
 
+	appHash := make([]byte, 8)
+	binary.PutVarint(appHash, totalTx)
+
 	cmmInfo.Version = version
+	cmmInfo.AppHash = appHash
 
 	hashM := make(map[string][]byte)
 	for k, s := range ms.storeMap {
@@ -173,16 +172,15 @@ func (ms *IavlStoreMulti) Commit(version int64) ankrtypes.CommitID {
 		cmmInfo.Commits = append(cmmInfo.Commits, storeCommitID{k,commitID})
 	}
 
-	reHash := merkle.SimpleHashFromMap(hashM)
-
 	batch := ms.db.NewBatch()
 	defer batch.Close()
+
 	ms.setCommitInfo(batch, version, cmmInfo)
 	ms.setLatestVersion(batch, version)
 
 	batch.Write()
 
-	return ankrtypes.CommitID{version, reHash}
+	return ankrcmm.CommitID{version, cmmInfo.AppHash}
 }
 
 
