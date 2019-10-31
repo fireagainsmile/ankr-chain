@@ -22,7 +22,6 @@ func CreateTxCDC() *amino.Codec {
 	txCdc.RegisterConcrete(&metering.MeteringMsg{}, "ankr-chain/tx/metering/meteringMsg", nil)
 	txCdc.RegisterConcrete(&contract.ContractDeployMsg{}, "ankr-chain/tx/contract/ContractDeployMsg", nil)
 	txCdc.RegisterConcrete(&contract.ContractInvokeMsg{}, "ankr-chain/tx/contract/ContractInvokeMsg", nil)
-	txCdc.RegisterConcrete(&tx.TxMsgTesting{}, "ankr-chain/tx/txMsgTesting", nil)
 
 	return txCdc
 }
