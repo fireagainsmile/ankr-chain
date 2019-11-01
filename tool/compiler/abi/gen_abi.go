@@ -106,12 +106,16 @@ func writeABI(abi []byte, fileName string) error {
 func parseClassFromFile(file string, cc *ContractClass) error {
 	cl := searchClass(file)
 	n := strings.LastIndex(file, "/")
-	CurPath = file[0:n]
+	if n != -1 {
+		CurPath = file[0:n]
+	}
 	if len(cl) != 0 {
 		ClassDefineFile = file
 	}else {
 		n := strings.LastIndex(file, "/")
-		CurPath = file[0:n]
+		if n != -1 {
+			CurPath = file[0:n]
+		}
 		includes := searchIncludes(file)
 		for _, include := range includes {
 			defineFile := path.Join(CurPath, include)
