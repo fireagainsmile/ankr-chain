@@ -93,6 +93,10 @@ func (cc *ContractClass)genAbi(file string, functions []InvokeType) error {
 
 func getAbiFileName(srcFile string) string {
 	// replace cpp or cc with json
+	n := strings.LastIndex(srcFile, "/")
+	if n != -1 {
+		srcFile = srcFile[n+1:]
+	}
 	abiFile := strings.TrimRight(srcFile, "cpp")
 	abiFile = strings.TrimRight(abiFile, "cc")
 	return  fmt.Sprintf("%sabi",abiFile)
@@ -106,12 +110,16 @@ func writeABI(abi []byte, fileName string) error {
 func parseClassFromFile(file string, cc *ContractClass) error {
 	cl := searchClass(file)
 	n := strings.LastIndex(file, "/")
-	CurPath = file[0:n]
+	if n != -1 {
+		CurPath = file[0:n]
+	}
 	if len(cl) != 0 {
 		ClassDefineFile = file
 	}else {
 		n := strings.LastIndex(file, "/")
-		CurPath = file[0:n]
+		if n != -1 {
+			CurPath = file[0:n]
+		}
 		includes := searchIncludes(file)
 		for _, include := range includes {
 			defineFile := path.Join(CurPath, include)
