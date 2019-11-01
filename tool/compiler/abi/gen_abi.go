@@ -93,6 +93,10 @@ func (cc *ContractClass)genAbi(file string, functions []InvokeType) error {
 
 func getAbiFileName(srcFile string) string {
 	// replace cpp or cc with json
+	n := strings.LastIndex(srcFile, "/")
+	if n != -1 {
+		srcFile = srcFile[n+1:]
+	}
 	abiFile := strings.TrimRight(srcFile, "cpp")
 	abiFile = strings.TrimRight(abiFile, "cc")
 	return  fmt.Sprintf("%sabi",abiFile)
