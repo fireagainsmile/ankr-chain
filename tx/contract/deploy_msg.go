@@ -2,7 +2,7 @@ package contract
 
 import (
 	"fmt"
-	"github.com/go-interpreter/wagon/exec/gas"
+	"github.com/Ankr-network/wagon/exec/gas"
 	"math/big"
 	"strconv"
 	"time"
@@ -103,6 +103,7 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
 		{Key: []byte("app.fromaddress"), Value: []byte(cd.FromAddr)},
+		{Key: []byte("app.contractaddr"), Value: []byte(contractAddr)},
 		{Key: []byte("app.timestamp"), Value: []byte(strconv.FormatInt(tvalue, 10))},
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeContractDeployMsg)},
 	}

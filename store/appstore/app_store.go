@@ -10,6 +10,7 @@ import (
 
 type AccountStore interface {
 	Nonce(address string) (uint64, error)
+	SetNonce(address string, nonce uint64) error
 	IncNonce(address string) (uint64, error)
 	AddAccount(address string, accType ankrcmm.AccountType)
 	SetBalance(address string, amount ankrcmm.Amount)

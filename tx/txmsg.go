@@ -9,7 +9,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	"github.com/go-interpreter/wagon/exec/gas"
+	"github.com/Ankr-network/wagon/exec/gas"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )

@@ -8,7 +8,7 @@ import (
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/context"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
-	"github.com/go-interpreter/wagon/exec/gas"
+	"github.com/Ankr-network/wagon/exec/gas"
 	"github.com/tendermint/tendermint/libs/log"
 )
 

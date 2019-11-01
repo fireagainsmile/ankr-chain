@@ -45,11 +45,11 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	addrFrom, _ := ankrcmm.AddressByPublicKey(admin_pubkey_str)
-	nonce, _ := appStore.Nonce(addrFrom)
+	//nonce, _ := appStore.Nonce(addrFrom)
 
-	if nonceInt != nonce {
-		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
-	}
+	//if nonceInt != nonce {
+	//	return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
+	//}
 
 	pDec, _ := base64.StdEncoding.DecodeString(sigS)
 	pubKeyObject, err := ankrcmm.DeserilizePubKey(admin_pubkey_str) //set by super user
@@ -65,7 +65,7 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	appStore.SetCertKey(dcS, pemB64S)
-	appStore.IncNonce(addrFrom)
+	appStore.SetNonce(addrFrom, nonceInt+1)
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeSetCertMsg)},
@@ -100,11 +100,11 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	}
 
 	addrFrom, _ := ankrcmm.AddressByPublicKey(admin_pubkey_str)
-	nonce, _ := appStore.Nonce(addrFrom)
+	//nonce, _ := appStore.Nonce(addrFrom)
 
-	if nonceInt != nonce {
-		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
-	}
+	//if nonceInt != nonce {
+	//	return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
+	//}
 
 	pDec, _ := base64.StdEncoding.DecodeString(sigS)
 	pubKeyObject, err := ankrcmm.DeserilizePubKey(admin_pubkey_str) //set by super user
@@ -120,7 +120,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	}
 
 	appStore.DeleteCertKey(dcS)
-	appStore.IncNonce(addrFrom)
+	appStore.SetNonce(addrFrom, nonceInt+1)
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeRemoveCertMsg)},
