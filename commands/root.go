@@ -8,16 +8,16 @@ import (
 	"github.com/spf13/viper"
 
 	ankrconfg "github.com/Ankr-network/ankr-chain/config"
+	"github.com/Ankr-network/ankr-chain/log"
 	tmcorecmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	tmcorecfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
-	"github.com/tendermint/tendermint/libs/log"
+	tmcorelog "github.com/tendermint/tendermint/libs/log"
 )
 
 var (
 	config = ankrconfg.DefaultAnkrConfig()
-	logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 )
 
 func init() {
@@ -57,16 +57,16 @@ var RootCmd = &cobra.Command{
 			return err
 		}
 		if config.LogFormat == tmcorecfg.LogFormatJSON {
-			logger = log.NewTMJSONLogger(log.NewSyncWriter(os.Stdout))
+			log.DefaultRootLogger = tmcorelog.NewTMJSONLogger(tmcorelog.NewSyncWriter(os.Stdout))
 		}
-		logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, ankrconfg.DefaultLogLevel())
+		log.DefaultRootLogger, err = tmflags.ParseLogLevel(config.LogLevel, log.DefaultRootLogger, ankrconfg.DefaultLogLevel())
 		if err != nil {
 			return err
 		}
 		if viper.GetBool(cli.TraceFlag) {
-			logger = log.NewTracingLogger(logger)
+			log.DefaultRootLogger = tmcorelog.NewTracingLogger(log.DefaultRootLogger)
 		}
-		logger = logger.With("module", "main")
+		log.DefaultRootLogger = log.DefaultRootLogger.With("module", "main")
 		return nil
 	},
 }

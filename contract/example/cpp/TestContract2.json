@@ -1,0 +1,34 @@
+[
+    {
+        "name": "init",
+        "inputs": [],
+        "outputs": [],        
+        "type": "action"
+    },
+    {
+        "name": "testFunc",
+        "inputs": [
+			{
+				"name": "testStr"
+				"type": "string"
+			}
+		],
+        "outputs": [],      
+        "type": "action","event"
+    },
+    {
+        "name": "testFuncWithInt",
+        "inputs": [
+			{
+				"name": "testStr"
+				"type": "string"
+			}
+		],
+        "outputs": [
+			{
+				"type":"int"
+			}
+		],		
+        "type": "action"
+    }
+]

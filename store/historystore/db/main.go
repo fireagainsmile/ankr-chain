@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/Ankr-network/ankr-chain/store/historystore/db/mysql"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/tendermint/tendermint/historystorage/db/mysql"
 )
 
 func main() {

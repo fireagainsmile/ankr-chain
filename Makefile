@@ -2,21 +2,36 @@ BUILD_TAGS?='ankrchain'
 OUTPUT?=build/ankrchain
 BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
-OUTPUTTOOLDIR?=build/tool
+OUTPUTTOOLDIR=build/tool
 
 export GO111MODULE=on
 
-all: build install
+ifeq ($(OS),Windows_NT)
+  PLATFORM="Windows"
+else
+  ifeq ($(shell uname),Darwin)
+    PLATFORM="MacOS"
+  else
+    PLATFORM="Linux"
+  endif
+endif
 
-build:
+all: build tools
+
+build:	
+	@echo "build ankrchain node image"
+	@echo "OS:"${PLATFORM}
 	CGO_ENABLED=0 go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT) ./main.go
 
 install:
 	CGO_ENABLED=0 go install  $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./main.go
 
-tools:
-	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/base64show  ./tool/base64show.go
-	CGO_ENABLED=0 go build  -o $OUTPUTTOOLDIR/keygen      ./tool/keygen.go
+tools:	
+	@echo "build all tools"
+	@echo "OS:"${PLATFORM}
+	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/keygen   ./tool/key/keygen.go
+	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/contract-compiler   ./tool/compiler/main.go
+	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/ankrchain-cli   ./tool/cli/main.go
 
 fmt:
 	@go fmt ./...
