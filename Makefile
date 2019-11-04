@@ -31,7 +31,7 @@ tools:
 	@echo "OS:"${PLATFORM}
 	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/keygen   ./tool/key/keygen.go
 	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/contract-compiler   ./tool/compiler/main.go
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/ankr-chain-cli   ./tool/cli/main.go
+	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/ankrchain-cli   ./tool/cli/main.go
 
 fmt:
 	@go fmt ./...

@@ -6,8 +6,8 @@ import (
 
 // RootCmd is the root command for Tendermint core.
 var RootCmd = &cobra.Command{
-	Use:   "ankr-chain-cli",
-	Short: "ankr-chain-cli is used to interacting with ankr blockchain",
+	Use:   "ankrchain-cli",
+	Short: "ankrchain-cli is used to interacting with ankr blockchain",
 	ValidArgs:nil,
 }
 
