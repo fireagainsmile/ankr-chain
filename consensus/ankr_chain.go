@@ -32,6 +32,7 @@ var _ types.Application = (*AnkrChainApplication)(nil)
 type AnkrChainApplication struct {
 	ChainId      ankrcmm.ChainID
 	APPName      string
+	latestHeight int64
 	app          appstore.AppStore
 	txSerializer tx.TxSerializer
 	contract     contract.Contract
@@ -192,6 +193,15 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 // Commit will panic if InitChain was not called
 func (app *AnkrChainApplication) Commit() types.ResponseCommit {
+	if app.app.KVState().Size > 0 && app.latestHeight == app.app.KVState().Height {
+		rtnResp :=  types.ResponseCommit{Data: app.app.KVState().AppHash}
+
+		app.app.SetTotalTx(app.app.KVState().Size)
+		app.app.ResetKVState()
+
+		return rtnResp
+	}
+
 	return app.app.Commit()
 }
 
@@ -246,10 +256,12 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 // Track the block hash and header information
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
+	app.latestHeight = req.Header.Height
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
 func (app *AnkrChainApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+	app.latestHeight = req.Height
 	return types.ResponseEndBlock{ValidatorUpdates: val.ValidatorManagerInstance().ValUpdates()}
 }

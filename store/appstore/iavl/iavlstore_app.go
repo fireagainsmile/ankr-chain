@@ -12,6 +12,7 @@ import (
 
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	ankrapscmm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
@@ -40,6 +41,7 @@ type IavlStoreApp struct {
 	totalTx         int64
 	storeLog        log.Logger
 	cdc             *amino.Codec
+	kvState         ankrapscmm.State
 	queryHandleMap  map[string]*storeQueryHandler
 	accStoreLocker  sync.RWMutex
 	certStoreLocker sync.RWMutex
@@ -81,7 +83,14 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 		panic(err)
 	}
 
+	var kvState ankrapscmm.State
 	if isKVPathExist {
+		kvDB, err := dbm.NewGoLevelDB("kvstore", dbDir)
+		if err != nil {
+			panic(err)
+		}
+		kvState = ankrapscmm.LoadState(kvDB)
+
 		os.RemoveAll(kvPath)
 	}
 
@@ -101,7 +110,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	iavlSM.Load()
 
-	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
+	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec(), kvState: kvState}
 
 	if !iavlSM.storeMap[IAvlStoreMainKey].Has([]byte(TotalTxKey)) {
 		buf := make([]byte, binary.MaxVarintLen64)
@@ -435,6 +444,14 @@ func (sp *IavlStoreApp) TotalTx() int64 {
 	return sp.totalTx
 }
 
+func (sp *IavlStoreApp) SetTotalTx(totalTx int64) {
+	sp.totalTx = totalTx
+
+	buf := make([]byte, binary.MaxVarintLen64)
+	n := binary.PutVarint(buf, sp.totalTx)
+	sp.iavlSM.storeMap[IAvlStoreMainKey].Set([]byte(TotalTxKey), buf[:n])
+}
+
 func (sp *IavlStoreApp) IncTotalTx() int64 {
 	sp.totalTx++
 
@@ -447,6 +464,14 @@ func (sp *IavlStoreApp) IncTotalTx() int64 {
 
 func (sp *IavlStoreApp) APPHash() []byte {
 	return sp.lastCommitID.Hash
+}
+
+func (sp *IavlStoreApp) KVState() ankrapscmm.State {
+	return sp.kvState
+}
+
+func (sp *IavlStoreApp) ResetKVState() {
+	sp.kvState = ankrapscmm.State{}
 }
 
 func (sp *IavlStoreApp) DB() dbm.DB {
