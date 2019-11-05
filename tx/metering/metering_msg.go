@@ -21,7 +21,7 @@ type MeteringMsg struct {
 	FromAddr string  `json:"fromaddr"`
 	DCName   string  `json:"dcname"`
 	NSName   string  `json:"nsname"`
-	Value    string  `json:"nsname"`
+	Value    string  `json:"value"`
 }
 
 func (m *MeteringMsg) SignerAddr() []string {
