@@ -3,9 +3,9 @@ package iavl
 import (
 	"errors"
 	"fmt"
-	"github.com/Ankr-network/ankr-chain/common/code"
 
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
+	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/merkle"
@@ -59,7 +59,7 @@ func (s *IavlStore) Remove(key []byte) ([]byte, bool) {
 	return s.tree.Remove(key)
 }
 
-func (s *IavlStore) Commit() (ankrtypes.CommitID, error) {
+func (s *IavlStore) Commit() (ankrcmm.CommitID, error) {
 	rHash, ver, err := s.tree.SaveVersion()
 	if err != nil {
 		panic(err)
@@ -72,14 +72,14 @@ func (s *IavlStore) Commit() (ankrtypes.CommitID, error) {
 		}
 	}
 
-	return ankrtypes.CommitID{ver, rHash}, nil
+	return ankrcmm.CommitID{ver, rHash}, nil
 }
 
-func (s *IavlStore) LatestVersion() ankrtypes.CommitID {
+func (s *IavlStore) LatestVersion() ankrcmm.CommitID {
 	ver   :=  s.tree.Version()
 	rHash := s.tree.Hash()
 
-	return ankrtypes.CommitID{ver, rHash}
+	return ankrcmm.CommitID{ver, rHash}
 }
 
 func (s *IavlStore) LoadVersion(ver int64) (int64, error) {

@@ -1,57 +1,70 @@
 package iavl
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
+	"github.com/stretchr/testify/assert"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-func TestSaveWithLevelDB(t *testing.T) {
-	db, err := dbm.NewGoLevelDB("teststore", "./teststore")
-	if err != nil {
-		panic(err)
-	}
+func TestIavlStoreVersion(t *testing.T) {
+	db := dbm.NewMemDB()
+	storeLog := log.NewNopLogger()
 
-	iavalStore := NewIavlStore(db, 100, 10, log.NewNopLogger())
+	iavlStore := NewIavlStore(db, 100, 10, storeLog)
 
-	iavalStore.Set(ankrtypes.PrefixBalanceKey([]byte("7246BCE86AC2BA9CAC1B00D229B0AE08F58E3A4A1F8BD4")), []byte("1000000000"+":"+"10"))
+	iavlStore.Set([]byte("testkey1"), []byte("testvalue1"))
+	iavlStore.Commit()
+	t.Logf("version=%d", iavlStore.tree.Version())
 
-	iavalStore.Set([]byte("key1"), []byte("value1"))
-	iavalStore.Set([]byte("key2"), []byte("value2"))
+	val1, err := iavlStore.Get([]byte("testkey1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "testvalue1", string(val1))
 
-	val, _ := iavalStore.Get(ankrtypes.PrefixBalanceKey([]byte("7246BCE86AC2BA9CAC1B00D229B0AE08F58E3A4A1F8BD4")))
-	name1, err := iavalStore.Get([]byte("key1"))
+	iavlStore.Set([]byte("testkey1"), []byte("testvalue2"))
+	//iavlStore.Commit()
+	t.Logf("version=%d", iavlStore.tree.Version())
 
-	assert.Equal(t, string(val), "1000000000:10")
-	assert.Equal(t, err, nil)
-	assert.Equal(t, string(name1), "value1")
+	val1, err = iavlStore.Get([]byte("testkey1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "testvalue2", string(val1))
 
-	iavalStore.Commit()
+	iavlStore.Rollback()
+	t.Logf("version=%d", iavlStore.tree.Version())
 
-	db.Close()
+	val1, err = iavlStore.Get([]byte("testkey1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "testvalue1", string(val1))
 }
 
-func TestLoadWithLevelDB(t *testing.T) {
-	db, err := dbm.NewGoLevelDB("teststore", "./teststore")
-	if err != nil {
-		panic(err)
-	}
+func TestIavlStoreVersionCommitRollback(t *testing.T) {
+	db := dbm.NewMemDB()
+	storeLog := log.NewNopLogger()
 
-	iavalStore := NewIavlStore(db, 100, 10, log.NewNopLogger())
+	iavlStore := NewIavlStore(db, 100, 10, storeLog)
 
-	iavalStore.Load()
+	iavlStore.Set([]byte("testkey1"), []byte("testvalue1"))
+	iavlStore.Commit()
+	t.Logf("version=%d", iavlStore.tree.Version())
 
-	val, _ := iavalStore.Get(ankrtypes.PrefixBalanceKey([]byte("7246BCE86AC2BA9CAC1B00D229B0AE08F58E3A4A1F8BD4")))
+	val1, err := iavlStore.Get([]byte("testkey1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "testvalue1", string(val1))
 
-	name1, err := iavalStore.Get([]byte("key1"))
+	iavlStore.Set([]byte("testkey1"), []byte("testvalue2"))
+	iavlStore.Commit()
+	t.Logf("version=%d", iavlStore.tree.Version())
 
-	assert.Equal(t, string(val), "1000000000:10")
-	assert.Equal(t, err, nil)
-	assert.Equal(t, string(name1), "value1")
+	val1, err = iavlStore.Get([]byte("testkey1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "testvalue2", string(val1))
 
-	db.Close()
+	iavlStore.Rollback()
+	t.Logf("version=%d", iavlStore.tree.Version())
+
+	val1, err = iavlStore.Get([]byte("testkey1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "testvalue2", string(val1))
 }
 

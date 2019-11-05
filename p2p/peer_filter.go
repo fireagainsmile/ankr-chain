@@ -1,9 +1,9 @@
 package p2p
 
 import (
-	"github.com/Ankr-network/ankr-chain/common/code"
 	"strings"
 
+	"github.com/Ankr-network/ankr-chain/common/code"
 	"github.com/tendermint/tendermint/abci/types"
 )
 

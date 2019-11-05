@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	apscomm "github.com/Ankr-network/ankr-chain/store/appstore/common"
-	ankrtypes "github.com/Ankr-network/ankr-chain/types"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/version"
@@ -79,7 +79,7 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 		resQuery.Value = value
 	} else {
 		resQuery.Key = reqQuery.Data
-		if string(reqQuery.Data[:3]) == ankrtypes.AccountBlancePrefix[:3] {
+		if string(reqQuery.Data[:3]) == ankrcmm.AccountBlancePrefix[:3] {
 			value = app.state.DB.Get(reqQuery.Data)
 			trxGetBalanceSlices := strings.Split(string(value), ":")
 			if len(trxGetBalanceSlices) == 1 {
@@ -100,25 +100,25 @@ func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery type
 			} else {
 				resQuery.Log = "internal error, value format incorrect, extra value"
 			}
-		} else if len(reqQuery.Data) >= len(ankrtypes.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllAccountsPrefix)]) == ankrtypes.AllAccountsPrefix {
+		} else if len(reqQuery.Data) >= len(ankrcmm.AllAccountsPrefix) && string(reqQuery.Data[:len(ankrcmm.AllAccountsPrefix)]) == ankrcmm.AllAccountsPrefix {
 			itr := app.state.DB.Iterator(nil, nil)
 			for ; itr.Valid(); itr.Next() {
-				if len(itr.Key()) >= len(ankrtypes.AccountBlancePrefix) && string(itr.Key()[0:len(ankrtypes.AccountBlancePrefix)]) == ankrtypes.AccountBlancePrefix {
+				if len(itr.Key()) >= len(ankrcmm.AccountBlancePrefix) && string(itr.Key()[0:len(ankrcmm.AccountBlancePrefix)]) == ankrcmm.AccountBlancePrefix {
 					valueItem := []byte("")
 					valueItem = app.state.DB.Get(itr.Key())
 					if len(valueItem) != 0 {
-						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
+						value = []byte(string(value) + string(itr.Key()[len(ankrcmm.AccountBlancePrefix):]) + ":" + string(valueItem) + ";")
 					}
 				}
 			}
-		} else if len(reqQuery.Data) >= len(ankrtypes.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrtypes.AllCrtsPrefix)]) == ankrtypes.AllCrtsPrefix {
+		} else if len(reqQuery.Data) >= len(ankrcmm.AllCrtsPrefix) && string(reqQuery.Data[:len(ankrcmm.AllCrtsPrefix)]) == ankrcmm.AllCrtsPrefix {
 			itr := app.state.DB.Iterator(nil, nil)
 			for ; itr.Valid(); itr.Next() {
-				if len(itr.Key()) >= len(ankrtypes.CertPrefix) && string(itr.Key()[0:len(ankrtypes.CertPrefix)]) == ankrtypes.CertPrefix {
+				if len(itr.Key()) >= len(ankrcmm.CertPrefix) && string(itr.Key()[0:len(ankrcmm.CertPrefix)]) == ankrcmm.CertPrefix {
 					valueItem := []byte("")
 					valueItem = app.state.DB.Get(itr.Key())
 					if len(valueItem) != 0 {
-						value = []byte(string(value) + string(itr.Key()[len(ankrtypes.CertPrefix):]) + ";")
+						value = []byte(string(value) + string(itr.Key()[len(ankrcmm.CertPrefix):]) + ";")
 					}
 				}
 			}

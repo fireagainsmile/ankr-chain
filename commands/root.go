@@ -66,7 +66,7 @@ var RootCmd = &cobra.Command{
 		if viper.GetBool(cli.TraceFlag) {
 			log.DefaultRootLogger = tmcorelog.NewTracingLogger(log.DefaultRootLogger)
 		}
-		log.DefaultRootLogger = log.DefaultRootLogger.With("tx", "main")
+		log.DefaultRootLogger = log.DefaultRootLogger.With("module", "main")
 		return nil
 	},
 }
