@@ -58,6 +58,7 @@ func (cc *ContractClass)Execute(args []string) error  {
 		ContractMainFile = file
 	}else {
 		ABIPrefix.PattenTypeBin = ContractPatternType1
+		TempCppFile = path.Join(CurPath, TempCppFile)
 		ContractMainFile = TempCppFile
 		err = cc.GenCode(file)
 		if err != nil {

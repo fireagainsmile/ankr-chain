@@ -6,6 +6,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/tool/compiler/decompile"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/parser"
 	"github.com/spf13/cobra"
+	"github.com/cheggaaa/pb"
 	"os"
 	"strings"
 )
@@ -44,12 +45,17 @@ func compile(cmd *cobra.Command, args []string) {
 		return
 	}
 	fmt.Println("compiling ", args)
+	bar := pb.StartNew(100)
+	bar.SetWidth(100)
+	bar.ShowFinalTime = false
 
 	err := exeCommand(abi.NewContractClass(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	bar.Add(25)
+	bar.AlwaysUpdate = true
 
 	//exec clang commands
 	err = exeCommand(NewClangOption(), args)
@@ -57,6 +63,7 @@ func compile(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
+	bar.Add(25)
 
 	//exec smart contract rule check
 	sourceFile := getSrcFile(args)
@@ -65,6 +72,7 @@ func compile(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
+	bar.Add(25)
 
 	//exec wasm-ld to generate binary file
 	err = exeCommand(NewDefaultWasmOptions(), args)
@@ -72,6 +80,9 @@ func compile(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
+	bar.Add(25)
+	bar.Finish()
+
 	fmt.Println("Compile smart contract finished.")
 }
 
