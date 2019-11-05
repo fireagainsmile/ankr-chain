@@ -12,34 +12,36 @@ Usage:
 
 Available Commands:
   removecert      remove cert from validator
-  removevalidator remove a validator
-  setbalance      set target account with specified amount
   setcert         set metering cert
-  setstake        set stake
-  setvalidator    add a new validator
+  validator       update validator with actions (set-name/set-val-addr/set-pub/set-stake-addr/set-val-height/set-stake-amount)
 
 Flags:
-  -h, --help             help for admin
-      --privkey string   operator private key
-      --nodeurl string       url of a validator
+      --chain-id string    block chain id (default "ankr-chain")
+      --gas-limit string   gas limmit (default "20000")
+      --gas-price string   gas price (default "10000000000000000")
+  -h, --help               help for admin
+      --memo string        transaction memo
+      --nodeurl string     url of a validator
+      --privkey string     operator private key
+      --version string     block chain net version (default "1.0")
 
-Use "ankr_cli admin [command] --help" for more information about a command.
+Use "ankr-cli admin [command] --help" for more information about a command.
 ```
 
 ### usage
-    global options 
-        --privkey string   operator private key
-        --nodeurl string       url of a validator 
+    * Global Flags:
+          --chain-id string    block chain id (default "ankr-chain")
+          --gas-limit string   gas limmit (default "20000")
+          --gas-price string   gas price (default "10000000000000000")
+          --memo string        transaction memo
+          --nodeurl string     url of a validator
+          --privkey string     operator private key
+          --version string     block chain net version (default "1.0") 
     * removecert, remove cert from validator.  
         options: 
-            --dcname string   name of data center name
-    * removevalidator, remove a validator.   
-        options:
-            --pubkey string   public key of the to be removed validator
-    * setbalance,  set target account with specified amount.    
-        options:
-            --address string   the address of the target account to receive ankr token
-            --amount string    the amount to set to the target address
+            --dcname string      name of data center name
+            -h, --help               help for removecert
+            --namespace string   name space
     * setcert, set metering cert   
         options:
             --perm string     cert perm to be set
@@ -48,31 +50,22 @@ Use "ankr_cli admin [command] --help" for more information about a command.
              options:
                  --amount string   set stake amount
                  --pubkey string   public key
-    * setvalidator, add a new validator    
+    * validator, add a new validator    
             options:
-                --power string    the power set to the validator
-                --pubkey string   the public address of the added validator    
+                --action string     update validator action
+                --address string    validator stake address
+                --amount string     validator stake amount
+                --flag string       flag of validator tansaction
+                --gas-used string   gas used
+                --height int        validator stake height
+                --name string       update validator action
+                --pubkey string     the public address of the added validator   
                 
 ### example 
 + removecert 
     ```
     PS D:\> ankr-cli admin removecert --nodeurl http://localhost:26657 --privkey wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg== --dcname my-dcname
     Remove cert success. 
-    ```
-+ removevalidator 
-    ```
-    PS D:\> ankr-cli admin removevalidator --nodeurl http://localhost:26657 --privkey Q5P4l16P+/Cyxq3BvavuWnQPkmeHNYPFkjfuWyQoNyK2vCvT1jyyoh2DYfu+EkWx/hoGjAHOqQw6PMAa7ZkXoQ== --pubkey FSyq/mTVPO/WdxMNCMEKiA5UVBFXVL8OAnDspO+buZY=
-    152CAAFE64D53CEFD677130D08C10A880E5454115754BF0E0270ECA4EF9BB996
-    Remove validator success.
-    ```
-+ setbalance 
-    ``` 
-    PS D:\> ankr-cli admin setbalance --address E1403CA0DC201F377E820CFA62117A48D4D612400C20D3 --amount 50000000000000
-    000000 --nodeurl http://localhost:26657 --privkey 0mqsOtVueE7uq/I5J/dAhesumWXTu619xXuRgtj4l0d0ELMH6X9ZjGqT6Lnhrhp13LVeGIgrm3
-    QgBnk4q16BZg==
-    Set balance Success.
-    Address: E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
-    Balance: 50
     ```
 + setcert 
     ```
@@ -81,15 +74,9 @@ Use "ankr_cli admin [command] --help" for more information about a command.
     set_crt=my-dcname:c2lnbmF0dXJl:4:MKR/hOyrYKS85sjl1Je3t4DO358hx0i75NAsjV4ot/dXoo5nGDnUj4tS6KRYyEGiIk1kKL5Hf7fAqDdqb74aAQ==
     Set cert success. 
     ```    
-+ setstake 
++ validator
     ``` 
-    PS D:\> ankr-cli admin setstake --nodeurl http://localhost:26657 --privkey Q5P4l16P+/Cyxq3BvavuWnQPkmeHNYPFkjfuWyQoNyK2vCvT1jyyoh2DYfu+EkWx/hoGjAHOqQw6PMAa7ZkXoQ== --pubkey FSyq/mTVPO/WdxMNCMEKiA5UVBFXVL8OAnDspO+buZY= --amount 99
-    Set Stake success.
-    ```
-+ setvalidator
-    ``` 
-    PS D:\> ankr-cli admin setvalidator --nodeurl http://localhost:26657 --privkey Q5P4l16P+/Cyxq3BvavuWnQPkmeHNYPFkjfuWyQoNyK2vCvT1jyyoh2DYfu+EkWx/hoGjAHOqQw6PMAa7ZkXoQ== --pubkey FSyq/mTVPO/WdxMNCMEKiA5UVBFXVL8OAnDspO+buZY= --power 3
-    152CAAFE64D53CEFD677130D08C10A880E5454115754BF0E0270ECA4EF9BB996
+    PS D:\> ankr-cli admin validator set-name --nodeurl http://localhost:26657 --privkey Q5P4l16P+/Cyxq3BvavuWnQPkmeHNYPFkjfuWyQoNyK2vCvT1jyyoh2DYfu+EkWx/hoGjAHOqQw6PMAa7ZkXoQ== --pubkey FSyq/mTVPO/WdxMNCMEKiA5UVBFXVL8OAnDspO+buZY= --name val-name
     Set validator success.
     ```
   

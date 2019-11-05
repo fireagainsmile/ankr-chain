@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -161,20 +162,14 @@ func displayTxMsg(txMsg *core_types.ResultTx, detail bool)  {
 }
 
 func displayTx(data []byte)  {
-	decoder := new(client2.TxDecoder)
-	tx, err := decoder.Decode(data)
+	decoder := client2.NewTxDecoder()
+	tx, err  := decoder.Decode(data)
 	if err != nil {
 		fmt.Println("Decode transaction error!")
 		fmt.Println(err)
 		return
 	}
-	jsonByte, err := json.MarshalIndent(tx, "", "\t")
-	if err != nil {
-		fmt.Println("Marshal Error.")
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(string(jsonByte))
+	decodeAndDisplay(tx)
 }
 
 func formatQueryContent(parameters map[string]string) string {
@@ -528,12 +523,9 @@ func queryValidator(cmd *cobra.Command, args []string)  {
 		fmt.Println("Query validators failed.", err)
 		return
 	}
-	//display(resp)
-	displayStruct(resp)
-	//w := newTabWriter(os.Stdout)
-	//outPutValidator(w, resp)
-	//w.Flush()
 
+	// decode response and display
+	decodeAndDisplay(resp)
 }
 func addQueryValidatorFlags(cmd *cobra.Command)  {
 	err := addInt64Flag(cmd, validatorHeight, heightParam, "", -1, "block height", notRequired)
@@ -555,18 +547,27 @@ func queryStatus(cmd *cobra.Command, args []string)  {
 		fmt.Println("Query status failed.",err)
 		return
 	}
-	serial := serializer.NewTxSerializerCDC()
-	_ = serial
-	//respByte, err := serial.MarshalJSON(resp)
-	//if err != nil {
-	//	fmt.Println("Marshal Response error:")
-	//	fmt.Println(err)
-	//	return
-	//}
-	//fmt.Println(string(respByte))
-	//serial.MarshalJSON(resp)
-	//json.Indent()
-	displayStruct(resp)
+	decodeAndDisplay(resp)
+	//displayStruct(resp)
+}
+
+// display messages that needs decode
+func decodeAndDisplay(resp interface{})  {
+	jByte, err := TxSerializer.MarshalJSON(resp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var distByte bytes.Buffer
+	err = json.Indent(&distByte, jByte, "", "\t")
+	//jsonByte, err := json.MarshalIndent(tx, "", "\t")
+	if err != nil {
+		fmt.Println("Marshal Error.")
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(distByte.Bytes()))
 }
 
 func outputStatus(w *tabwriter.Writer, st *core_types.ResultStatus)  {
@@ -593,8 +594,7 @@ func queryGenesis(cmd *cobra.Command, args []string)  {
 		fmt.Println("Query genesis failed.", err)
 		return
 	}
-	//display(resp)
-	displayStruct(resp)
+	decodeAndDisplay(resp)
 }
 
 //format output result genesis
@@ -626,7 +626,7 @@ func queryConsensusState(cmd *cobra.Command, args []string)  {
 		fmt.Println("Query consensus state failed.", err)
 		return
 	}
-	displayStruct(resp)
+	decodeAndDisplay(resp)
 }
 
 //query dump consensus state
@@ -642,7 +642,7 @@ func queryDumpConsensusState(cmd *cobra.Command, args []string)  {
 		fmt.Println("Query dump consensus state failed.", err)
 		return
 	}
-	displayStruct(resp)
+	decodeAndDisplay(resp)
 }
 
 //query unconfirmed transactions
@@ -691,7 +691,7 @@ func queryNumUnconfiredTxs(cmd *cobra.Command, args []string)  {
 		fmt.Println("Query number of unconfirmed transactions failed.", err)
 		return
 	}
-	outputTxResult(resp)
+	decodeAndDisplay(resp)
 }
 
 //transaction data structure
@@ -869,16 +869,6 @@ func outPutHeader(header types.Header)  {
 	fmt.Println("Proposer-Address:", header.ProposerAddress)
 }
 
-func outPutValidator(w *tabwriter.Writer, validatorResult *core_types.ResultValidators){
-	fmt.Fprintf(w, "Height:%d\n",validatorResult.BlockHeight)
-	fmt.Fprintf(w, "\nValidators information: \n")
-	fmt.Fprintf(w, "Address\tPubkey\tVoting-Power\tProposer priority\n")
-	for _, validator := range validatorResult.Validators {
-		fmt.Fprintf(w, "%x\t%s\t%d\t%d\n",validator.Address, base64.StdEncoding.EncodeToString(validator.PubKey.Bytes()), validator.VotingPower, validator.ProposerPriority)
-	}
-}
-
-
 func queryAccount(cmd *cobra.Command, args []string){
 	client := newAnkrHttpClient(viper.GetString(queryUrl))
 	req := new(common2.AccountQueryReq)
@@ -890,7 +880,7 @@ func queryAccount(cmd *cobra.Command, args []string){
 		fmt.Println(err)
 		return
 	}
-	displayStruct(resp)
+	decodeAndDisplay(resp)
 }
 
 func addQueryAccountFlags(cmd *cobra.Command)  {

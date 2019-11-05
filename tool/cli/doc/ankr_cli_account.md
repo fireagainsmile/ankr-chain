@@ -15,7 +15,6 @@ account is used to generate new accounts, encrypt privatekey or decrypt privatek
     exportprivatekey recover private key from keystore.
     genaccount       generate new account.
     genkeystore      generate keystore file based on private key and user input password.
-    getbalance       get the balance of an address.
     resetpwd         reset keystore password.
   
   Flags:
@@ -36,11 +35,7 @@ account is used to generate new accounts, encrypt privatekey or decrypt privatek
     * genkeystore,  encrypt privatekey into keystore file.    
         options:
             -p, --privkey string <requried> private key used to generate a keystore file
-            -o, --output string [optional] the path to save keystore file
-    * getbalance query target account balance    
-        options:
-            -a, --address string <requried> the address of the target account
-                --nodeurl string <requried> the url of an ankr chain validator     
+            -o, --output string [optional] the path to save keystore file    
     * resetpwd reset keystore password.    
         options:
             -f, --file string   the path where keystore file is located.      
@@ -86,12 +81,6 @@ account is used to generate new accounts, encrypt privatekey or decrypt privatek
     
     created keystore: .//UTC--2019-08-01T02-35-08.700515700Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
     ```   
-+ getbalance    
-    ```
-     PS D:\> ankr-cli account getbalance --nodeurl http://localhost:26657 --address E1403CA0DC201F377E820CFA62117A48D4D6124
-     00C20D3
-     The balance is: 50.000000000000000000
-    ```    
 + resetpwd    
     ```
     PS D:\> ankr-cli account resetpwd -f ./UTC--2019-08-01T02-34-55.230477100Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
