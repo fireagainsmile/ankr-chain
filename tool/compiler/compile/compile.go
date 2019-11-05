@@ -45,17 +45,16 @@ func compile(cmd *cobra.Command, args []string) {
 		return
 	}
 	fmt.Println("compiling ", args)
-	bar := pb.StartNew(100)
+	bar := pb.New(100)
 	bar.SetWidth(100)
 	bar.ShowFinalTime = false
-
+	bar.Start()
 	err := exeCommand(abi.NewContractClass(), args)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	bar.Add(25)
-	bar.AlwaysUpdate = true
 
 	//exec clang commands
 	err = exeCommand(NewClangOption(), args)
