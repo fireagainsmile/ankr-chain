@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	ankrcmm "github.com/Ankr-network/ankr-chain/common"
+	ankrapscmm "github.com/Ankr-network/ankr-chain/store/appstore/common"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
@@ -39,6 +40,7 @@ type TxStore interface {
 	Delete(key []byte)
 	Has(key []byte) bool
 	TotalTx() int64
+	SetTotalTx(totalTx int64)
 	IncTotalTx() int64
 }
 
@@ -65,5 +67,7 @@ type AppStore interface {
 	SetChainID(chainID string)
 	ChainID() string
 	APPHash() []byte
+	KVState() ankrapscmm.State
+	ResetKVState()
     DB() dbm.DB
 }

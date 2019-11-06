@@ -382,7 +382,7 @@ func runGetContract(cmd *cobra.Command, args []string)  {
 		fmt.Println(err)
 		return
 	}
-	displayStruct(resp)
+	decodeAndDisplay(resp)
 }
 
 func addGetContractFlags(cmd *cobra.Command)  {

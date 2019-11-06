@@ -12,16 +12,15 @@ There are two ways to install ankr-cli, both of them depends on the `go mod` too
 Open a terminal and type `export GO111MODULE=on`  to activate go module 
 1. install ankr-cli using go commands    
 ```$xslt
-go get github.com/Ankr-network/ankr-cli    
-go install github.com/Ankr-network/ankr-cli    
+go get github.com/Ankr-network/ankr-chain/tool/cli    
 ankr-cli <sub-commands/--help>
 ```   
 
 2. buid from source    
 download and build from the source code  
 ```
-git clone https://github.com/Ankr-network/ankr-cli.git    
-cd ankr-cli    
+git clone https://github.com/Ankr-network/ankr-chain.git    
+cd ankr-chian/tool/cli    
 go build -o ankr-cli main.go    
 ./ankr-cli <sub-commands/--help>
 ```
