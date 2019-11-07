@@ -144,12 +144,16 @@ func (r *RuntimeInvoke) InvokePattern2(context ankrcontext.ContextContract, appS
 	}
 
 	fSig := akvm.FuncSig(fnIndex)
-	if len(fSig.Sig.ParamTypes) != (len(param) + 1) {
+	if len(fSig.Sig.ParamTypes) != 2 {
 		return &ankrcmm.ContractResult{false, rtnType, nil}, fmt.Errorf("input params' len invlid: len=%d", len(param))
 	}
 
-	valBytes, _ := json.Marshal(param[0].Value)
-	arg, _ := akvm.SetBytes(valBytes)
+	arg := uint64(0)
+
+	if len(param) > 0 {
+		valBytes, _ := json.Marshal(param[0].Value)
+		arg, _ = akvm.SetBytes(valBytes)
+	}
 
 	akvmResult, err := akvm.Execute(fnIndex, rtnType, []uint64{methodIndex, arg}...)
 	if err != nil {
