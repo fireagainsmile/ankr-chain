@@ -199,7 +199,9 @@ func TestTxWithNonce(t *testing.T)  {
 func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 	msgHeader := client.TxMsgHeader{
-		ChID: testChainId,
+
+		ChID: "test-chain-DOviTk",
+
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
@@ -320,9 +322,11 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-Aavjfy",
-		GasLimit: new(big.Int).SetUint64(5000000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000000).Bytes()},
+
+		ChID: "test-chain-qODlBV",
+		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+
 		Memo: "test ContractDeploy",
 		Version: "1.0",
 	}
@@ -524,9 +528,9 @@ func TestQueryAccountInfoWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	resp := &ankrcmm.AccountQueryResp{}
-	c.Query("/store/account", &ankrcmm.AccountQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67"}, resp)
+	c.Query("/store/account", &ankrcmm.AccountQueryReq{"5AEBA6EB8BC51DA277CCF1EF229F0C05D9535FA36CC872"}, resp)
 
-	t.Logf("account=%v", resp)
+	t.Logf("account=%v", new(big.Int).SetBytes(resp.Amounts[0].Value).String())
 }
 
 
