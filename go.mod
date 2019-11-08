@@ -7,10 +7,13 @@ require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/agiledragon/gomonkey v0.0.0-20191023170119-08026f2977b6
 	github.com/btcsuite/btcd v0.20.0-beta // indirect
+	github.com/cheggaaa/pb v0.0.0-20191021095926-c966da046635
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/mock v1.1.1
 	github.com/jmhodges/levigo v1.0.0 // indirect
+	github.com/mattn/go-colorable v0.1.4 // indirect
+	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4

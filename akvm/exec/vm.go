@@ -2,7 +2,6 @@ package exec
 
 import (
 	"bytes"
-
 	"github.com/Ankr-network/ankr-chain/akvm/memory"
 	"github.com/Ankr-network/ankr-chain/akvm/module"
 	"github.com/Ankr-network/wagon/exec"
@@ -10,6 +9,7 @@ import (
 	"github.com/Ankr-network/wagon/exec/gas"
 	"github.com/Ankr-network/wagon/log"
 	"github.com/Ankr-network/wagon/wasm"
+	"runtime/debug"
 )
 
 type WASMVirtualMachine struct {
@@ -21,6 +21,13 @@ type WASMVirtualMachine struct {
 func NewWASMVirtualMachine(contractAddr string, ownerAddr string, callerAddr string, metric gas.GasMetric, publisher vmevent.Publisher, code []byte, log log.Logger) *WASMVirtualMachine {
 	wasmVM :=  &WASMVirtualMachine{ envModule: module.NewModuleEnv()}
 	wasmVM.log = log
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("loadAndInstantiateModule error", "r", r, "stack", string(debug.Stack()))
+		}
+	}()
+
 	wasmVM.loadAndInstantiateModule(contractAddr, ownerAddr, callerAddr, metric, publisher, code)
 
 	return wasmVM
