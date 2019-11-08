@@ -39,13 +39,13 @@ func (wo *WasmOptions) Options() []string {
 // and remove
 
 func (wasmOp *WasmOptions)Execute(args []string) error {
-	srcFilePath := strings.TrimLeft(args[0], abi.CurPath)
-	srcFileSlice := strings.Split(srcFilePath, ".")
+	distFileName := strings.TrimLeft(args[0], abi.CurPath)
+	srcFileName := strings.TrimLeft(abi.ContractMainFile, abi.CurPath)
+	srcFileSlice := strings.Split(srcFileName, ".")
 	srcFile := fmt.Sprintf("%s.o", srcFileSlice[0])
-	distFile := srcFilePath
+	distFile := distFileName
 	distSlice := strings.Split(distFile, ".")
 	distFile = fmt.Sprintf("%s.wasm", distSlice[0])
-	//wasmOp := NewDefaultWasmOptions()
 	wasmArgs := wasmOp.Options()
 	wasmArgs = append(wasmArgs, srcFile, "-o", distFile)
 	out, err := exec.Command("wasm-ld", wasmArgs...).Output()
@@ -72,7 +72,6 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 		}
 	}
 	renameFile := path.Join(OutPutDir, distFile)
-	//os.Create(renameFile)
 	if _, err = os.Stat(OutPutDir); os.IsNotExist(err) {
 		err = os.MkdirAll(OutPutDir, 0600)
 		if err != nil {
