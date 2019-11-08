@@ -2,15 +2,11 @@ package integratetesting
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"github.com/Ankr-network/ankr-chain/account"
-	"github.com/Ankr-network/ankr-chain/tool/cli/cmd"
 	"github.com/Ankr-network/ankr-chain/tx/contract"
 	"github.com/Ankr-network/ankr-chain/tx/metering"
 	"io/ioutil"
 	"math/big"
-	"sync"
 	"testing"
 
 	"github.com/Ankr-network/ankr-chain/client"
@@ -44,164 +40,11 @@ AwEHoUQDQgAEE4x4SoWjyQit98+NDaAApQIbNIUOh/wGi4rR6EmcGmFaqKW0jHxo
 Yr3093CQHQ5X+BVVAjsLZCSy5melIcgPLg==
 -----END EC PRIVATE KEY-----`
 
-var(
-	testChainId = ankrcmm.ChainID("test-chain-Aavjfy")
-	localUrl = "localhost:26657"
-	remoteUrl = ""
-	adminAddress = "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67"
-	adminPriv = "wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg=="
-	txSerializer = serializer.NewTxSerializerCDC()
-)
-var defaultTxMsgHeader = client.TxMsgHeader{
-	ChID: testChainId,
-	GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-	GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
-	Memo: "test transfer",
-	Version: "1.0",
-}
-
-// base 1000000000000000000
-// Procedure:
-// 1. init one account with coins
-// 2. send transaction from the init account to the receive account
-// 3. check the receive account balance
-func TestSendToOneRepeatedly(t *testing.T)  {
-	c := client.NewClient(localUrl)
-	msgHeader := defaultTxMsgHeader
-	_, toAddr := cmd.GenAccount()
-	// init one account with balance
-	initPriv, initAddress, err := initAccountWithAmout("600000000000000000000")
-	if err != nil {
-		t.Error(err)
-	}
-	// send transaction to one account repeatedly
-	initKey := crypto.NewSecretKeyEd25519(initPriv)
-	repeatedTimes := 3
-	repeatAmount, _ := new(big.Int).SetString("10000000000000000000", 10) //10 ankr token
-	repeatMsg := newTransferMsg(initAddress, toAddr, repeatAmount)
-	for i := 0; i < repeatedTimes ; i++ {
-		repeatBuilder := client.NewTxMsgBuilder(msgHeader, repeatMsg, txSerializer, initKey)
-		_, _, _, err = repeatBuilder.BuildAndCommit(c)
-		if err != nil {
-			t.Log(err)
-			return
-		}
-	}
-	expectAmount := new(big.Int).Mul(new(big.Int).SetUint64(uint64(repeatedTimes)), repeatAmount)
-	err = checkBlance(c, toAddr, expectAmount.String())
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-type Account struct {
-	address string
-	privateKey string
-}
-
-// Procedure:
-// 1. init multiple account with coins
-// 2. send transaction from the init accounts to one receive account simultaneously
-// 3. check the receive account balance
-func TestMultipleAccSendToOne(t *testing.T)  {
-	var accounts []Account
-	accountNum := 5
-	for i := 0; i < accountNum; i++ {
-		priv, addr ,err := initAccountWithAmout("10000000000000000000") //10 ankr token
-		if err != nil {
-			t.Error(err)
-		}
-		accounts = append(accounts, Account{address:addr, privateKey: priv})
-	}
-
-	_, toAddress := cmd.GenAccount()
-	msgHeader := defaultTxMsgHeader
-	sendAmount, _ := new(big.Int).SetString("7000000000000000000", 10)
-	var wg sync.WaitGroup
-	wg.Add(accountNum)
-	for i := 0 ; i < accountNum ; i++ {
-		go func(index int) {
-			acc := accounts[index]
-			c := client.NewClient(localUrl)
-			txMsg := newTransferMsg(acc.address, toAddress, sendAmount )
-			key := crypto.NewSecretKeyEd25519(acc.privateKey)
-			builder := client.NewTxMsgBuilder(msgHeader, txMsg, txSerializer, key)
-			_, _, _, err := builder.BuildAndCommit(c)
-			wg.Done()
-			if err != nil {
-				t.Error(err)
-			}
-		}(i)
-	}
-	wg.Wait()
-	cl := client.NewClient(localUrl)
-	expectAmount := new(big.Int).Mul(sendAmount, new(big.Int).SetUint64(uint64(accountNum)))
-	err := checkBlance(cl, toAddress, expectAmount.String())
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestTxWithNonce(t *testing.T)  {
-	c := client.NewClient("localhost:26657")
-	msgHeader := defaultTxMsgHeader
-	initPriv, initAddr, err := initAccountWithAmout("30000000000000000000") // 30 ankr token
-	if err != nil {
-		t.Error(err)
-	}
-	_, toAddr := cmd.GenAccount()
-	sendAmount, _ := new(big.Int).SetString("2000000000000000000", 10) //2 ankr token
-	txMsg := newTransferMsg(initAddr, toAddr, sendAmount)
-	key := crypto.NewSecretKeyEd25519(initPriv)
-	builder := client.NewTxMsgBuilder(msgHeader, txMsg, txSerializer, key)
-	nonceReq := new(ankrcmm.NonceQueryReq)
-	nonceReq.Address = initAddr
-	nonceResp := new(ankrcmm.NonceQueryResp)
-	err = c.Query("/store/nonce", nonceReq, nonceResp)
-	if err != nil {
-		t.Error(err)
-	}
-	nonce := nonceResp.Nonce
-	var txs [][]byte
-	for i := 0; i < 4; i++ {
-		tx, err := builder.BuildOnly(nonce + uint64(i))
-		if err != nil {
-			t.Error(err)
-		}
-		txs = append(txs, tx)
-	}
-
-	//skip nonce
-	_, _, _, err = c.BroadcastTxCommit(txs[3])
-	if err == nil {
-		t.Error(errors.New("expecting error"))
-	}
-	t.Log(err)
-	// duplicate nonce
-	_, _, _, err = c.BroadcastTxCommit(txs[0])
-	if err != nil {
-		t.Error(err)
-	}
-	_, _, _, err = c.BroadcastTxCommit(txs[0])
-	if err == nil {
-		t.Error(errors.New("expecting error"))
-	}
-	for i := 0; i < 3 ; i ++ {
-		_, _, _, err = c.BroadcastTxCommit(txs[i])
-		if err != nil {
-			t.Log(err)
-		}
-	}
-	err = checkBlance(c, toAddr, "")
-	t.Log(err)
-}
-
 func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
+
 	msgHeader := client.TxMsgHeader{
-
 		ChID: "test-chain-DOviTk",
-
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
@@ -240,9 +83,9 @@ func TestCertMsgWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-Aavjfy",
+		ChID: "test-chain-3vX5qQ",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test CertMsg",
 		Version: "1.0",
 	}
@@ -255,7 +98,7 @@ func TestCertMsgWithNode(t *testing.T) {
 
 	certMsg := &metering.SetCertMsg{FromAddr: addrFrom,
 		DCName: "dc1",
-	    PemBase64: TEST_CERT,
+		PemBase64: TEST_CERT,
 	}
 
 	txSerializer := serializer.NewTxSerializerCDC()
@@ -280,7 +123,7 @@ func TestMeteringWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-Aavjfy",
+		ChID: "test-chain-hQYhLJ",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test metering",
@@ -322,68 +165,17 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-
 		ChID: "test-chain-qODlBV",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
-
 		Memo: "test ContractDeploy",
 		Version: "1.0",
 	}
 
-	rawBytes, err := ioutil.ReadFile("TestContract.wasm")
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
 	if err != nil {
 		t.Errorf("can't read wasm file: %s", err.Error())
 	}
-
-	cdMsg := &contract.ContractDeployMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		Name:     "TestContract",
-		Codes:     rawBytes,
-	    CodesDesc: "",
-	}
-
-	txSerializer := serializer.NewTxSerializerCDC()
-
-	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
-
-	builder := client.NewTxMsgBuilder(msgHeader, cdMsg,  txSerializer, key)
-
-	txHash, cHeight, contractAddr, err := builder.BuildAndCommit(c)
-
-	assert.Equal(t, err, nil)
-
-	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractAddr=%s", txHash, cHeight, contractAddr)
-
-	resp := &ankrcmm.ContractQueryResp{}
-	c.Query("/store/contract", &ankrcmm.ContractQueryReq{contractAddr}, resp)
-
-	t.Logf("conract=%v", resp)
-}
-
-// Procedure:
-// 1. read smart contract binary from file
-// 2. copy part of contract binary into tranasction message
-// 3. send transaction and check response
-// 4. check validator status
-func TestDeployBadContract(t *testing.T) {
-	c := client.NewClient("localhost:26657")
-
-	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-ZFaVSj",
-		GasLimit: new(big.Int).SetUint64(100000000000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(1000000000000000000).Bytes()},
-		Memo: "test ContractDeploy",
-		Version: "1.0",
-	}
-
-	rawBytes, err := ioutil.ReadFile("TestContract.wasm")
-	if err != nil {
-		t.Errorf("can't read wasm file: %s", err.Error())
-	}
-
-	// only copy part of contract into transaction msg
-	length := len(rawBytes)
-	rawBytes = rawBytes[:length - 8]
 
 	cdMsg := &contract.ContractDeployMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
 		Name:     "TestContract",
@@ -413,9 +205,9 @@ func TestContractInvokeWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-xPPj8k",
-		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		ChID: "test-chain-qODlBV",
+		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractInvoke",
 		Version: "1.0",
 	}
@@ -424,7 +216,7 @@ func TestContractInvokeWithNode(t *testing.T) {
 
 	cdMsg := &contract.ContractInvokeMsg{
 		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ContractAddr: "AD11BED29F81AE1DD51DE7127A5A99859DB60E1E7B19B2",
+		ContractAddr: "A277D0BD075656C3DBF92F9FEDC396AFFC75C95B9CF6D6",
 		Method:       "testFuncWithString",
 		Args:         jsonArg,
 		RtnType:      "string",
@@ -450,15 +242,15 @@ func TestContractDeployWithNodePattern2(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-b4lpJu",
-		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		ChID: "test-chain-qODlBV",
+		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractDeploy",
 		Version: "1.0",
 	}
 
 	//rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract2.wasm")
-	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/ERC20.wasm")
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract2.wasm")
 	if err != nil {
 		t.Errorf("can't read wasm file: %s", err.Error())
 	}
@@ -491,18 +283,20 @@ func TestContractInvokeWithNodePattern2(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-qJeO7E",
-		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		ChID: "test-chain-qODlBV",
+		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractInvoke",
 		Version: "1.0",
 	}
 
 	jsonArg := "[{\"index\":1,\"Name\":\"args\",\"ParamType\":\"string\",\"Value\":\"testFuncWithInt arg\"}]"
 
+
+
 	cdMsg := &contract.ContractInvokeMsg{
 		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ContractAddr: "A277D0BD075656C3DBF92F9FEDC396AFFC75C95B9CF6D6",
+		ContractAddr: "BFB8206804DC410AAFB8828ABDD36B488DCFB7FA8EF984",
 		Method:       "testFuncWithString",
 		Args:         jsonArg,
 		RtnType:      "string",
@@ -531,51 +325,4 @@ func TestQueryAccountInfoWithNode(t *testing.T) {
 	c.Query("/store/account", &ankrcmm.AccountQueryReq{"5AEBA6EB8BC51DA277CCF1EF229F0C05D9535FA36CC872"}, resp)
 
 	t.Logf("account=%v", new(big.Int).SetBytes(resp.Amounts[0].Value).String())
-}
-
-
-// helper functions used in test case
-func newTransferMsg(from, to string, amount *big.Int) *token.TransferMsg {
-	return &token.TransferMsg{
-		FromAddr: from,
-		ToAddr:  to,
-		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, amount.Bytes()}},
-	}
-}
-
-func checkBlance(cl *client.Client, address string, expect string) error {
-	balReq := new(ankrcmm.BalanceQueryReq)
-	balReq.Address = address
-	balReq.Symbol = "ANKR"
-	balResp := new(ankrcmm.BalanceQueryResp)
-	err := cl.Query("/store/balance", balReq, balResp)
-	if err != nil {
-		return err
-	}
-	if balResp.Amount != expect {
-		return errors.New(fmt.Sprintf("expect %s, got %s", expect, balResp.Amount))
-	}
-	return nil
-}
-
-//generate account with coins
-func initAccountWithAmout(amount string) (priv, address string,err error)  {
-	c := client.NewClient(localUrl)
-	msgHeader := defaultTxMsgHeader
-	priv, address = cmd.GenAccount()
-	initAmount, _ := new(big.Int).SetString(amount, 10)
-	initMsg := newTransferMsg(adminAddress, address, initAmount)
-	adminKey := crypto.NewSecretKeyEd25519(adminPriv)
-	//transaction builder
-	builder := client.NewTxMsgBuilder(msgHeader, initMsg,  txSerializer, adminKey)
-	_, _, _, err = builder.BuildAndCommit(c)
-	if err != nil {
-		return "", "", err
-	}
-	//check balance
-	err = checkBlance(c, address, amount)
-	if err != nil {
-		return "", "", err
-	}
-	return
 }
