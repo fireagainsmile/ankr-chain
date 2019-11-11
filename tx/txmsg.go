@@ -199,6 +199,8 @@ func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 }
 
 func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
+	context.AppStore().IncTotalTx()
+
 	codeT, log, tags := tx.ProcessTx(context, tx, false)
 	if codeT != code.CodeTypeOK {
 		return types.ResponseDeliverTx{Code: codeT, Log: log}

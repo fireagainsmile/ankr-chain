@@ -58,7 +58,13 @@ func(mr *MsgRouter) DeliverTx(tx []byte, store appstore.AppStore) types.Response
 		return types.ResponseDeliverTx{Code: code.CodeTypeNoV0TxHandler, Log: fmt.Sprintf("can't find responding v0 tx handler, tx=%v", tx)}
 	}
 
-	return handler.ProcessTx(msgData, store)
+	resDeliverTx := handler.ProcessTx(msgData, store)
+
+	if resDeliverTx.Code == code.CodeTypeOK {
+		store.IncTotalTx()
+	}
+
+	return resDeliverTx
 }
 
 func MsgRouterInstance() *MsgRouter {

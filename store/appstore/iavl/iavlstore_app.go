@@ -108,6 +108,10 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	lcmmID = iavlSM.lastCommit()
 
+	fmt.Printf("lcmmID.version=%d, lcmmID.hash=%X, kvState=%v\n", lcmmID.Version, lcmmID.Hash, kvState)
+
+	fmt.Printf("theLastVersion'hash=%X\n", iavlSM.commitInfo(lcmmID.Version-1).AppHash)
+
 	iavlSM.Load()
 
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec(), kvState: kvState}
@@ -131,6 +135,8 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	if lcmmID.Hash != nil {
 		lcmmID.Hash = lastHash
 	}
+
+	fmt.Printf("lcmmID.version=%d, lcmmID.hash=%X, totalTx=%d\n", lcmmID.Version, lcmmID.Hash, iavlSApp.totalTx)
 
 	iavlSApp.lastCommitID = lcmmID
 
