@@ -110,7 +110,9 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	fmt.Printf("lcmmID.version=%d, lcmmID.hash=%X, kvState=%v\n", lcmmID.Version, lcmmID.Hash, kvState)
 
-	fmt.Printf("theLastVersion'hash=%X\n", iavlSM.commitInfo(lcmmID.Version-1).AppHash)
+	if lcmmID.Version  > 0 {
+		fmt.Printf("theLastVersion'hash=%X\n", iavlSM.commitInfo(lcmmID.Version - 1).AppHash)
+	}
 
 	iavlSM.Load()
 
