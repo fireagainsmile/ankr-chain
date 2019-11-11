@@ -191,6 +191,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 // Commit will panic if InitChain was not called
 func (app *AnkrChainApplication) Commit() types.ResponseCommit {
+	/*
 	if app.app.KVState().Size > 0 && app.latestHeight == app.app.KVState().Height {
 		rtnResp :=  types.ResponseCommit{Data: app.app.KVState().AppHash}
 
@@ -198,7 +199,7 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 		app.app.ResetKVState()
 
 		return rtnResp
-	}
+	}*/
 
 	return app.app.Commit()
 }
