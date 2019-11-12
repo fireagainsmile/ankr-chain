@@ -65,7 +65,9 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	appStore.SetCertKey(dcS, pemB64S)
-	appStore.SetNonce(addrFrom, nonceInt+1)
+
+	nonce, _ := appStore.Nonce(addrFrom)
+	appStore.SetNonce(addrFrom, nonce+1)
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeSetCertMsg)},

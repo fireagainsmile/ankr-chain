@@ -43,7 +43,15 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("can not find cert file of %s", dcS) }
 	}
 
-	key := crypto.NewSecretKeyPem("", pemB64,"@mert:"+"dc1_"+"ns1")
+	pemByte, err := base64.StdEncoding.DecodeString(pemB64)
+	if err != nil {
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("pem file decoding error. Got %v", string(pemByte)) }
+	}
+	pem := string(pemByte)
+
+	dcNS := fmt.Sprintf("%s_%s", dcS, nsS)
+
+	key := crypto.NewSecretKeyPem("", pem,"@mert:"+dcNS)
 
 	fromAddr, _ := key.Address()
 
@@ -51,17 +59,11 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	fmt.Printf("meteringMsg nonceInt: %d, fromAddr=%s\n", nonceInt, string(fromAddr))
 	nonce, _ := appStore.Nonce(string(fromAddr))
 	fmt.Printf("meteringMsg nonce: %d, fromAddr=%s\n", nonce, string(fromAddr))
-	if nonceInt != nonce {
+	if nonceInt != nonce + 1 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
 	}
 
 	/* verify sig */
-	pemByte, err := base64.StdEncoding.DecodeString(pemB64)
-	if err != nil {
-		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("pem file decoding error. Got %v", string(pemByte)) }
-	}
-	pem := string(pemByte)
-
 	bResult := ankrcmm.EcdsaVerify(pem, dcS+nsS+valueS+nonceS, sigxS, sigyS)
 	if !bResult {
 		return  types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("metering signature wrong. Got %v,%v", sigxS, sigyS) }
