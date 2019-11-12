@@ -204,7 +204,7 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 	}*/
 
 
-	appHashH := app.app.APPHashByHeight(app.latestHeight)
+	appHashH := app.app.APPHashByHeight(app.latestHeight-1)
 	if appHashH == nil {
 		fmt.Printf("AnkrChainApplication Commit appHashH nil\n")
 	}
