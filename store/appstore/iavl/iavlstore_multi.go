@@ -99,7 +99,10 @@ func (ms *IavlStoreMulti) commitInfo(version int64) *commitInfo {
 		return &cmmInfo
 	}else {
 		ms.log.Error("can't get commit info", "infokey", infoKey)
-		return nil
+
+		zeroAppHash := make([]byte, 8)
+		binary.PutVarint(zeroAppHash, int64(0))
+		return &commitInfo{version, zeroAppHash, nil}
 	}
 }
 

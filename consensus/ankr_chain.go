@@ -255,9 +255,19 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 // Track the block hash and header information
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+	fmt.Printf("AnkrChainApplication BeginBlock appHash=%X, height=%d\n", req.Header.AppHash, req.Header.Height)
+
 	appHashH := app.app.APPHashByHeight(req.Header.Height)
+	if appHashH == nil {
+		fmt.Printf("AnkrChainApplication BeginBlock appHashH nil\n")
+	}
+
+	if req.Header.AppHash == nil {
+		fmt.Printf("AnkrChainApplication BeginBlock req.Header.AppHash nil\n")
+	}
+
 	if !bytes.Equal(appHashH, req.Header.AppHash) {
-		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error. Got %X, expected %X", appHashH, req.Header.AppHash))
+		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error, height=%d. Got %X, expected %X", req.Header.Height, appHashH, req.Header.AppHash))
 	}
 
 	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
