@@ -203,22 +203,21 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 		return rtnResp
 	}*/
 
-	respCommit := app.app.Commit()
 
-	appHashH := respCommit.Data
+	appHashH := app.app.APPHashByHeight(app.latestHeight)
 	if appHashH == nil {
-		fmt.Printf("AnkrChainApplication BeginBlock appHashH nil\n")
+		fmt.Printf("AnkrChainApplication Commit appHashH nil\n")
 	}
 
 	if app.latestAPPHash == nil {
-		fmt.Printf("AnkrChainApplication BeginBlock req.Header.AppHash nil\n")
+		fmt.Printf("AnkrChainApplication Commit app.latestAPPHash nil\n")
 	}
 
 	if  appHashH != nil && app.latestAPPHash != nil && !bytes.Equal(appHashH, app.latestAPPHash) {
-		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error, height=%d. Got %X, expected %X", app.latestHeight, appHashH, app.latestAPPHash))
+		panic(fmt.Errorf("AnkrChainApplication Commit appHash check error, height=%d. Got %X, expected %X", app.latestHeight, appHashH, app.latestAPPHash))
 	}
 
-	return respCommit
+	return app.app.Commit()
 }
 
 func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
