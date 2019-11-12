@@ -44,10 +44,17 @@ func(mr *MsgRouter) txMessageHandler(tx []byte) (DeliverTxHandler, interface{}) 
 		return nil, nil
 	}
 
+	if mr.mrLog != nil {
+		mr.mrLog.Info("MsgRouter txMessageHandler", "txType", txType)
+	}
+
 	if txHandler, ok:= mr.routerMap[txType]; ok {
 		return txHandler, data
 	}else {
-		mr.mrLog.Error("can't find the respond txmsg handler", "txType", txType)
+		if mr.mrLog != nil {
+			mr.mrLog.Error("can't find the respond txmsg handler", "txType", txType)
+		}
+
 		return nil, nil
 	}
 }
@@ -59,6 +66,10 @@ func(mr *MsgRouter) DeliverTx(tx []byte, store appstore.AppStore) types.Response
 	}
 
 	resDeliverTx := handler.ProcessTx(msgData, store)
+
+	if mr.mrLog != nil {
+		mr.mrLog.Info("MsgRouter DeliverTx ProcessTx", "code", resDeliverTx.Code)
+	}
 
 	if resDeliverTx.Code == code.CodeTypeOK {
 		store.IncTotalTx()

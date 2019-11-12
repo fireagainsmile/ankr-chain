@@ -243,6 +243,8 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
     sp.lastCommitID.Version = commitID.Version
 	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, commitID.Hash...)
 
+	sp.storeLog.Info("IavlStoreApp Commit", "totalTx", sp.totalTx, "appHash", fmt.Sprintf("%X", commitID.Hash))
+
 	return types.ResponseCommit{Data: commitID.Hash}
 }
 

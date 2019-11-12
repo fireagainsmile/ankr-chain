@@ -60,7 +60,7 @@ func NewMockAppStore() appstore.AppStore {
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
 	appStore := NewAppStore(dbDir, l.With("module", "AppStore"))
 
-	//router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
+	v0.MsgRouterInstance().SetLogger(l.With("module", "V0TxMsgRouter"))
 
 	chainID := appStore.ChainID()
 
