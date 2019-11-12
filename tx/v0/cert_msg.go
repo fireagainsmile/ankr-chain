@@ -30,7 +30,7 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	nonceS  := trxSetCertSlices[2]
 	sigS    := trxSetCertSlices[3]
 
-	nonceInt, err_nonce := strconv.ParseUint(string(nonceS), 10, 64)
+	_, err_nonce := strconv.ParseUint(string(nonceS), 10, 64)
 	if err_nonce != nil {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, %v", nonceS, err_nonce) }
 	}
