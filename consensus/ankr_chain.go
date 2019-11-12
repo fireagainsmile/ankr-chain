@@ -32,8 +32,9 @@ var _ types.Application = (*AnkrChainApplication)(nil)
 
 type AnkrChainApplication struct {
 	ChainId      ankrcmm.ChainID
-	APPName      string
-	latestHeight int64
+	APPName       string
+	latestHeight  int64
+	latestAPPHash []byte
 	app          appstore.AppStore
 	txSerializer tx.TxSerializer
 	contract     contract.Contract
@@ -202,7 +203,22 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 		return rtnResp
 	}*/
 
-	return app.app.Commit()
+	respCommit := app.app.Commit()
+
+	appHashH := respCommit.Data
+	if appHashH == nil {
+		fmt.Printf("AnkrChainApplication BeginBlock appHashH nil\n")
+	}
+
+	if app.latestAPPHash == nil {
+		fmt.Printf("AnkrChainApplication BeginBlock req.Header.AppHash nil\n")
+	}
+
+	if  appHashH != nil && app.latestAPPHash != nil && !bytes.Equal(appHashH, app.latestAPPHash) {
+		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error, height=%d. Got %X, expected %X", app.latestHeight, appHashH, app.latestAPPHash))
+	}
+
+	return respCommit
 }
 
 func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
@@ -257,21 +273,9 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	fmt.Printf("AnkrChainApplication BeginBlock appHash=%X, height=%d\n", req.Header.AppHash, req.Header.Height)
 
-	appHashH := app.app.APPHashByHeight(req.Header.Height)
-	if appHashH == nil {
-		fmt.Printf("AnkrChainApplication BeginBlock appHashH nil\n")
-	}
-
-	if req.Header.AppHash == nil {
-		fmt.Printf("AnkrChainApplication BeginBlock req.Header.AppHash nil\n")
-	}
-
-	if  appHashH != nil && req.Header.AppHash != nil && !bytes.Equal(appHashH, req.Header.AppHash) {
-		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error, height=%d. Got %X, expected %X", req.Header.Height, appHashH, req.Header.AppHash))
-	}
-
 	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
 	app.latestHeight = req.Header.Height
+	app.latestAPPHash = req.Header.AppHash
 	return types.ResponseBeginBlock{}
 }
 
