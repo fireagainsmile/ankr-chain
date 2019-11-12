@@ -266,7 +266,7 @@ func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.R
 		fmt.Printf("AnkrChainApplication BeginBlock req.Header.AppHash nil\n")
 	}
 
-	if !bytes.Equal(appHashH, req.Header.AppHash) {
+	if  appHashH != nil && req.Header.AppHash != nil && !bytes.Equal(appHashH, req.Header.AppHash) {
 		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error, height=%d. Got %X, expected %X", req.Header.Height, appHashH, req.Header.AppHash))
 	}
 
