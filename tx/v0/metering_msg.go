@@ -70,7 +70,7 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	appStore.SetMetering(dcS , nsS, valueS)
-	appStore.SetNonce(string(fromAddr), nonce)
+	appStore.SetNonce(string(fromAddr), nonce+1)
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
