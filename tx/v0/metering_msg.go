@@ -48,11 +48,12 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	fromAddr, _ := key.Address()
 
 	/* verify nonce */
-	//nonce, _ := appStore.Nonce(string(fromAddr))
-
-	//if nonceInt != nonce {
-	//	return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
-	//}
+	fmt.Printf("meteringMsg nonceInt: %d, fromAddr=%s\n", nonceInt, string(fromAddr))
+	nonce, _ := appStore.Nonce(string(fromAddr))
+	fmt.Printf("meteringMsg nonce: %d, fromAddr=%s\n", nonce, string(fromAddr))
+	if nonceInt != nonce {
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
+	}
 
 	/* verify sig */
 	pemByte, err := base64.StdEncoding.DecodeString(pemB64)
