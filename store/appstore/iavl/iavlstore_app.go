@@ -474,6 +474,10 @@ func (sp *IavlStoreApp) APPHash() []byte {
 	return sp.lastCommitID.Hash
 }
 
+func (sp *IavlStoreApp) APPHashByHeight(height int64) []byte {
+	return sp.iavlSM.commitInfo(height).AppHash
+}
+
 func (sp *IavlStoreApp) KVState() ankrapscmm.State {
 	return sp.kvState
 }

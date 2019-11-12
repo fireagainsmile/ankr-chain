@@ -1,6 +1,7 @@
 package ankrchain
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -254,6 +255,11 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 // Track the block hash and header information
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+	appHashH := app.app.APPHashByHeight(req.Header.Height)
+	if !bytes.Equal(appHashH, req.Header.AppHash) {
+		panic(fmt.Errorf("AnkrChainApplication BeginBlock appHash check error. Got %X, expected %X", appHashH, req.Header.AppHash)
+	}
+
 	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
 	app.latestHeight = req.Header.Height
 	return types.ResponseBeginBlock{}
