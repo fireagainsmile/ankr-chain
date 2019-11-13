@@ -45,7 +45,7 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 		admin_pubkey_str = string(admin_pubkey)
 	}
 
-	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1")
+	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeSet)
 	nonce, _ := appStore.Nonce(addrFrom)
 
 	if nonceInt != nonce + 1 {
@@ -101,7 +101,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 		admin_pubkey_str = string(admin_pubkey)
 	}
 
-	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1")
+	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeRemove)
 	nonce, _ := appStore.Nonce(addrFrom)
 
 	if nonceInt != nonce + 1 {

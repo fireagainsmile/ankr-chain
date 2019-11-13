@@ -91,7 +91,7 @@ func TestCertMsgWithNode(t *testing.T) {
 	}
 
 	pubBS64 := account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
-	addrFrom := crypto.CreateCertAddress(pubBS64,"dc1")
+	addrFrom := crypto.CreateCertAddress(pubBS64,"dc1", crypto.CertAddrTypeSet)
 
 	t.Logf("certMsgFromAddr=%s", addrFrom)
 
