@@ -104,7 +104,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1")
 	nonce, _ := appStore.Nonce(addrFrom)
 
-	if nonceInt != nonce {
+	if nonceInt != nonce + 1 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
 	}
 

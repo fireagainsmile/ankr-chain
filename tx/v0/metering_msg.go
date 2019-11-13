@@ -60,7 +60,7 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	nonce, _ := appStore.Nonce(string(fromAddr))
 	fmt.Printf("meteringMsg nonce: %d, fromAddr=%s\n", nonce, string(fromAddr))
 	if nonceInt != nonce + 1 {
-		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected metering nonce. Got %v, Expected %v", nonceS, nonce) }
 	}
 
 	/* verify sig */
