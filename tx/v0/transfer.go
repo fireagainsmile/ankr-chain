@@ -63,12 +63,12 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 
 	nonceInt, err_nonce := strconv.ParseUint(string(nonceS), 10, 64)
 	if err_nonce != nil {
-		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce4. Got %v", nonceS) }
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce. Got %v", nonceS) }
 	}
 
 	nonce, _ := appStore.Nonce(fromS)
-	if nonceInt != nonce +1 {
-		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce4. Got %v", nonceS) }
+	if nonceInt != nonce+1 {
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce. fromS %v, Got %v, Expected %v", fromS, nonceS,nonce ) }
 	}
 
 	if len(pubkeyS) == 0 {

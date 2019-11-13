@@ -68,7 +68,7 @@ func(mr *MsgRouter) DeliverTx(tx []byte, store appstore.AppStore) types.Response
 	resDeliverTx := handler.ProcessTx(msgData, store)
 
 	if mr.mrLog != nil {
-		mr.mrLog.Info("MsgRouter DeliverTx ProcessTx", "code", resDeliverTx.Code)
+		mr.mrLog.Info("MsgRouter DeliverTx ProcessTx", "code", resDeliverTx.Code, "log", resDeliverTx.Log)
 	}
 
 	if resDeliverTx.Code == code.CodeTypeOK {
