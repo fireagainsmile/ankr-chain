@@ -14,3 +14,14 @@ func CreateContractAddress(callerAddr string, nonce uint64) string {
 
 	return  crypto.Address(bytesSum).String()
 }
+
+func CreateCertAddress(pubBS64 string, dcName string) string{
+	hasher := tmhash.NewTruncated()
+
+	addr, _ := common.AddressByPublicKey(pubBS64)
+	hasher.Write([]byte(addr))
+	hasher.Write([]byte(dcName))
+	bytesSum :=  hasher.Sum(nil)
+
+	return  crypto.Address(bytesSum).String()
+}

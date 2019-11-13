@@ -245,7 +245,12 @@ func (sp *IavlStoreApp) SetBalance(address string, amount ankrcmm.Amount) {
 	if !sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
 		var accInfo ankrcmm.AccountInfo
 		accInfo.AccType = ankrcmm.AccountGeneral
+
 		accInfo.Nonce   = 0
+		if address == account.AccountManagerInstance().GenesisAccountAddress() {
+			accInfo.Nonce = 1 //This is to keep up with old version
+		}
+
 		accInfo.Address = address
 		accInfo.PubKey  = ""
 		accInfo.Amounts = []ankrcmm.Amount{amount}

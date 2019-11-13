@@ -9,6 +9,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/store/appstore"
+	ankrtxcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	"github.com/Ankr-network/wagon/exec/gas"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -164,6 +165,10 @@ func (tx *TxMsg) verifyFromAddress() (uint32, string) {
 		sk := tx.SecretKey()
 		switch sk.(type) {
 		case *ankrcrypto.SecretKeyEd25519:
+			if tx.Type() == ankrtxcmm.TxMsgTypeSetCertMsg || tx.Type() != ankrtxcmm.TxMsgTypeRemoveCertMsg {
+				return code.CodeTypeOK, ""
+			}
+
 			addr := tx.Signs[0].PubKey.Address().String()
 			if string(addr) != tx.SignerAddr()[0] {
 				return code.CodeTypeInvalidFromAddr, fmt.Sprintf("mismatch from addr: got addr=%s, expected addr=%s", tx.SignerAddr()[0], addr)

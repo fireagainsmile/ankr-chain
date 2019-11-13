@@ -66,10 +66,10 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce4. Got %v", nonceS) }
 	}
 
-	//nonce, _ := appStore.Nonce(fromS)
-	//if nonceInt != nonce {
-	//	return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce4. Got %v", nonceS) }
-	//}
+	nonce, _ := appStore.Nonce(fromS)
+	if nonceInt != nonce +1 {
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce4. Got %v", nonceS) }
+	}
 
 	if len(pubkeyS) == 0 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected public key. Got %v", pubkeyS) }
@@ -146,7 +146,7 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 	appStore.SetBalance(toS, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, toBalanceInt.Bytes()}) // use original nonce
 	appStore.SetBalance(account.AccountManagerInstance().FoundAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, fundBalanceInt.Bytes()}) // use original nonce
 
-	appStore.SetNonce(fromS, nonceInt+1)
+	appStore.SetNonce(fromS, nonce+1)
 
 	tvalue := time.Now().UnixNano()
 	addressIndexFrom := fmt.Sprintf("app.%s", fromS)

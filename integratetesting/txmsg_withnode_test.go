@@ -83,18 +83,18 @@ func TestCertMsgWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-3vX5qQ",
+		ChID: "test-chain-SYO08T",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test CertMsg",
 		Version: "1.0",
 	}
 
 	pubBS64 := account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
-	addrFrom, err := ankrcmm.AddressByPublicKey(pubBS64)
+	addrFrom := crypto.CreateCertAddress(pubBS64,"dc1")
 
 	t.Logf("certMsgFromAddr=%s", addrFrom)
-	assert.Equal(t, err, nil)
+
 
 	certMsg := &metering.SetCertMsg{FromAddr: addrFrom,
 		DCName: "dc1",
@@ -123,9 +123,9 @@ func TestMeteringWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-hQYhLJ",
+		ChID: "test-chain-SYO08T",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test metering",
 		Version: "1.0",
 	}
@@ -165,7 +165,7 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-qODlBV",
+		ChID: "test-chain-gw3hPf",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractDeploy",
