@@ -146,7 +146,9 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 	appStore.SetBalance(toS, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, toBalanceInt.Bytes()}) // use original nonce
 	appStore.SetBalance(account.AccountManagerInstance().FoundAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, fundBalanceInt.Bytes()}) // use original nonce
 
-	appStore.SetNonce(fromS, nonce+1)
+	if fromS != toS {
+		appStore.SetNonce(fromS, nonce+1)
+	}
 
 	tvalue := time.Now().UnixNano()
 	addressIndexFrom := fmt.Sprintf("app.%s", fromS)
