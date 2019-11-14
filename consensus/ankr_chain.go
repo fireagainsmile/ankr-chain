@@ -206,11 +206,11 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 
 	appHashH := app.app.APPHashByHeight(app.latestHeight-1)
 	if appHashH == nil {
-		fmt.Printf("AnkrChainApplication Commit appHashH nil\n")
+		app.logger.Info("AnkrChainApplication Commit appHashH nil\n")
 	}
 
 	if app.latestAPPHash == nil {
-		fmt.Printf("AnkrChainApplication Commit app.latestAPPHash nil\n")
+		app.logger.Info("AnkrChainApplication Commit app.latestAPPHash nil\n")
 	}
 
 	if  appHashH != nil && app.latestAPPHash != nil && !bytes.Equal(appHashH, app.latestAPPHash) {
@@ -270,7 +270,7 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 // Track the block hash and header information
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	fmt.Printf("AnkrChainApplication BeginBlock appHash=%X, height=%d\n", req.Header.AppHash, req.Header.Height)
+	app.logger.Info(fmt.Sprintf("AnkrChainApplication BeginBlock appHash=%X, height=%d", req.Header.AppHash, req.Header.Height))
 
 	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
 	app.latestHeight = req.Header.Height
