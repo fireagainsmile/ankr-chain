@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"github.com/tendermint/tendermint/crypto"
 	"math/big"
 
@@ -73,8 +72,6 @@ func (skp *SecretKeyPem) Address() (common.Address, error) {
 	}
 
 	addrHex := crypto.AddressHash(pubKeyBytes)
-
-	fmt.Printf("addrHex=%v\n", addrHex)
 
 	return  common.Address(addrHex.String()), err
 }

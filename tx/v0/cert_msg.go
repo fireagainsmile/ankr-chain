@@ -3,6 +3,7 @@ package v0
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/Ankr-network/ankr-chain/crypto"
 	"strconv"
 
 	"github.com/Ankr-network/ankr-chain/account"
@@ -44,12 +45,12 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 		admin_pubkey_str = string(admin_pubkey)
 	}
 
-	addrFrom, _ := ankrcmm.AddressByPublicKey(admin_pubkey_str)
-	//nonce, _ := appStore.Nonce(addrFrom)
+	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeSet)
+	nonce, _ := appStore.Nonce(addrFrom)
 
-	//if nonceInt != nonce {
-	//	return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
-	//}
+	if nonceInt != nonce + 1 {
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
+	}
 
 	pDec, _ := base64.StdEncoding.DecodeString(sigS)
 	pubKeyObject, err := ankrcmm.DeserilizePubKey(admin_pubkey_str) //set by super user
@@ -65,7 +66,8 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	appStore.SetCertKey(dcS, pemB64S)
-	appStore.SetNonce(addrFrom, nonceInt+1)
+
+	appStore.SetNonce(addrFrom, nonce+1)
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeSetCertMsg)},
@@ -99,12 +101,12 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 		admin_pubkey_str = string(admin_pubkey)
 	}
 
-	addrFrom, _ := ankrcmm.AddressByPublicKey(admin_pubkey_str)
-	//nonce, _ := appStore.Nonce(addrFrom)
+	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeRemove)
+	nonce, _ := appStore.Nonce(addrFrom)
 
-	//if nonceInt != nonce {
-	//	return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
-	//}
+	if nonceInt != nonce + 1 {
+		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
+	}
 
 	pDec, _ := base64.StdEncoding.DecodeString(sigS)
 	pubKeyObject, err := ankrcmm.DeserilizePubKey(admin_pubkey_str) //set by super user
@@ -120,7 +122,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	}
 
 	appStore.DeleteCertKey(dcS)
-	appStore.SetNonce(addrFrom, nonceInt+1)
+	appStore.SetNonce(addrFrom, nonce+1)
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeRemoveCertMsg)},
