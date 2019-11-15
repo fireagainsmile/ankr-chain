@@ -108,6 +108,12 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 
 	lcmmID = iavlSM.lastCommit()
 
+	fmt.Printf("lcmmID.version=%d, lcmmID.hash=%X, kvState=%v\n", lcmmID.Version, lcmmID.Hash, kvState)
+
+	if lcmmID.Version  > 0 {
+		fmt.Printf("theLastVersion'hash=%X\n", iavlSM.commitInfo(lcmmID.Version - 1).AppHash)
+	}
+
 	iavlSM.Load()
 
 	iavlSApp := &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec(), kvState: kvState}
@@ -131,6 +137,8 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	if lcmmID.Hash != nil {
 		lcmmID.Hash = lastHash
 	}
+
+	fmt.Printf("lcmmID.version=%d, lcmmID.hash=%X, totalTx=%d\n", lcmmID.Version, lcmmID.Hash, iavlSApp.totalTx)
 
 	iavlSApp.lastCommitID = lcmmID
 
@@ -234,6 +242,8 @@ func (sp *IavlStoreApp) Commit() types.ResponseCommit {
 
     sp.lastCommitID.Version = commitID.Version
 	sp.lastCommitID.Hash    = append(sp.lastCommitID.Hash, commitID.Hash...)
+
+	sp.storeLog.Info("IavlStoreApp Commit", "totalTx", sp.totalTx, "appHash", fmt.Sprintf("%X", commitID.Hash))
 
 	return types.ResponseCommit{Data: commitID.Hash}
 }
@@ -464,6 +474,10 @@ func (sp *IavlStoreApp) IncTotalTx() int64 {
 
 func (sp *IavlStoreApp) APPHash() []byte {
 	return sp.lastCommitID.Hash
+}
+
+func (sp *IavlStoreApp) APPHashByHeight(height int64) []byte {
+	return sp.iavlSM.commitInfo(height).AppHash
 }
 
 func (sp *IavlStoreApp) KVState() ankrapscmm.State {

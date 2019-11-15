@@ -1,6 +1,7 @@
 package ankrchain
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -31,8 +32,9 @@ var _ types.Application = (*AnkrChainApplication)(nil)
 
 type AnkrChainApplication struct {
 	ChainId      ankrcmm.ChainID
-	APPName      string
-	latestHeight int64
+	APPName       string
+	latestHeight  int64
+	latestAPPHash []byte
 	app          appstore.AppStore
 	txSerializer tx.TxSerializer
 	contract     contract.Contract
@@ -58,7 +60,7 @@ func NewMockAppStore() appstore.AppStore {
 func NewAnkrChainApplication(dbDir string, appName string, l log.Logger) *AnkrChainApplication {
 	appStore := NewAppStore(dbDir, l.With("module", "AppStore"))
 
-	//router.MsgRouterInstance().SetLogger(l.With("module", "AnkrChainRouter"))
+	v0.MsgRouterInstance().SetLogger(l.With("module", "V0TxMsgRouter"))
 
 	chainID := appStore.ChainID()
 
@@ -170,8 +172,6 @@ func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string
 
 // tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes
 func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
-	app.app.IncTotalTx()
-
 	txMsg, codeVal, logStr := app.dispossTx(tx)
 	if codeVal == code.CodeTypeOK {
 		return txMsg.DeliverTx(app)
@@ -193,6 +193,7 @@ func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 // Commit will panic if InitChain was not called
 func (app *AnkrChainApplication) Commit() types.ResponseCommit {
+	/*
 	if app.app.KVState().Size > 0 && app.latestHeight == app.app.KVState().Height {
 		rtnResp :=  types.ResponseCommit{Data: app.app.KVState().AppHash}
 
@@ -200,6 +201,20 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 		app.app.ResetKVState()
 
 		return rtnResp
+	}*/
+
+
+	appHashH := app.app.APPHashByHeight(app.latestHeight-1)
+	if appHashH == nil {
+		app.logger.Info("AnkrChainApplication Commit appHashH nil\n")
+	}
+
+	if app.latestAPPHash == nil {
+		app.logger.Info("AnkrChainApplication Commit app.latestAPPHash nil\n")
+	}
+
+	if  appHashH != nil && app.latestAPPHash != nil && !bytes.Equal(appHashH, app.latestAPPHash) {
+		panic(fmt.Errorf("AnkrChainApplication Commit appHash check error, height=%d. Got %X, expected %X", app.latestHeight, appHashH, app.latestAPPHash))
 	}
 
 	return app.app.Commit()
@@ -255,8 +270,11 @@ func (app *AnkrChainApplication) InitChain(req types.RequestInitChain) types.Res
 
 // Track the block hash and header information
 func (app *AnkrChainApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+	app.logger.Info(fmt.Sprintf("AnkrChainApplication BeginBlock appHash=%X, height=%d", req.Header.AppHash, req.Header.Height))
+
 	val.ValidatorManagerInstance().ValBeginBlock(req, app.app)
 	app.latestHeight = req.Header.Height
+	app.latestAPPHash = req.Header.AppHash
 	return types.ResponseBeginBlock{}
 }
 
