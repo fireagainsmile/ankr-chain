@@ -71,7 +71,6 @@ jobs:
           done
           # upgrade ankrchain in hub side
           kops export kubecfg --name ${K8S_CLUSTER}.k8s.ankr.network --state s3://kops.${K8S_CLUSTER}.config
-          kubectl apply -f k8s/create-pvc.yaml
           kubectl apply -f k8s/ankrchain-svc.yaml
           if [[ ($BRANCH_NAME == "master") ]]; then
             kubectl apply -f k8s/create-pvc-prod.yaml
