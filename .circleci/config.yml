@@ -74,9 +74,11 @@ jobs:
           kubectl apply -f k8s/create-pvc.yaml
           kubectl apply -f k8s/ankrchain-svc.yaml
           if [[ ($BRANCH_NAME == "master") ]]; then
+            kubectl apply -f k8s/create-pvc-prod.yaml
             kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:$BRANCH_NAME$DATE \
               -f k8s/ankrchain-prod.yaml --local -o yaml > k8s/ankrchain-patched.yaml
           else
+            kubectl apply -f k8s/create-pvc.yaml
             kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$BRANCH_NAME$DATE \
               -f k8s/ankrchain.yaml --local -o yaml > k8s/ankrchain-patched.yaml
           fi
