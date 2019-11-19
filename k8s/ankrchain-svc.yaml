@@ -17,6 +17,15 @@ spec:
   - name: p2p-1
     port: 20016
     targetPort: 26656
+  - name: p2p-2
+    port: 20026
+    targetPort: 26656
+  - name: p2p-3
+    port: 20036
+    targetPort: 26656
+  - name: p2p-4
+    port: 20046
+    targetPort: 26656
   - name: rpc
     port: 26657
     targetPort: 26657
