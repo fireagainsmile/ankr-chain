@@ -55,6 +55,10 @@ WORKDIR $TMHOME
 # p2p and rpc port
 EXPOSE 26656 26657 26658
 
+ENTRYPOINT ["/bin/sh"]
+CMD ["-c", "ankrchain init && ankrchain node --log_level=debug --moniker=`hostname`"]
+STOPSIGNAL SIGTERM
+
 FROM public AS hub
 USER root
 
@@ -62,3 +66,6 @@ COPY DOCKER/tmhome/config/node_key.*.json "$TMHOME"/config/
 COPY DOCKER/tmhome/config/priv_validator_key.*.json "$TMHOME"/config/
 COPY DOCKER/tmhome/config/priv_validator_state.json "$TMHOME"/config/
 RUN chown -R tmuser:tmuser "$TMHOME"/config "$TMHOME"/config
+
+USER root
+CMD ["ankrchain","-h"]
