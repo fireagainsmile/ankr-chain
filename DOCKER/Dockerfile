@@ -56,7 +56,7 @@ WORKDIR $TMHOME
 EXPOSE 26656 26657 26658
 
 ENTRYPOINT ["/bin/sh"]
-CMD ["-c", "ankrchain init && ankrchain node --log_level=debug --moniker=`hostname`"]
+CMD ["-c", "ankrchain init && ankrchain node --log_level=info --moniker=`hostname`"]
 STOPSIGNAL SIGTERM
 
 FROM public AS hub
