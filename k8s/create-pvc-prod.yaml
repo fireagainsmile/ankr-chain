@@ -12,12 +12,12 @@ reclaimPolicy: Delete
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: tendermint-pvc-1
+  name: tendermint-pvc-3
   labels:
     type: amazonEBS
 spec:
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteOnce
   resources:
     requests:
       storage: 8Gi
