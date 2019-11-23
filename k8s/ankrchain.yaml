@@ -1,40 +1,40 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: ankrchain-1
+  name: ankrchain-3
 spec:
   selector:
     matchLabels:
       app: ankr-chain
-      id: ankrchain-1
+      id: ankrchain-3
   replicas: 1
   updateStrategy:
     type: RollingUpdate
-  serviceName: ankrchain-1
+  serviceName: ankrchain-3
   template:
     metadata:
       labels:
         app: ankr-chain
-        id: ankrchain-1
+        id: ankrchain-3
     spec:
       imagePullSecrets:
-        - name: aws-ecr
+      - name: aws-ecr
       volumes:
-        - name: tendermint-pvc-1
-          persistentVolumeClaim:
-            claimName: tendermint-pvc-1
+      - name: tendermint-pvc-3
+        persistentVolumeClaim:
+          claimName: tendermint-pvc-3
       containers:
-        - name: ankrchain
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
-          imagePullPolicy: Always
-          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.1.json config/node_key.json && mv config/priv_validator_key.1.json config/priv_validator_key.json && ankrchain node --log_level=debug --moniker=`hostname`"]
-          ports:
-            - name: p2p-1
-              containerPort: 26656
-            - name: rpc
-              containerPort: 26657
-            - name: abci
-              containerPort: 26658
-          volumeMounts:
-            - name: tendermint-pvc-1
-              mountPath: /ankrchain/data
+      - name: ankrchain
+        image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
+        imagePullPolicy: Always
+        command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.3.json config/node_key.json && mv config/priv_validator_key.3.json config/priv_validator_key.json && ankrchain node --log_level=debug --moniker=`hostname`"]
+        ports:
+        - name: p2p-3
+          containerPort: 26656
+        - name: rpc
+          containerPort: 26657
+        - name: abci
+          containerPort: 26658
+        volumeMounts:
+        - name: tendermint-pvc-3
+          mountPath: /ankrchain/data
