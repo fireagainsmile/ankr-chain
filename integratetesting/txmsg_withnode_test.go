@@ -7,6 +7,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/tx/metering"
 	"io/ioutil"
 	"math/big"
+	"sync"
 	"testing"
 
 	"github.com/Ankr-network/ankr-chain/client"
@@ -77,6 +78,132 @@ func TestTxTransferWithNode(t *testing.T) {
 	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, resp)
 
 	t.Logf("addr=B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67, bal=%s", resp.Amount)
+}
+
+func TestBroadcastTxAsyncWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-NoqWuO",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		Memo: "TestBroadcastTxAsync",
+		Version: "1.0",
+	}
+
+	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ToAddr:  "065E37B3FC243B9FABB1519AB876E7632C510DC9324031",
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
+
+	data, txHash, log, err := builder.BuildAndBroadcastAsync(c)
+
+	assert.Equal(t, err, nil)
+
+	t.Logf("TestBroadcastTxAsyncWithNode sucessful: data=%v, txHash=%s, log=%s", data, txHash, log)
+}
+
+func TestBroadcastTxAsyncParallelWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-NoqWuO",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		Memo: "TestBroadcastTxAsync",
+		Version: "1.0",
+	}
+
+	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ToAddr:  "065E37B3FC243B9FABB1519AB876E7632C510DC9324031",
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
+
+	var wg sync.WaitGroup
+    wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func() {
+			data, txHash, log, err := builder.BuildAndBroadcastAsync(c)
+			t.Logf("TestBroadcastTxAsyncWithNode sucessful: data=%v, txHash=%s, log=%s, err=%v", data, txHash, log, err)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+
+func TestBroadcastTxSyncWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-NoqWuO",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		Memo: "TestBroadcastTxSyncWithNode",
+		Version: "1.0",
+	}
+
+	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ToAddr:  "065E37B3FC243B9FABB1519AB876E7632C510DC9324031",
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
+
+	data, txHash, log, err := builder.BuildAndBroadcastSync(c)
+
+	assert.Equal(t, err, nil)
+
+	t.Logf("TestBroadcastTxSyncWithNode sucessful: data=%v, txHash=%s, log=%s", data, txHash, log)
+}
+
+func TestBroadcastTxSyncParallelWithNode(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	msgHeader := client.TxMsgHeader{
+		ChID: "test-chain-NoqWuO",
+		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		Memo: "TestBroadcastTxSyncParallelWithNode",
+		Version: "1.0",
+	}
+
+	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ToAddr:  "065E37B3FC243B9FABB1519AB876E7632C510DC9324031",
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
+	}
+
+	txSerializer := serializer.NewTxSerializerCDC()
+
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
+
+	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
+
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func() {
+			data, txHash, log, err := builder.BuildAndBroadcastSync(c)
+			t.Logf("TestBroadcastTxSyncParallelWithNode sucessful: data=%v, txHash=%s, log=%s, err=%v", data, txHash, log, err)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
 
 func TestCertMsgWithNode(t *testing.T) {

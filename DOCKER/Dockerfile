@@ -1,5 +1,5 @@
 # Compile
-FROM golang:1.12-alpine AS compiler
+FROM golang:1.13-alpine AS compiler
 ARG PRIV_PATH
 
 RUN apk add --no-cache git make dep openssh-client
