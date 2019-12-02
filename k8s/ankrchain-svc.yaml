@@ -40,14 +40,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ankrchain-3
+  name: ankrchain-2
   labels:
-    app: ankrchain-3
+    app: ankrchain-2
 spec:
   selector:
-    id: ankrchain-3
+    id: ankrchain-2
   ports:
-  - name: p2p-3
+  - name: p2p-2
     port: 26656
     targetPort: 26656
   - name: rpc
