@@ -393,7 +393,7 @@ func ContractCall(proc *exec.Process, contractIndex int32, methodIndex int32, pa
 		return -1
 	}
 
-	cInfo, err := ankrcontext.GetBCContext().LoadContract(toReadContractAddr)
+	cInfo, _, _, _, err := ankrcontext.GetBCContext().LoadContract(toReadContractAddr, 0, false)
 	if err != nil {
 		proc.VM().Logger().Error("ContractCall LoadContract err", "err", err)
 		return -1
@@ -454,7 +454,7 @@ func ContractDelegateCall(proc *exec.Process, contractIndex int32, methodIndex i
 		return -1
 	}
 
-	cInfo, err := ankrcontext.GetBCContext().LoadContract(toReadContractAddr)
+	cInfo, _, _, _, err := ankrcontext.GetBCContext().LoadContract(toReadContractAddr, 0, false)
 	if err != nil {
 		proc.VM().Logger().Error("ContractDelegateCall LoadContract err", "err", err)
 		return -1
@@ -599,7 +599,7 @@ func Balance(proc *exec.Process,  addrIndex int32, symbolIndex int32) uint64 {
 		return 0
 	}
 
-	balInt, err := ankrcontext.GetBCContext().Balance(addr, symbol)
+	balInt, _, _, _, err := ankrcontext.GetBCContext().Balance(addr, symbol, 0, false)
 	if err != nil || balInt == nil{
 		proc.VM().Logger().Error("Balance load balance", "err", err, "addr", addr, "symbol", symbol)
 		balInt = new(big.Int).SetUint64(0)

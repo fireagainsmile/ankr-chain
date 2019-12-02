@@ -1,11 +1,16 @@
 package common
 
+type QueryResp struct {
+	RespData   []byte  `json:"respdata"`
+	ProofValue []byte  `json:"proofvalue"`
+}
+
 type NonceQueryReq struct {
 	Address string  `json:"address"`
 }
 
 type NonceQueryResp struct {
-	Nonce uint64  `json:"nonce"`
+	Nonce      uint64  `json:"nonce"`
 }
 
 type BalanceQueryReq struct {
@@ -14,7 +19,7 @@ type BalanceQueryReq struct {
 }
 
 type BalanceQueryResp struct {
-	Amount string  `json:"amount"`
+	Amount string      `json:"amount"`
 }
 
 type CertKeyQueryReq struct {
@@ -31,7 +36,7 @@ type MeteringQueryReq struct {
 }
 
 type MeteringQueryResp struct {
-	Value string  `json:"value"`
+	Value string      `json:"value"`
 }
 
 type ContractQueryReq struct {
@@ -39,11 +44,11 @@ type ContractQueryReq struct {
 }
 
 type ContractQueryResp struct {
-	Addr      string   `json:"addr"`
-	Name      string   `json:"name"`
-	Owner     string   `json:"owneraddr"`
-	Codes     []byte   `json:"codes"`
-	CodesDesc string   `json:"codesdesc"`
+	Addr       string   `json:"addr"`
+	Name       string   `json:"name"`
+	Owner      string   `json:"owneraddr"`
+	Codes      []byte   `json:"codes"`
+	CodesDesc  string   `json:"codesdesc"`
 }
 
 type ValidatorQueryReq struct {
@@ -65,17 +70,17 @@ type AccountQueryReq struct {
 }
 
 type AccountQueryResp struct {
-	AccType  AccountType `json:"accounttype"`
-	Nonce    uint64      `json:"nonce"`
-	Address  string      `json:"address"`
-	PubKey   string      `json:"pubkey"`
-	Amounts  []Amount    `json:"asserts"`
+	AccType    AccountType `json:"accounttype"`
+	Nonce      uint64      `json:"nonce"`
+	Address    string      `json:"address"`
+	PubKey     string      `json:"pubkey"`
+	Amounts    []Amount    `json:"asserts"`
 }
 
 type StatisticalInfoReq struct {
 }
 
 type StatisticalInfoResp struct {
-	Addrs   []string  `json:"addrs"`
-    TotalTx int64     `json:"totaltx"`
+	Addrs      []string  `json:"addrs"`
+    TotalTx    int64     `json:"totaltx"`
 }

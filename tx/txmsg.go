@@ -149,7 +149,7 @@ func (tx *TxMsg) BasicVerify(context ContextTx) (uint32, string) {
 		return codeV, log
 	}
 
-	onceStore, err := context.AppStore().Nonce(tx.SignerAddr()[0])
+	onceStore, _, _, _, err := context.AppStore().Nonce(tx.SignerAddr()[0], 0, false)
 	if err != nil {
 		return code.CodeTypeGetStoreNonceError, err.Error()
 	}
@@ -221,7 +221,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	}
 
 	usedFee := new(big.Int).Mul(tx.GasUsed, new(big.Int).SetBytes(tx.GasPrice.Value))
-	balFrom, err := context.AppStore().Balance(tx.SignerAddr()[0], tx.GasPrice.Cur.Symbol)
+	balFrom, _, _, _, err := context.AppStore().Balance(tx.SignerAddr()[0], tx.GasPrice.Cur.Symbol, 0, false)
 	if err != nil {
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), tx.SignerAddr()[0])}
 	}
@@ -233,7 +233,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 
 	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{tx.GasPrice.Cur.Symbol, 18}, balFrom.Bytes()})
 
-	foundBal, err := context.AppStore().Balance(account.AccountManagerInstance().FoundAccountAddress(), tx.GasPrice.Cur.Symbol)
+	foundBal, _, _, _, err := context.AppStore().Balance(account.AccountManagerInstance().FoundAccountAddress(), tx.GasPrice.Cur.Symbol, 0, false)
 	if err != nil {
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), account.AccountManagerInstance().FoundAccountAddress())}
 	}

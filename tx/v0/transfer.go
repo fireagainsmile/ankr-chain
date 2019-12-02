@@ -66,7 +66,7 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce. Got %v", nonceS) }
 	}
 
-	nonce, _ := appStore.Nonce(fromS)
+	nonce, _, _, _, _ := appStore.Nonce(fromS, 0, false)
 	if nonceInt != nonce+1 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce. fromS %v, Got %v, Expected %v", fromS, nonceS,nonce ) }
 	}
@@ -103,7 +103,7 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 		return  types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Bad signature. Got %v", sigS) }
 	}
 
-	fromBalanceInt, err := appStore.Balance(fromS, "ANKR")
+	fromBalanceInt, _, _, _, err := appStore.Balance(fromS, "ANKR", 0, false)
 	if err != nil {
 		return  types.ResponseDeliverTx{ Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("can't get balance, address %v", fromS) }
 	}
@@ -117,7 +117,7 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Balance not enough. Balance %v, needed amount %v", fromBalanceInt, amountSend) }
 	}
 
-	fundBalanceInt, err := appStore.Balance(account.AccountManagerInstance().FoundAccountAddress(), "ANKR")
+	fundBalanceInt, _, _, _, err := appStore.Balance(account.AccountManagerInstance().FoundAccountAddress(), "ANKR", 0, false)
 	if err != nil {
 		return  types.ResponseDeliverTx{ Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("can't get balance, address %v", account.AccountManagerInstance().FoundAccountAddress()) }
 	}
@@ -126,7 +126,7 @@ func (tr *transferMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) 
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected amount, negative num. Got %s", fundBalanceInt.String()) }
 	}
 
-	toBalanceInt, err := appStore.Balance(toS, "ANKR")
+	toBalanceInt, _, _, _, err := appStore.Balance(toS, "ANKR", 0, false)
 	if err != nil {
 		toBalanceInt = new(big.Int).SetUint64(0)
 	}

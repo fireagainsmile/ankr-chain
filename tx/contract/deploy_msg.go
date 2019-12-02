@@ -62,9 +62,9 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 		return code.CodeTypeContractInvalidCodeSize, fmt.Sprintf("ContractDeployMsg ProcessTx, invalid code size, Got %v, code size=%d", cd.Codes, len(cd.Codes)), nil
 	}
 
-	nonce, _ := context.AppStore().Nonce(cd.FromAddr)
+	nonce, _, _, _, _ := context.AppStore().Nonce(cd.FromAddr, 0, false)
 	contractAddr := ankrcrypto.CreateContractAddress(cd.FromAddr, nonce)
-    cInfo, err := context.AppStore().LoadContract(contractAddr)
+    cInfo, _, _, _, err := context.AppStore().LoadContract(contractAddr, 0, false)
     if err != nil {
     	return code.CodeTypeLoadContractErr, fmt.Sprintf("ContractDeployMsg ProcessTx, load contract err: contractAddr=%s", contractAddr), nil
 	} else if cInfo != nil {
