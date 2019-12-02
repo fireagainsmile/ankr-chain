@@ -74,7 +74,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeContractCantFound, fmt.Sprintf("TransferMsg ProcessTx, can't find the currency contract, symbol=%s", trAmount.Cur.Symbol), nil
 	}
 
-	tokenContract, err := context.AppStore().LoadContract(contractAddr)
+	tokenContract, _, _, _, err := context.AppStore().LoadContract(contractAddr, 0, false)
 	if err != nil {
 		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: contractAddr = %s", contractAddr), nil
 	}

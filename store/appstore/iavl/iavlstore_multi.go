@@ -22,7 +22,6 @@ const (
 	IAVLStoreMainKeepVersionNum     = 100
 	IAVLStoreContractKeepVersionNum = 100
 
-    ProofOpMultiStore = "multistore"
     CommitInfoKey     = "cminfo%d"
     LatestVerKey      = "latestverkey"
 )

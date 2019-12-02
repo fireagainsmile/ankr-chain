@@ -116,7 +116,7 @@ func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeInvalidStakeCurrency, fmt.Sprintf("ValidatorMsg ProcessTx, invalid stake currency: currency=%s", v.StakeAmount.Cur.Symbol), nil
 	}
 
-	bal, err := context.AppStore().Balance(v.StakeAddress, "ANKR")
+	bal, _, _, _, err := context.AppStore().Balance(v.StakeAddress, "ANKR", 0, false)
 	if err != nil {
 		return code.CodeTypeLoadBalError, fmt.Sprintf("ValidatorMsg ProcessTx, load balance err: address=%s, err=%v", v.StakeAddress, v), nil
 	}

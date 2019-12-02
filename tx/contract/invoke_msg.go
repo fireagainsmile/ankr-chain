@@ -63,7 +63,7 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 		return code.CodeTypeContractInvalidAddr, fmt.Sprintf("ContractInvokeMsg ProcessTx, unexpected contract address. Got %s, addr len=%d", ci.ContractAddr, len(ci.ContractAddr)), nil
 	}
 
-	cInfo, err := context.AppStore().LoadContract(ci.ContractAddr)
+	cInfo, _, _, _, err := context.AppStore().LoadContract(ci.ContractAddr, 0, false)
 	if err != nil {
 		return code.CodeTypeLoadContractErr, fmt.Sprintf("ContractInvokeMsg ProcessTx, load contract err: contractAddr=%s", ci.ContractAddr), nil
 	} else if cInfo == nil {

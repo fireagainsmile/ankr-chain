@@ -61,7 +61,7 @@ func (ac *AnkrCoin) TotalSupply() *big.Int {
 }
 
 func (ac *AnkrCoin) BalanceOf(addr string) *big.Int {
-	bal, err := ac.context.Balance(addr, ac.symbol)
+	bal, _, _, _, err := ac.context.Balance(addr, ac.symbol, 0, false)
 	if err != nil {
 		ac.log.Error("AnkrCoin BalanceOf err", "addr", addr, "err", err)
 	}

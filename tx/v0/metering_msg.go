@@ -38,7 +38,7 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected nonce8. Got %v", nonceS) }
 	}
 
-	pemB64 := appStore.CertKey(dcS)
+	pemB64, _, _, _ := appStore.CertKey(dcS, 0, false)
 	if len(pemB64) == 0 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("can not find cert file of %s", dcS) }
 	}
@@ -57,7 +57,7 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 
 	/* verify nonce */
 	fmt.Printf("meteringMsg nonceInt: %d, fromAddr=%s\n", nonceInt, string(fromAddr))
-	nonce, _ := appStore.Nonce(string(fromAddr))
+	nonce, _, _, _, _ := appStore.Nonce(string(fromAddr), 0, false)
 	fmt.Printf("meteringMsg nonce: %d, fromAddr=%s\n", nonce, string(fromAddr))
 	if nonceInt != nonce + 1 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected metering nonce. Got %v, Expected %v", nonceS, nonce) }
