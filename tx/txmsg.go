@@ -203,6 +203,17 @@ func (tx *TxMsg) CheckTx(context ContextTx) types.ResponseCheckTx {
 	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: new(big.Int).SetBytes(tx.GasLimit).Int64()}
 }
 
+func (tx *TxMsg) gasCharge(context ContextTx, usedFee *big.Int) error {
+	foundBal, _, _, _, err := context.AppStore().Balance(account.AccountManagerInstance().FoundAccountAddress(), tx.GasPrice.Cur.Symbol, 0, false)
+	if err != nil {
+		return  fmt.Errorf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), account.AccountManagerInstance().FoundAccountAddress())
+	}
+	foundBal = new(big.Int).Add(foundBal, usedFee)
+	context.AppStore().SetBalance(account.AccountManagerInstance().FoundAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{tx.GasPrice.Cur.Symbol, 18}, foundBal.Bytes()})
+
+	return nil
+}
+
 func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	context.AppStore().IncTotalTx()
 
@@ -231,6 +242,10 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	}
 	if usedFee.Cmp(balFrom) == 1 || usedFee.Cmp(balFrom) == 0 {
 		context.AppStore().Rollback()
+		err = tx.gasCharge(context, balFrom)
+		if err != nil {
+			context.AppStore().Rollback()
+		}
 		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), balFrom.String())}
 	}
 
@@ -238,13 +253,11 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 
 	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{tx.GasPrice.Cur.Symbol, 18}, balFrom.Bytes()})
 
-	foundBal, _, _, _, err := context.AppStore().Balance(account.AccountManagerInstance().FoundAccountAddress(), tx.GasPrice.Cur.Symbol, 0, false)
+	err = tx.gasCharge(context, balFrom)
 	if err != nil {
 		context.AppStore().Rollback()
-		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), account.AccountManagerInstance().FoundAccountAddress())}
+		return types.ResponseDeliverTx{Code: code.CodeTypeGasChargeError, Log: fmt.Sprintf("TxMsg DeliverTx, gas charge err=%s", err.Error())}
 	}
-	foundBal = new(big.Int).Add(foundBal, usedFee)
-	context.AppStore().SetBalance(account.AccountManagerInstance().FoundAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{tx.GasPrice.Cur.Symbol, 18}, foundBal.Bytes()})
 
 	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Log: log, GasWanted: new(big.Int).SetBytes(tx.GasLimit).Int64(), GasUsed: tx.GasUsed.Int64(), Tags: tags}
 }
