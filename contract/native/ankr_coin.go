@@ -72,11 +72,17 @@ func (ac *AnkrCoin) BalanceOf(addr string) *big.Int {
 func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	value, isSucess := new(big.Int).SetString(amount, 10)
 	if !isSucess || value == nil{
-		ac.log.Error("AnkrCoin Transfer invalid amount", "isSucess", isSucess)
+		ac.log.Error("AnkrCoin Transfer invalid amount", "amount", amount, "isSucess", isSucess)
+		return false
 	}
 
 	if toAddr == "" {
 		ac.log.Error("AnkrCoin Transfer toAddr blank")
+		return false
+	}
+
+	if value.Cmp(ac.totalSupply) < 0 || value.Cmp(ac.totalSupply) == 0{
+		ac.log.Error("AnkrCoin Transfer amount >= totalSupply", "amount", amount, "totalSupply", ac.totalSupply.String())
 		return false
 	}
 
@@ -132,6 +138,11 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 
 	if toAddr == "" {
 		ac.log.Error("AnkrCoin TransferFrom toAddr blank")
+		return false
+	}
+
+	if value.Cmp(ac.totalSupply) < 0 || value.Cmp(ac.totalSupply) == 0{
+		ac.log.Error("AnkrCoin Transfer amount >= totalSupply", "amount", amount, "totalSupply", ac.totalSupply.String())
 		return false
 	}
 

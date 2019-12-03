@@ -208,24 +208,29 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 
 	codeT, log, tags := tx.ProcessTx(context, tx, false)
 	if codeT != code.CodeTypeOK {
+		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: codeT, Log: log}
 	}
 
 	if tx.GasUsed == nil || tx.GasUsed.Cmp(big.NewInt(0)) == 0 {
+		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: 0, GasUsed: 0, Tags: tags}
 	}
 
 	subGas := new(big.Int).Sub(tx.GasUsed, new(big.Int).SetBytes(tx.GasLimit))
 	if subGas.Cmp(big.NewInt(0)) == 1 || subGas.Cmp(big.NewInt(0)) == 0 {
+		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeGasNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, gas not enough, got %s", tx.GasUsed.String())}
 	}
 
 	usedFee := new(big.Int).Mul(tx.GasUsed, new(big.Int).SetBytes(tx.GasPrice.Value))
 	balFrom, _, _, _, err := context.AppStore().Balance(tx.SignerAddr()[0], tx.GasPrice.Cur.Symbol, 0, false)
 	if err != nil {
+		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), tx.SignerAddr()[0])}
 	}
 	if usedFee.Cmp(balFrom) == 1 || usedFee.Cmp(balFrom) == 0 {
+		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg DeliverTx, fee not enough, got %s, expected %s", usedFee.String(), balFrom.String())}
 	}
 
@@ -235,6 +240,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 
 	foundBal, _, _, _, err := context.AppStore().Balance(account.AccountManagerInstance().FoundAccountAddress(), tx.GasPrice.Cur.Symbol, 0, false)
 	if err != nil {
+		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeLoadBalError, Log: fmt.Sprintf("TxMsg DeliverTx, get bal err=%s， addr=%s", err.Error(), account.AccountManagerInstance().FoundAccountAddress())}
 	}
 	foundBal = new(big.Int).Add(foundBal, usedFee)

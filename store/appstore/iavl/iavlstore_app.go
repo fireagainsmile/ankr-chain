@@ -545,6 +545,12 @@ func (sp *IavlStoreApp) ResetKVState() {
 	sp.kvState = ankrapscmm.State{}
 }
 
+func (sp *IavlStoreApp) Rollback() {
+	for _, iavlS := range sp.iavlSM.storeMap {
+		iavlS.Rollback()
+	}
+}
+
 func (sp *IavlStoreApp) DB() dbm.DB {
 	return sp.iavlSM.db
 }
