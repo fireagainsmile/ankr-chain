@@ -67,6 +67,7 @@ type AppStore interface {
 	SetChainID(chainID string)
 	ChainID() string
 	APPHash() []byte
+	APPHashByHeight(height int64) []byte
 	KVState() ankrapscmm.State
 	ResetKVState()
     DB() dbm.DB
