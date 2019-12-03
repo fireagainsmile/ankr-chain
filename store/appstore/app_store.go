@@ -71,5 +71,6 @@ type AppStore interface {
 	APPHashByHeight(height int64) []byte
 	KVState() ankrapscmm.State
 	ResetKVState()
+	Rollback()
     DB() dbm.DB
 }
