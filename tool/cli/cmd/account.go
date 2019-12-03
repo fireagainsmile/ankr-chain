@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -107,7 +108,6 @@ InputPassword:
 	if string(password) != string(confirmPassword) {
 		fmt.Println("\nError:password and confirm password not match!")
 		goto InputPassword
-		//return errors.New("\npassword and confirm password not match")
 	}
 
 	cryptoStruct, err := EncryptDataV3([]byte(acc.PrivateKey), []byte(password), StandardScryptN, StandardScryptP)
@@ -128,8 +128,9 @@ InputPassword:
 
 	fmt.Println("\n\nexporting to keystore...")
 	ts := time.Now().UTC()
+	fileName := fmt.Sprintf("UTC--%s--%s", toISO8601(ts), acc.Address)
 
-	kfw, err := KeyFileWriter(path, fmt.Sprintf("UTC--%s--%s", toISO8601(ts), acc.Address))
+	kfw, err := KeyFileWriter(path, fileName)
 	if err != nil {
 		return err
 	}
@@ -141,7 +142,7 @@ InputPassword:
 		return errors.New("unable to write keystore")
 	}
 
-	fmt.Printf("\ncreated keystore: %s/UTC--%s--%s\n\n", path, toISO8601(ts), acc.Address)
+	fmt.Println("\ncreated keystore:", filepath.Join(path, fileName))
 	return nil
 }
 
