@@ -12,7 +12,7 @@ import (
 
 func NewRunNodeCmd(nodeProvider node.AnkrNodeProvider) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "node",
+		Use:   "start",
 		Short: "Run the ankrchain node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			n, err := nodeProvider(config, log.DefaultRootLogger)
