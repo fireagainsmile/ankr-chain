@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -34,6 +35,7 @@ var (
 	meteringValue   = "meteringValue"
 	meteringPriv    = "meteringPriv"
 	transferVersion = "transferVersion"
+	keyName = "keyName"
 	transferSymbol = "ANKR"
 	deployPriv = "deployPriv"
 	deployContractName = "deployContractName"
@@ -98,11 +100,12 @@ func transfer(cmd *cobra.Command, args []string) {
 		return
 	}
 	keystorePath := viper.GetString(transferKeyfile)
-	_, err := os.Stat(keystorePath)
+	keystorePath, err := getKeystoreFile(keystorePath)
 	if err != nil {
-		fmt.Println("Error: Keystore does not exist!")
+		fmt.Println("Error:", err.Error())
 		return
 	}
+
 	privateKey := decryptPrivatekey(keystorePath)
 	if privateKey == "" {
 		fmt.Println("Error: Wrong keystore or password!")
@@ -161,6 +164,21 @@ func transfer(cmd *cobra.Command, args []string) {
 	fmt.Println("Transaction height", txHeight)
 }
 
+//get keystore file path
+func getKeystoreFile(keystoreName string) (string, error) {
+	_, err := os.Stat(keystoreName)
+	if err == nil {
+		return keystoreName, nil
+	}
+	localKeys := getKeyList()
+	for _, key := range localKeys{
+		if key.Name == keystoreName{
+			return filepath.Join(configHome(), key.FileName), nil
+		}
+	}
+	return "", errors.New(fmt.Sprintf("failed to find keystore: %s", keystoreName))
+}
+
 func addTransferFlag(cmd *cobra.Command) {
 	err := addStringFlag(cmd, transferTo, toParam, "", "", "transaction receiver", required)
 	if err != nil {
@@ -170,7 +188,7 @@ func addTransferFlag(cmd *cobra.Command) {
 	if err != nil {
 		panic(err)
 	}
-	err = addStringFlag(cmd, transferKeyfile, keystoreParam, "", "", "keystore to unlock account", required)
+	err = addStringFlag(cmd, transferKeyfile, fromParam, "", "", "keystore file or keystore alias name to unlock account", required)
 	if err != nil {
 		panic(err)
 	}
@@ -254,6 +272,11 @@ func runDeploy(cmd *cobra.Command, args []string){
 		return
 	}
 	keyStore := viper.GetString(deployPriv)
+	keyStore, err = getKeystoreFile(keyStore)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 	privKey := decryptPrivatekey(keyStore)
 	if privKey == "" {
 		fmt.Println("Error: Wrong keystore or password!")
@@ -317,6 +340,11 @@ func runInvoke(cmd *cobra.Command, args []string)  {
 	}
 
 	keyFile := viper.GetString(invokeKeyStore)
+	keyFile, err = getKeystoreFile(keyFile)
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return
+	}
 	privKey := decryptPrivatekey(keyFile)
 	if privKey == ""{
 		fmt.Println("Error: Wrong keystore or password!")

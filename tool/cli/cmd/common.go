@@ -40,6 +40,7 @@ var (
 	amountParam = "amount"
 	memoParam = "memo"
 	versionParam = "version"
+	keyNameParam = "keyName"
 	abiParam = "abi"
 	nameParam = "name"
 	methodParam = "method"
