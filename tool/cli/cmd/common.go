@@ -139,7 +139,7 @@ func homeWindows() (string, error) {
 
 func configHome() string {
 	userHome,_ := Home()
-	return filepath.Join(userHome, "ankr-chain")
+	return filepath.Join(userHome, ".ankr-accounts")
 }
 
 
