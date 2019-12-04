@@ -45,7 +45,7 @@ func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-DOviTk",
+		ChID: "test-chain-PzDgyI",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
@@ -53,8 +53,8 @@ func TestTxTransferWithNode(t *testing.T) {
 	}
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ToAddr:  "065E37B3FC243B9FABB1519AB876E7632C510DC9324031",
-		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(6000000000000000000).Bytes()}},
+		ToAddr:  "3AEFF4553C5795C513FCDBF1E73C4842772D71066A5233",
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000000000).Bytes()}},
 	}
 
 	txSerializer := serializer.NewTxSerializerCDC()
@@ -70,9 +70,9 @@ func TestTxTransferWithNode(t *testing.T) {
 	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d", txHash, cHeight)
 
 	resp := &ankrcmm.BalanceQueryResp{}
-	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"065E37B3FC243B9FABB1519AB876E7632C510DC9324031", "ANKR"}, resp)
+	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"3AEFF4553C5795C513FCDBF1E73C4842772D71066A5233", "ANKR"}, resp)
 
-	t.Logf("addr=065E37B3FC243B9FABB1519AB876E7632C510DC9324031, bal=%s", resp.Amount)
+	t.Logf("addr=3AEFF4553C5795C513FCDBF1E73C4842772D71066A5233, bal=%s", resp.Amount)
 
 	resp = &ankrcmm.BalanceQueryResp{}
 	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, resp)

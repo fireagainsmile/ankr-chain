@@ -224,7 +224,6 @@ func (tx *TxMsg) DeliverTx(context ContextTx) types.ResponseDeliverTx {
 	}
 
 	if tx.GasUsed == nil || tx.GasUsed.Cmp(big.NewInt(0)) == 0 {
-		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeOK, GasWanted: 0, GasUsed: 0, Tags: tags}
 	}
 
