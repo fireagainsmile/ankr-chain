@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/agiledragon/gomonkey"
-	"github.com/golang/mock/gomock"
 	"github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
 	"testing"
@@ -23,7 +22,7 @@ func TestGetBalance(t *testing.T) {
 
 func TestGenAccount(t *testing.T) {
 	convey.Convey("test generate account command", t, func() {
-		args := []string{"account", "genaccount","-o", "./tmp"}
+		args := []string{"account", "genaccount"}
 		cmd := RootCmd
 		cmd.SetArgs(args)
 		err := cmd.Execute()

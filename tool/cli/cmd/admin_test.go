@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/golang/mock/gomock"
 	"github.com/smartystreets/goconvey/convey"
 	"testing"
 )

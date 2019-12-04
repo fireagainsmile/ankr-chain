@@ -1,12 +1,12 @@
 module github.com/Ankr-network/ankr-chain
 
-replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.5-0.20191016091852-c60735e225bb
+replace github.com/tendermint/tendermint => github.com/Ankr-network/tendermint v0.31.6-0.20191016011852-c60735e225bb
 
 require (
 	github.com/Ankr-network/wagon v1.0.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/agiledragon/gomonkey v0.0.0-20191023170119-08026f2977b6
-	github.com/btcsuite/btcd v0.20.0-beta // indirect
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/cheggaaa/pb v0.0.0-20191021095926-c966da046635
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
