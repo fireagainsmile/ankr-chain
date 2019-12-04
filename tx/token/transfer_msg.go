@@ -92,7 +92,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
     	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=transferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
 	}
 
-    if !rtn.IsSuccess {
+    if !rtn.IsSuccess || (rtn.ResultType == "bool" && rtn.Value == false){
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=transferFrom", tf.Amounts[0].Cur.Symbol), nil
 	}
 

@@ -549,6 +549,7 @@ func (sp *IavlStoreApp) Rollback() {
 	for _, iavlS := range sp.iavlSM.storeMap {
 		iavlS.Rollback()
 	}
+	sp.totalTx, _, _, _ , _ = sp.TotalTx(0, false)
 }
 
 func (sp *IavlStoreApp) DB() dbm.DB {
