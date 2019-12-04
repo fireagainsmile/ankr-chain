@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	client2 "github.com/Ankr-network/ankr-chain/client"
 	"github.com/Ankr-network/ankr-chain/common"
@@ -11,7 +12,10 @@ import (
 	"github.com/spf13/viper"
 	"io"
 	"os"
+	"os/exec"
+	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"text/tabwriter"
 )
@@ -91,18 +95,51 @@ func retrieveUserInput() (string, error) {
 }
 
 //get the home directory
-func configHome() string {
-	configHome := os.Getenv("LOCALAPPDATA")
-	if configHome == "" {
-		// Resort to APPDATA for Windows XP users.
-		configHome = os.Getenv("APPDATA")
-		if configHome == "" {
-			// If still empty, use the default path
-			userName := os.Getenv("USERNAME")
-			configHome = filepath.Join("C:/", "Users", userName, "AppData", "Local")
+func Home() (string, error){
+	cu, err := user.Current()
+	if err != nil {
+		switch runtime.GOOS {
+		case "windows":
+			return homeWindows()
+		default:
+			return homeUnix()
 		}
 	}
-	return filepath.Join(configHome, "ankr-chain", "config")
+	return cu.HomeDir, nil
+}
+
+func homeUnix()(string, error)  {
+	if home := os.Getenv("HOME"); home != ""{
+		return home, nil
+	}
+	var stdout []byte
+	_, err := exec.Command("sh", "-c", "eval echo ~$USER").Stdout.Write(stdout)
+	if err != nil {
+		return "", err
+	}
+	result := strings.TrimSpace(string(stdout))
+	if result == ""{
+		return "", errors.New("empty home directory")
+	}
+	return result, nil
+}
+
+func homeWindows() (string, error) {
+	drive := os.Getenv("HOMEDRIVE")
+	path := os.Getenv("HOMEPATH")
+	home := filepath.Join(drive, path)
+	if drive == "" || path == ""{
+		home = os.Getenv("USERPROFILE")
+	}
+	if home == ""{
+		return "", errors.New("home drive, home path, and user profile are blank")
+	}
+	return home, nil
+}
+
+func configHome() string {
+	userHome,_ := Home()
+	return filepath.Join(userHome, ".ankr-accounts")
 }
 
 
