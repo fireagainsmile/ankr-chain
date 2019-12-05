@@ -183,7 +183,7 @@ func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight 
 		return result.Hash.String(), result.Height, "", err
 	}
 
-	return result.Hash.String(), result.Height+1, result.DeliverTx.Log, nil
+	return result.Hash.String(), result.Height, result.DeliverTx.Log, nil
 }
 
 func (c *Client) Status() (*ctypes.ResultStatus, error) {
