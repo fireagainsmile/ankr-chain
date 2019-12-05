@@ -598,6 +598,10 @@ func (sp *IavlStoreApp) CreateCurrency(symbol string, currency *ankrcmm.Currency
 }
 
 func (sp *IavlStoreApp) CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error) {
+	if symbol == "" {
+		return nil, "", nil, nil, errors.New("CurrencyInfo, blank symbol name")
+	}
+
 	curBytes, proof, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).GetWithVersionProve([]byte(containCurrencyPrefix(symbol)), height, prove)
 	if err != nil || len(curBytes) == 0 {
 		sp.storeLog.Error("can't get the currency", "symbol", symbol)
