@@ -45,21 +45,21 @@ func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-TFRSpv",
+		ChID: "test-chain-50L9ea",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
 		Version: "1.0",
 	}
 
-	tfMsg := &token.TransferMsg{FromAddr: "92005EF37E5990A374E683FD966CD6FC40FD444175CD3F",
-		ToAddr:  "3AEFF4553C5795C513FCDBF1E73C4842772D71066A5233",
+	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ToAddr:  "92005EF37E5990A374E683FD966CD6FC40FD444175CD3F",
 		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(5000000000000000000).Bytes()}},
 	}
 
 	txSerializer := serializer.NewTxSerializerCDC()
 
-	key := crypto.NewSecretKeyEd25519("gQesEsrYzC4slCb/HGjifMGY+HztZhpeeI6nBRoXJixm0QCxhktBI0VhRFMKZxhHeYx5Ml5eZmiMC0XkdiMqLw==")
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
 
 	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
 
@@ -75,9 +75,9 @@ func TestTxTransferWithNode(t *testing.T) {
 	t.Logf("addr=92005EF37E5990A374E683FD966CD6FC40FD444175CD3F, bal=%s", resp.Amount)
 
 	resp = &ankrcmm.BalanceQueryResp{}
-	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"3AEFF4553C5795C513FCDBF1E73C4842772D71066A5233", "ANKR"}, resp)
+	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, resp)
 
-	t.Logf("addr=3AEFF4553C5795C513FCDBF1E73C4842772D71066A5233, bal=%s", resp.Amount)
+	t.Logf("addr=B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67, bal=%s", resp.Amount)
 }
 
 func TestBroadcastTxAsyncWithNode(t *testing.T) {
@@ -218,13 +218,13 @@ func TestCertMsgWithNode(t *testing.T) {
 	}
 
 	pubBS64 := account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
-	addrFrom := crypto.CreateCertAddress(pubBS64,"dc1", crypto.CertAddrTypeSet)
+	addrFrom := crypto.CreateCertAddress(pubBS64,"cls-e9242b31-3f8e-4d0a-b04f-913ff9f01ffe", crypto.CertAddrTypeSet)
 
 	t.Logf("certMsgFromAddr=%s", addrFrom)
 
 
 	certMsg := &metering.SetCertMsg{FromAddr: addrFrom,
-		DCName: "dc1",
+		DCName: "cls-e9242b31-3f8e-4d0a-b04f-913ff9f01ffe",
 		PemBase64: TEST_CERT,
 	}
 
@@ -247,10 +247,10 @@ func TestCertMsgWithNode(t *testing.T) {
 }
 
 func TestMeteringWithNode(t *testing.T) {
-	c := client.NewClient("chain-dev.dccn.ankr.com:26657")
+	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "Ankr-dev-chain",
+		ChID: "test-chain-50L9ea",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test metering",

@@ -20,7 +20,7 @@ public:
 char* ERC20::init() {
     char* cAddr = ContractAddr();
     char* senderAddr = SenderAddr();
-    CreateCurrency(Symbol(), Decimals());
+    CreateCurrency(Symbol(), Decimals(), TotalSupply());
     BuildCurrencyCAddrMap(Symbol(), cAddr);
     SetBalance(senderAddr, Symbol(),TotalSupply());
 

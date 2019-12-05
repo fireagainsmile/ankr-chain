@@ -1,6 +1,7 @@
 package integratetesting
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/Ankr-network/ankr-chain/client"
@@ -17,5 +18,14 @@ func TestBalanceQueryWithProofVerify(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	t.Logf("resp=%v", resp)
+}
+
+func TestCurrencyInfoQuery(t *testing.T) {
+	c := client.NewClient("localhost:26657")
+
+	resp := &ankrcmm.CurrencyQueryResp{}
+	c.Query("/store/currency", &ankrcmm.CurrencyQueryReq{"ANKR"}, resp)
+
+	fmt.Printf("resp=%v\n", resp)
 }
 

@@ -564,7 +564,7 @@ func SetBalance(proc *exec.Process, addrIndex int32, symbolIndex int32, amountIn
 		return -1
 	}
 
-	curInfo, err := ankrcontext.GetBCContext().CurrencyInfo(symbol)
+	curInfo, _, _, _, err := ankrcontext.GetBCContext().CurrencyInfo(symbol, 0, false)
 	if err != nil {
 		proc.VM().Logger().Error("SetBalance can't get currency", "err", err, "symbol", symbol)
 	}
@@ -633,7 +633,7 @@ func SetAllowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex in
 		return -1
 	}
 
-	curInfo, err := ankrcontext.GetBCContext().CurrencyInfo(symbol)
+	curInfo, _, _, _, err := ankrcontext.GetBCContext().CurrencyInfo(symbol, 0, false)
 	if err != nil || curInfo == nil {
 		proc.VM().Logger().Error("SetAllowance can't get currency", "err", err, "symbol", symbol)
 		return -1
@@ -690,14 +690,20 @@ func Allowance(proc *exec.Process, addrSenderIndex int32, addrSpenderIndex int32
 	return pointer
 }
 
-func CreateCurrency(proc *exec.Process, symbolIndex int32, decimal int32) int32 {
+func CreateCurrency(proc *exec.Process, symbolIndex int32, decimal int32, totalSupplyIndex int32) int32 {
 	symbol, err := proc.ReadString(int64(symbolIndex))
 	if err != nil {
 		proc.VM().Logger().Error("CreateCurrency can't read symbol", "err", err)
 		return -1
 	}
 
-	err = ankrcontext.GetBCContext().CreateCurrency(symbol, &ankrcmm.Currency{symbol, int64(decimal)})
+	totalSupply, err := proc.ReadString(int64(totalSupplyIndex))
+	if err != nil {
+		proc.VM().Logger().Error("CreateCurrency can't read total supply", "err", err)
+		return -1
+	}
+
+	err = ankrcontext.GetBCContext().CreateCurrency(symbol, &ankrcmm.CurrencyInfo{symbol, int64(decimal), totalSupply})
 	if err != nil {
 		proc.VM().Logger().Error("CreateCurrency can't read symbol", "err", err)
 		return -1

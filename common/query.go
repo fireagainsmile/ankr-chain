@@ -77,6 +77,16 @@ type AccountQueryResp struct {
 	Amounts    []Amount    `json:"asserts"`
 }
 
+type CurrencyQueryReq struct {
+	Symbol string  `json:"symbol"`
+}
+
+type CurrencyQueryResp struct {
+	Symbol       string `json:"symbol"`
+	Decimal      int64  `json:"decimal"`
+	TotalSupply  string `json:"totalsupply"`
+}
+
 type StatisticalInfoReq struct {
 }
 

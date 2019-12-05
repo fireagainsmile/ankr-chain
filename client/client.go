@@ -33,6 +33,7 @@ var storeNameMap = map[string]string {
 	"/store/validator" : iavl.IAvlStoreMainKey,
 	"/store/contract" : iavl.IAvlStoreContractKey,
 	"/store/account" : iavl.IavlStoreAccountKey,
+	"/store/currency" : iavl.IAvlStoreContractKey,
 	"/store/statisticalinfo" : iavl.IAvlStoreMainKey,
 }
 

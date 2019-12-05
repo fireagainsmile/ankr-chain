@@ -16,13 +16,13 @@ type TxMsgCallBack interface {
 }
 
 type CurrencyInterface interface {
-	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
-	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+	CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error
+	CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error)
 }
 
 type ContextContract interface {
-	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
-	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+	CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error
+	CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error)
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
 	OwnerAddr() string

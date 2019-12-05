@@ -229,7 +229,7 @@ func (sp *IavlStoreApp) AddAccount(address string, accType ankrcmm.AccountType) 
 		accInfo.Nonce   = 1
 		accInfo.Address = address
 		accInfo.PubKey  = ""
-		accInfo.Amounts= []ankrcmm.Amount{{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
+		accInfo.Amounts = []ankrcmm.Amount{{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(0).Bytes()}}
 
 		sp.addAccountInfo(&accInfo)
 	}

@@ -12,8 +12,8 @@ import (
 var bcContext ContextAKVM
 
 type ContextAKVM interface {
-	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
-	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+	CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error
+	CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error)
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
 	SetBalance(address string, amount ankrcmm.Amount)

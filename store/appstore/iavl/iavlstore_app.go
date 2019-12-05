@@ -153,6 +153,7 @@ func NewIavlStoreApp(dbDir string, storeLog log.Logger) *IavlStoreApp {
 	iavlSApp.queryHandleMap["validator"]        = &storeQueryHandler{IAvlStoreMainKey, &ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
 	iavlSApp.queryHandleMap["contract"]         = &storeQueryHandler{IAvlStoreContractKey, &ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
 	iavlSApp.queryHandleMap["account"]          = &storeQueryHandler{IavlStoreAccountKey, &ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["currency"]         = &storeQueryHandler{IAvlStoreContractKey, &ankrcmm.CurrencyQueryReq{}, iavlSApp.CurrencyInfoQuery}
 	iavlSApp.queryHandleMap["statisticalinfo"] = &storeQueryHandler{IAvlStoreMainKey, &ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return iavlSApp
@@ -176,6 +177,7 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 	iavlSApp.queryHandleMap["validator"]        = &storeQueryHandler{IAvlStoreMainKey, &ankrcmm.ValidatorQueryReq{},iavlSApp.ValidatorQuery}
 	iavlSApp.queryHandleMap["contract"]         = &storeQueryHandler{IAvlStoreContractKey, &ankrcmm.ContractQueryReq{}, iavlSApp.LoadContractQuery}
 	iavlSApp.queryHandleMap["account"]          = &storeQueryHandler{IavlStoreAccountKey, &ankrcmm.AccountQueryReq{}, iavlSApp.AccountQuery}
+	iavlSApp.queryHandleMap["currency"]         = &storeQueryHandler{IAvlStoreContractKey, &ankrcmm.CurrencyQueryReq{}, iavlSApp.CurrencyInfoQuery}
 	iavlSApp.queryHandleMap["statisticalinfo"] = &storeQueryHandler{IAvlStoreMainKey, &ankrcmm.StatisticalInfoReq{}, iavlSApp.StatisticalInfoQuery}
 
 	return  &IavlStoreApp{iavlSM: iavlSM, lastCommitID: lcmmID, storeLog: storeLog, cdc: amino.NewCodec()}
@@ -580,9 +582,9 @@ func (sp *IavlStoreApp) IsExist(cAddr string) bool {
 	return sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(cAddr))
 }
 
-func (sp *IavlStoreApp) CreateCurrency(symbol string, currency *ankrcmm.Currency) error {
+func (sp *IavlStoreApp) CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error {
 	if sp.iavlSM.IavlStore(IAvlStoreContractKey).Has([]byte(containCurrencyPrefix(symbol))) {
-		return fmt.Errorf("can't create currency, has existed, symbol=%s", symbol)
+		 sp.storeLog.Info("CreateCurrency, currency has existed and its info will be updated, symbol=%s", symbol)
 	}
 
 	curBytes, _ := sp.cdc.MarshalJSON(currency)
@@ -595,21 +597,40 @@ func (sp *IavlStoreApp) CreateCurrency(symbol string, currency *ankrcmm.Currency
 	return nil
 }
 
-func (sp *IavlStoreApp) CurrencyInfo(symbol string) (*ankrcmm.Currency, error) {
-	curBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containCurrencyPrefix(symbol)))
-	if err != nil || len(curBytes) == 0{
+func (sp *IavlStoreApp) CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error) {
+	curBytes, proof, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).GetWithVersionProve([]byte(containCurrencyPrefix(symbol)), height, prove)
+	if err != nil || len(curBytes) == 0 {
 		sp.storeLog.Error("can't get the currency", "symbol", symbol)
-		return nil, err
+		return nil, containCurrencyPrefix(symbol), nil, nil, err
 	}
 
-	var curInfo ankrcmm.Currency
+	var curInfo ankrcmm.CurrencyInfo
 
 	err = sp.cdc.UnmarshalJSON(curBytes, &curInfo)
 	if err != nil {
-		return nil, err
+		return nil, containCurrencyPrefix(symbol), proof, curBytes, err
 	}
 
-	return &curInfo, nil
+	return &curInfo, containCurrencyPrefix(symbol), proof, curBytes, nil
+}
+
+func (sp *IavlStoreApp) CurrencyInfoQuery(symbol string, height int64, prove bool) (*ankrcmm.QueryResp, string, *iavl.RangeProof, error) {
+	cInfo, storeKey, proof, proofVal, err := sp.CurrencyInfo(symbol, height, prove)
+	if err != nil {
+		return nil, storeKey, proof, err
+	}
+
+	cInfoQResp := &ankrcmm.CurrencyQueryResp{}
+	cInfoQResp.Symbol      = cInfo.Symbol
+	cInfoQResp.Decimal     = cInfo.Decimal
+	cInfoQResp.TotalSupply = cInfo.TotalSupply
+
+	respData, err := sp.cdc.MarshalJSON(cInfoQResp)
+	if err != nil {
+		return nil, storeKey, proof, err
+	}
+
+	return &ankrcmm.QueryResp{respData, proofVal},  storeKey, proof, nil
 }
 
 func (sp *IavlStoreApp) BuildCurrencyCAddrMap(symbol string, cAddr string) error {

@@ -47,8 +47,8 @@ type TxStore interface {
 
 type ContractStore interface {
 	IsExist(cAddr string) bool
-	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
-	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+	CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error
+	CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error)
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	ContractAddrBySymbol(symbol string) (string, error)
 	SaveContract(cAddr string, cInfo *ankrcmm.ContractInfo) error
