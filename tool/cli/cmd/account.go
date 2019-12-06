@@ -152,7 +152,7 @@ InputPassword:
 	//writePrivateKey()
 	fileName = filepath.Join(path, fileName)
 
-	err = WriteKeystoreToFile(fileName, jsonKey)
+	err = WriteToFile(fileName, jsonKey)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func resetPwd(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	err = WriteKeystoreToFile(ksf, jsonKey)
+	err = WriteToFile(ksf, jsonKey)
 	if err != nil {
 		fmt.Println("Failed to reset password:", err.Error())
 		return
@@ -404,7 +404,7 @@ func importAccount(cmd *cobra.Command, args []string) {
 	ts := time.Now().UTC()
 	fileName := fmt.Sprintf("UTC--%s--%s", toISO8601(ts), encryptedKeyJSONV3.Address)
 	fileName = filepath.Join(configHome(), fileName)
-	err = WriteKeystoreToFile(fileName, writeByte)
+	err = WriteToFile(fileName, writeByte)
 	if err != nil {
 		fmt.Println("Import keystore failed:", err.Error())
 		return

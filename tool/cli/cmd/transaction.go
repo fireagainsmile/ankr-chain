@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	client2 "github.com/Ankr-network/ankr-chain/client"
@@ -29,6 +30,10 @@ var (
 	transferTo      = "transferTo"
 	transferMemo    = "transferMemo"
 	transferAmount  = "transferAmount"
+	rawTxAmount     = "rawTxAmount"
+	rawTxTo         = "rawTxTo"
+	rawTxFrom       = "rawTxFrom"
+	rawTxNonce      = "rawTxNonce"
 	transferKeyfile = "transferKeyfile"
 	meteringDc      = "meteringDc"
 	meteringNs      = "meteringNs"
@@ -48,20 +53,23 @@ var (
 	invokeReturn = "invokeReturn"
 	invokeKeyStore = "invokeKeyStore"
 	getContractAddr = "getContractAddr"
-
+	ankrTokenBase = 1e+18
 )
+
+type RawTransaction struct {
+	Header *client2.TxMsgHeader `json:"header"`
+	TxMsg *token.TransferMsg `json:"tx_msg"`
+	Nonce uint64 `json:"nonce"`
+}
 
 // transactionCmd represents the transaction command
 var transactionCmd = &cobra.Command{
 	Use:   "transaction",
 	Short: "transaction is used to send coins to specified address or send metering",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("transaction called")
-	},
 }
 
 func init() {
-	err := addPersistentString(transactionCmd, transferUrl, urlParam, "", "", "the url of a validator", required)
+	err := addPersistentString(transactionCmd, transferUrl, urlParam, "", "", "the url of a validator", notRequired)
 	if err != nil {
 		panic(err)
 	}
@@ -91,12 +99,18 @@ func init() {
 	appendSubCmd(transactionCmd, "metering", "send metering transaction", sendMetering, addMeteringFlags)
 	appendSubCmd(transactionCmd, "deploy", "deploy smart contract", runDeploy, addDeployFlags)
 	appendSubCmd(transactionCmd, "invoke", "invoke smart contract", runInvoke, addInvokeFlags)
+	appendSubCmd(transactionCmd, "genraw", "sign a transaction offline", runGenRaw, addGenRawFlags)
 }
 
 //transaction transfer functions
 func transfer(cmd *cobra.Command, args []string) {
 	if len(args) > 1 {
 		fmt.Println("Too much arguments received.")
+		return
+	}
+	if !isParamSet(urlParam) {
+		errStr := fmt.Sprintf("required flag \"%s\" not set",urlParam)
+		fmt.Println(errStr)
 		return
 	}
 	keystorePath := viper.GetString(transferKeyfile)
@@ -111,11 +125,6 @@ func transfer(cmd *cobra.Command, args []string) {
 		fmt.Println("Error: Wrong keystore or password!")
 		return
 	}
-	acc, err := getAccountFromPrivatekey(privateKey)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	validatorUrl = viper.GetString(transferUrl)
 
 	client := newAnkrHttpClient(validatorUrl)
@@ -125,9 +134,21 @@ func transfer(cmd *cobra.Command, args []string) {
 		transferSymbol = args[0]
 	}
 	amount := viper.GetString(transferAmount)
-	amountInt, ok:= new(big.Int).SetString(amount, 10)
+	amountFloat := new(big.Float)
+	amountFloat, ok := amountFloat.SetString(amount)
 	if !ok {
-		fmt.Println("Invalid Transfer Amount Received.")
+		fmt.Println("Invalid amount parameter, amount:", amount)
+		return
+	}
+	amountInt := new(big.Int)
+	amountFloat.Mul(amountFloat, big.NewFloat(ankrTokenBase))
+	amountInt, accuracy := amountFloat.Int(amountInt)
+	if accuracy >0 {
+		fmt.Println("accuracy error:", accuracy)
+		return
+	}
+	if amountInt.Cmp(big.NewInt(0)) <= 0 {
+		fmt.Println("Invalid Amount received:",amount)
 		return
 	}
 	currency := new(common.Currency)
@@ -142,9 +163,19 @@ func transfer(cmd *cobra.Command, args []string) {
 	}
 
 	//transfer msg
+	//display transaction information
+	txTo := viper.GetString(transferTo)
+	fmt.Println("Start sending transactions")
+	fmt.Println("To: ", txTo)
+	fmt.Println("Amount:", amount, " Ankr")
+	acc, err := getAccountFromPrivatekey(privateKey)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	transferMsg := new(token.TransferMsg)
 	transferMsg.FromAddr = acc.Address
-	transferMsg.ToAddr = viper.GetString(transferTo)
+	transferMsg.ToAddr = txTo
 	transferMsg.Amounts = append(transferMsg.Amounts, txAmount)
 
 	//transaction builder
@@ -196,6 +227,11 @@ func addTransferFlag(cmd *cobra.Command) {
 
 //transaction metering function
 func sendMetering(cmd *cobra.Command, args []string) {
+	if !isParamSet(urlParam) {
+		errStr := fmt.Sprintf("required flag \"%s\" not set",urlParam)
+		fmt.Println(errStr)
+		return
+	}
 	privPem := viper.GetString(meteringPriv)
 
 	client := newAnkrHttpClient(viper.GetString(transferUrl))
@@ -258,6 +294,11 @@ func addMeteringFlags(cmd *cobra.Command) {
 }
 
 func runDeploy(cmd *cobra.Command, args []string){
+	if !isParamSet(urlParam) {
+		errStr := fmt.Sprintf("required flag \"%s\" not set",urlParam)
+		fmt.Println(errStr)
+		return
+	}
 	client := newAnkrHttpClient(viper.GetString(transferUrl))
 	header, err := getTxmsgHeader()
 	if err != nil {
@@ -332,6 +373,11 @@ func addDeployFlags(cmd *cobra.Command)  {
 }
 
 func runInvoke(cmd *cobra.Command, args []string)  {
+	if !isParamSet(urlParam) {
+		errStr := fmt.Sprintf("required flag \"%s\" not set",urlParam)
+		fmt.Println(errStr)
+		return
+	}
 	client := newAnkrHttpClient(viper.GetString(transferUrl))
 	header, err := getTxmsgHeader()
 	if err != nil {
@@ -444,4 +490,96 @@ func getTxmsgHeader() (*client2.TxMsgHeader, error)  {
 	header.GasPrice.Value = priceInt.Bytes()
 	header.Memo = viper.GetString(transferMemo)
 	return header, nil
+}
+
+func runGenRaw(cmd *cobra.Command, args []string){
+	if len(args) > 1 {
+		fmt.Println("Too much arguments received.")
+		return
+	}
+	//gather inputs
+	if len(args) != 0 {
+		transferSymbol = args[0]
+	}
+	amount := viper.GetString(rawTxAmount)
+	amountFloat := new(big.Float)
+	amountFloat, ok := amountFloat.SetString(amount)
+	if !ok {
+		fmt.Println("Invalid amount parameter, amount:", amount)
+		return
+	}
+	amountInt := new(big.Int)
+	amountFloat.Mul(amountFloat, big.NewFloat(ankrTokenBase))
+	amountInt, accuracy := amountFloat.Int(amountInt)
+	if accuracy >0 {
+		fmt.Println("accuracy error:", accuracy)
+		return
+	}
+	if amountInt.Cmp(big.NewInt(0)) <= 0 {
+		fmt.Println("Invalid Amount received:",amount)
+		return
+	}
+	currency := new(common.Currency)
+	currency.Symbol = transferSymbol
+	txAmount := common.Amount{*currency, amountInt.Bytes()}
+
+	//transaction msg header
+	txMsgheader, err := getTxmsgHeader()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	//transfer msg
+	//display transaction information
+	transferMsg := new(token.TransferMsg)
+	transferMsg.ToAddr = viper.GetString(rawTxTo)
+	fromAddr := viper.GetString(rawTxFrom)
+	transferMsg.FromAddr = fromAddr
+	transferMsg.Amounts = append(transferMsg.Amounts, txAmount)
+	txNonce := viper.GetInt64(rawTxNonce)
+	var rawTx = &RawTransaction{
+		Header:txMsgheader,
+		TxMsg: transferMsg,
+		Nonce:uint64(txNonce),
+	}
+
+	bytes, err := json.Marshal(rawTx)
+	if err != nil {
+		fmt.Println("Failed to Marshal raw transaction:", err.Error())
+		return
+	}
+	fileName := fmt.Sprintf("raw-%s-%d.json",fromAddr,txNonce)
+	err = WriteToFile(fileName, bytes)
+	fmt.Println("finished writing file.")
+	if err != nil {
+		fmt.Println("Failed to write raw transaction into file:", err.Error())
+		return
+	}
+	fmt.Println("Generated raw transaction file ", fileName)
+}
+
+func addGenRawFlags(cmd *cobra.Command){
+	err := addStringFlag(cmd, rawTxTo, toParam, "", "", "transaction receiver", required)
+	if err != nil {
+		panic(err)
+	}
+	err = addStringFlag(cmd, rawTxAmount, amountParam, "", "0", "transfer amount", required)
+	if err != nil {
+		panic(err)
+	}
+
+	err = addStringFlag(cmd, rawTxFrom, fromParam, "", "", "transfer amount", required)
+	if err != nil {
+		panic(err)
+	}
+
+	err = addInt64Flag(cmd, rawTxNonce, nonceParam, "", 0, "transfer amount", required)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func isParamSet(keyName string) bool {
+	return transactionCmd.Flags().Changed(keyName)
 }

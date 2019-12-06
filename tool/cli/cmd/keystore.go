@@ -73,7 +73,7 @@ type KeyStore struct {
 	FileName string `json:"file_name,omitempty"`
 }
 
-func WriteKeystoreToFile(fileName string, content []byte ) error {
+func WriteToFile(fileName string, content []byte ) error {
 	kfw, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
 	if err != nil {
 		return err
