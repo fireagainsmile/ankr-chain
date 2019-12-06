@@ -93,7 +93,7 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	}
 
 	balSender := ac.BalanceOf(ac.context.SenderAddr())
-	if balSender == nil || balSender.Cmp(value) == -1 || balSender.Cmp(value) == 0 {
+	if balSender == nil || balSender.Cmp(value) == -1 {
 		if balSender == nil {
 			ac.log.Error("AnkrCoin Transfer sender balance nil", "senderAddr", ac.context.SenderAddr())
 		} else {
@@ -158,8 +158,14 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 		return false
 	}
 
+	allowAccount := ac.Allowance(ac.context.SenderAddr(), fromAddr)
+	if value.Cmp(allowAccount) == 1 {
+		ac.log.Error("AnkrCoin Transfer amount >= allowAccount", "amount", amount, "allowAccount", allowAccount.String())
+		return false
+	}
+
 	balFrom := ac.BalanceOf(fromAddr)
-	if balFrom == nil || balFrom.Cmp(value) == -1 || balFrom.Cmp(value) == 0 {
+	if balFrom == nil || balFrom.Cmp(value) == -1 {
 		if balFrom == nil {
 			ac.log.Error("AnkrCoin TransferFrom from balance nil", "fromAddr", ac.context.SenderAddr())
 		} else {
@@ -210,6 +216,17 @@ func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
 		ac.log.Error("AnkrCoin Approve invalid amount", "isSucess", isSucess)
 	}
 
+	zeroAmount := new(big.Int).SetUint64(0)
+	if value.Cmp(zeroAmount) <= 0 {
+		ac.log.Error("AnkrCoin Approve amount <= 0", "amount", amount)
+		return false
+	}
+
+	if value.Cmp(ac.totalSupply) >= 0 {
+		ac.log.Error("AnkrCoin Approve amount >= totalSupply", "amount", amount, "totalSupply", ac.totalSupply.String())
+		return false
+	}
+
 	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18},value.Bytes()})
 
 	gasUsed := uint64(len(value.Bytes())) * gas.GasContractByte
@@ -241,6 +258,17 @@ func (ac *AnkrCoin) IncreaseApproval(spenderAddr string, addedAmount string) boo
 	addedValue, isSucess := new(big.Int).SetString(addedAmount, 10)
 	if !isSucess || addedValue == nil{
 		ac.log.Error("AnkrCoin IncreaseApproval invalid addedAmount", "isSucess", isSucess)
+	}
+
+	zeroAmount := new(big.Int).SetUint64(0)
+	if addedValue.Cmp(zeroAmount) <= 0 {
+		ac.log.Error("AnkrCoin IncreaseApproval addedValue <= 0", "amount", addedValue)
+		return false
+	}
+
+	if addedValue.Cmp(ac.totalSupply) >= 0 {
+		ac.log.Error("AnkrCoin IncreaseApproval addedValue >= totalSupply", "amount", addedValue, "totalSupply", ac.totalSupply.String())
+		return false
 	}
 
 	allowVal := ac.Allowance(ac.context.SenderAddr(), spenderAddr)
@@ -278,9 +306,20 @@ func (ac *AnkrCoin) DecreaseApproval(spenderAddr string, subtractedAmount string
 		ac.log.Error("AnkrCoin DecreaseApproval invalid subtractedAmount", "isSucess", isSucess)
 	}
 
+	zeroAmount := new(big.Int).SetUint64(0)
+	if subtractedValue.Cmp(zeroAmount) <= 0 {
+		ac.log.Error("AnkrCoin DecreaseApproval addedValue <= 0", "amount", subtractedValue)
+		return false
+	}
+
+	if subtractedValue.Cmp(ac.totalSupply) >= 0 {
+		ac.log.Error("AnkrCoin DecreaseApproval addedValue >= totalSupply", "amount", subtractedValue, "totalSupply", ac.totalSupply.String())
+		return false
+	}
+
 	allowVal := ac.Allowance(ac.context.SenderAddr(), spenderAddr)
 	if allowVal == nil {
-		ac.log.Error("AnkrCoin IncreaseApproval sender's allowance nil")
+		ac.log.Error("AnkrCoin DecreaseApproval sender's allowance nil")
 		return false
 	}
 
@@ -301,7 +340,7 @@ func (ac *AnkrCoin) DecreaseApproval(spenderAddr string, subtractedAmount string
 
 	jsonArg := fmt.Sprintf(jsonArgFromat, spenderAddrParam, subtractedAmountParam)
 
-	TrigEvent("TransferFrom(string, string, string))", jsonArg, ac.log, ac.context)
+	TrigEvent("DecreaseApproval(string, string))", jsonArg, ac.log, ac.context)
 
 	return true
 }

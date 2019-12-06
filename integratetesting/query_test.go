@@ -2,6 +2,7 @@ package integratetesting
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/Ankr-network/ankr-chain/client"
@@ -27,5 +28,11 @@ func TestCurrencyInfoQuery(t *testing.T) {
 	c.Query("/store/currency", &ankrcmm.CurrencyQueryReq{"ANKR"}, resp)
 
 	fmt.Printf("resp=%v\n", resp)
+}
+
+func TestBigInt(t *testing.T) {
+	//num1, _ := new(big.Int).SetString("0", 10)
+	num1Bytes := []byte{0x00}
+	fmt.Printf("num1=%s", new(big.Int).SetBytes(num1Bytes).String())
 }
 
