@@ -69,17 +69,31 @@ jobs:
             docker tag ankr-chain:hub-$BRANCH_NAME $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$TAG
             docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$TAG
           done
+          # upgrade ankrchain in daemon side
+          CHARTS_JSON=$(curl -s $CHARTMUSEUM_URL/ankr/daemon/api/charts)
+          ANKRCHAIN_TGZ=$(echo -e ${CHARTS_JSON//\"/\\n} | grep charts/ankr-chain-)
+          mkdir chart_tmp && cd chart_tmp
+          TGZ_FILE=${ANKRCHAIN_TGZ//charts\/}
+          curl -SLf $CHARTMUSEUM_URL/ankr/daemon/charts/$TGZ_FILE | tar xz
+          DIR=$(ls)
+          sed -i~ -E "s/tag: .*/tag: $BRANCH_NAME$DATE/" $DIR/values.yaml
+          tar czf $TGZ_FILE $DIR
+          # TODO: support authenticate
+          curl --data-binary "@$TGZ_FILE" $CHARTMUSEUM_URL/ankr/daemon/api/charts
+          rm -rf $TGZ_FILE $DIR
+          cd ..
+          # change AWS ZONE
+          if [[ ! -z $AWS_ZONE ]]; then
+            sed -i~ -E "s/zone: .*/zone: $AWS_ZONE/" k8s/create-pvc.yaml
+          fi
           # upgrade ankrchain in hub side
           kops export kubecfg --name ${K8S_CLUSTER}.k8s.ankr.network --state s3://kops.${K8S_CLUSTER}.config
+          kubectl apply -f k8s/create-pvc.yaml
           kubectl apply -f k8s/ankrchain-svc.yaml
           if [[ ($BRANCH_NAME == "stage") ]]; then
-            echo "pvc configuration create-pvc-prod.yaml"
-            kubectl apply -f k8s/create-pvc-prod.yaml
             kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:$BRANCH_NAME$DATE \
               -f k8s/ankrchain-prod.yaml --local -o yaml > k8s/ankrchain-patched.yaml
           else
-            echo "pvc configuration create-pvc.yaml"
-            kubectl apply -f k8s/create-pvc.yaml
             kubectl set image ankrchain=$AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$BRANCH_NAME$DATE \
               -f k8s/ankrchain.yaml --local -o yaml > k8s/ankrchain-patched.yaml
           fi
