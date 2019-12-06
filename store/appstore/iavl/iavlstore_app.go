@@ -326,6 +326,11 @@ func (sp *IavlStoreApp) SetCertKey(dcName string, pemBase64 string)  {
 }
 
 func (sp *IavlStoreApp) CertKey(dcName string, height int64, prove bool)(string, string, *iavl.RangeProof, []byte) {
+	if dcName == "" {
+		sp.storeLog.Error("CertKey, blank dcName")
+		return "", "", nil, nil
+	}
+
 	key := []byte(containCertKeyPrefix(dcName))
 	valBytes, proof, err :=  sp.iavlSM.IavlStore(IAvlStoreMainKey).GetWithVersionProve(key, height, prove)
 	if err != nil {
@@ -385,6 +390,11 @@ func (sp *IavlStoreApp) SetMetering(dcName string, nsName string, value string) 
 }
 
 func (sp *IavlStoreApp) Metering(dcName string, nsName string, height int64, prove bool) (string, string, *iavl.RangeProof, []byte) {
+	if dcName == "" || nsName == "" {
+		sp.storeLog.Error("Metering, blank dcName or nsName", "dcName", dcName, "nsName", nsName)
+		return "", "", nil, nil
+	}
+
 	key := []byte(containMeteringPrefix(dcName+"_"+nsName))
 	valueBytes, proof, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).GetWithVersionProve(key, height, prove)
 	if err != nil {
@@ -412,6 +422,10 @@ func (sp *IavlStoreApp) SetValidator(valInfo *ankrcmm.ValidatorInfo) {
 }
 
 func (sp *IavlStoreApp) Validator(valAddr string, height int64, prove bool) (*ankrcmm.ValidatorInfo, string, *iavl.RangeProof, []byte, error) {
+	if valAddr == "" {
+		return nil, "", nil, nil, errors.New("Validator, blank valAddr")
+	}
+
 	valBytes, proof, err := sp.iavlSM.IavlStore(IAvlStoreMainKey).GetWithVersionProve([]byte(containValidatorPrefix(valAddr)), height, prove)
 	if err != nil {
 		return nil, containValidatorPrefix(valAddr), nil, nil, fmt.Errorf("can't get the responding validator info: valAddr=%s", valAddr)
@@ -674,6 +688,10 @@ func (sp *IavlStoreApp) SaveContract(cAddr string, cInfo *ankrcmm.ContractInfo) 
 }
 
 func (sp *IavlStoreApp) LoadContract(cAddr string, height int64, prove bool) (*ankrcmm.ContractInfo, string, *iavl.RangeProof, []byte, error) {
+	if cAddr == "" {
+		return nil, "", nil, nil, errors.New("LoadContract, blank cAddr")
+	}
+
 	cInfoBytes, proof, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).GetWithVersionProve([]byte(containContractInfoPrefix(cAddr)), height, prove)
 	if err != nil || len(cInfoBytes) == 0{
 		sp.storeLog.Error("can't get the contract", "addr", cAddr)

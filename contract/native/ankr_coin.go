@@ -76,12 +76,18 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 		return false
 	}
 
+	zeroAmount := new(big.Int).SetUint64(0)
+	if value.Cmp(zeroAmount) <= 0 {
+		ac.log.Error("AnkrCoin Transfer amount <= 0", "amount", amount)
+		return false
+	}
+
 	if toAddr == "" {
 		ac.log.Error("AnkrCoin Transfer toAddr blank")
 		return false
 	}
 
-	if value.Cmp(ac.totalSupply) > 0 || value.Cmp(ac.totalSupply) == 0{
+	if value.Cmp(ac.totalSupply) >= 0 {
 		ac.log.Error("AnkrCoin Transfer amount >= totalSupply", "amount", amount, "totalSupply", ac.totalSupply.String())
 		return false
 	}
@@ -136,12 +142,18 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSucess", isSucess)
 	}
 
+	zeroAmount := new(big.Int).SetUint64(0)
+	if value.Cmp(zeroAmount) <= 0 {
+		ac.log.Error("AnkrCoin Transfer amount <= 0", "amount", amount)
+		return false
+	}
+
 	if toAddr == "" {
 		ac.log.Error("AnkrCoin TransferFrom toAddr blank")
 		return false
 	}
 
-	if value.Cmp(ac.totalSupply) > 0 || value.Cmp(ac.totalSupply) == 0{
+	if value.Cmp(ac.totalSupply) >= 0 {
 		ac.log.Error("AnkrCoin Transfer amount >= totalSupply", "amount", amount, "totalSupply", ac.totalSupply.String())
 		return false
 	}

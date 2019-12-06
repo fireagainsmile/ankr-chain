@@ -1,6 +1,7 @@
 package iavl
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -147,6 +148,10 @@ func (sp *IavlStoreApp) updateBalance(address string, assert ankrcmm.Amount) err
 }
 
 func (sp *IavlStoreApp) GetAssert(address string, symbol string, height int64, prove bool) (*ankrcmm.Amount, string, *iavl.RangeProof, []byte, error) {
+	if address == "" {
+		return nil, "", nil, nil, errors.New("GetAssert, blank address")
+	}
+
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		return nil, containAccountPrefix(address), nil, nil, fmt.Errorf("can't find the respond account from store: address=%s", address)
 	}
@@ -176,6 +181,10 @@ func (sp *IavlStoreApp) NonceQuery(address string, height int64, prove bool) (*a
 }
 
 func (sp *IavlStoreApp) Nonce(address string, height int64, prove bool) (uint64, string, *iavl.RangeProof, []byte, error) {
+	if address == "" {
+		return 0, "", nil, nil, errors.New("Nonce, blank address")
+	}
+
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		sp.AddAccount(address, ankrcmm.AccountGenesis)
 		return 1, containAccountPrefix(address), nil, nil, nil
@@ -236,6 +245,10 @@ func (sp *IavlStoreApp) AddAccount(address string, accType ankrcmm.AccountType) 
 }
 
 func (sp *IavlStoreApp) AccountQuery(address string, height int64, prove bool) (*ankrcmm.QueryResp, string, *iavl.RangeProof, error) {
+	if address == "" {
+		return nil, "", nil, errors.New("AccountQuery, blank address")
+	}
+
 	if sp.iavlSM.IavlStore(IavlStoreAccountKey).Has([]byte(containAccountPrefix(address))) {
 		accBytes, proof, err := sp.iavlSM.storeMap[IavlStoreAccountKey].GetWithVersionProve([]byte(containAccountPrefix(address)), height, prove)
 		if err != nil {
