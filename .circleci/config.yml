@@ -69,19 +69,6 @@ jobs:
             docker tag ankr-chain:hub-$BRANCH_NAME $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$TAG
             docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/ankr-chain:hub-$TAG
           done
-          # upgrade ankrchain in daemon side
-          CHARTS_JSON=$(curl -s $CHARTMUSEUM_URL/ankr/daemon/api/charts)
-          ANKRCHAIN_TGZ=$(echo -e ${CHARTS_JSON//\"/\\n} | grep charts/ankr-chain-)
-          mkdir chart_tmp && cd chart_tmp
-          TGZ_FILE=${ANKRCHAIN_TGZ//charts\/}
-          curl -SLf $CHARTMUSEUM_URL/ankr/daemon/charts/$TGZ_FILE | tar xz
-          DIR=$(ls)
-          sed -i~ -E "s/tag: .*/tag: $BRANCH_NAME$DATE/" $DIR/values.yaml
-          tar czf $TGZ_FILE $DIR
-          # TODO: support authenticate
-          curl --data-binary "@$TGZ_FILE" $CHARTMUSEUM_URL/ankr/daemon/api/charts
-          rm -rf $TGZ_FILE $DIR
-          cd ..
           # change AWS ZONE
           if [[ ! -z $AWS_ZONE ]]; then
             sed -i~ -E "s/zone: .*/zone: $AWS_ZONE/" k8s/create-pvc.yaml
@@ -102,7 +89,7 @@ jobs:
           sed -i '/apiVersion:/i---' k8s/ankrchain-patched.yaml
           cat k8s/ankrchain-patched.yaml
           kubectl apply -f k8s/ankrchain-patched.yaml
-          for i in 2; do
+          for i in 4; do
             if ! kubectl rollout status statefulset/ankrchain-$i --watch=true --timeout=120s; then
               echo "Deploy failed, roll back to previous version"
               kubectl rollout undo statefulset/ankrchain-$i
