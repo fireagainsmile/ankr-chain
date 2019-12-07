@@ -54,7 +54,7 @@ func (ci *ContractInvokeMsg) SenderAddr() string {
 	return ci.FromAddr
 }
 
-func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair) {
 	if len(ci.FromAddr) != ankrcmm.KeyAddressLen {
 		return code.CodeTypeInvalidAddress, fmt.Sprintf("ContractInvokeMsg ProcessTx, unexpected from address. Got %s, addr len=%d", ci.FromAddr, len(ci.FromAddr)), nil
 	}
@@ -70,7 +70,7 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 		return code.CodeTypeContractAddrTakenUp, fmt.Sprintf("ContractInvokeMsg ProcessTx, the contract adress has been taken up:contractAddr=%s", ci.ContractAddr), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
 
@@ -87,6 +87,10 @@ func (ci *ContractInvokeMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 
 	if !rtn.IsSuccess {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=%s", ci.ContractAddr, ci.Method), nil
+	}
+
+	if flag == tx.TxExeFlag_PreRun {
+		return code.CodeTypeOK, "", nil
 	}
 
 	context.AppStore().IncNonce(ci.FromAddr)

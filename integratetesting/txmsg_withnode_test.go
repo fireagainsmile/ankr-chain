@@ -54,7 +54,7 @@ func TestTxTransferWithNode(t *testing.T) {
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
 		ToAddr:  "92005EF37E5990A374E683FD966CD6FC40FD444175CD3F",
-		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetInt64(-1000000000000000000).Bytes()}},
+		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetInt64(1000000000000000000).Bytes()}},
 	}
 
 	txSerializer := serializer.NewTxSerializerCDC()

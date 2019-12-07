@@ -37,4 +37,6 @@ const (
 	CodeTypeQueryInvalidQueryReqData uint32 = 29
 	CodeTypeNoV0TxHandler            uint32 = 30
 	CodeTypeInvalidFromAddr          uint32 = 31
+	CodeTypeCheckTxError             uint32 = 32
+	CodeTypeDeliverTxError           uint32 = 33
 )

@@ -184,6 +184,13 @@ func NewMockIavlStoreApp() *IavlStoreApp {
 }
 
 func (sp* IavlStoreApp) queryHandlerWapper(queryKey string, reqData []byte, height int64, prove bool) (resQuery types.ResponseQuery, storeKey string, proof *iavl.RangeProof) {
+	defer func() {
+		if rErr := recover(); rErr != nil {
+			resQuery.Code = code.CodeTypeQueryInvalidQueryReqData
+			resQuery.Log  = fmt.Sprintf("excetion catched, invalid %s query req data, err=%v", queryKey, rErr)
+		}
+	}()
+
 	req      := sp.queryHandleMap[queryKey].req
 	callFunc := sp.queryHandleMap[queryKey].callFunc
 	err := sp.cdc.UnmarshalJSON(reqData, req)
@@ -693,7 +700,7 @@ func (sp *IavlStoreApp) LoadContract(cAddr string, height int64, prove bool) (*a
 	}
 
 	cInfoBytes, proof, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).GetWithVersionProve([]byte(containContractInfoPrefix(cAddr)), height, prove)
-	if err != nil || len(cInfoBytes) == 0{
+	if err != nil || len(cInfoBytes) == 0 {
 		sp.storeLog.Error("can't get the contract", "addr", cAddr)
 		return nil, containContractInfoPrefix(cAddr), nil, nil, err
 	}

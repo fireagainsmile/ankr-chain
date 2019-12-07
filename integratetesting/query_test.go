@@ -36,3 +36,5 @@ func TestBigInt(t *testing.T) {
 	fmt.Printf("num1=%s", new(big.Int).SetBytes(num1Bytes).String())
 }
 
+
+

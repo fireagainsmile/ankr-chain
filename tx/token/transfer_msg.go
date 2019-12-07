@@ -56,7 +56,7 @@ func (tf *TransferMsg) SenderAddr() string {
 	return tf.FromAddr
 }
 
-func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair){
 	if len(tf.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected from address. Got %s, addr len=%d", tf.FromAddr, len(tf.FromAddr)), nil
 	}
@@ -64,7 +64,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected to address. Got %s, addr len=%d", tf.ToAddr, len(tf.ToAddr)), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
 
@@ -94,6 +94,10 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 
     if !rtn.IsSuccess || (rtn.ResultType == "bool" && rtn.Value == false){
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=Transfer", tf.Amounts[0].Cur.Symbol), nil
+	}
+
+	if flag == tx.TxExeFlag_PreRun {
+		return code.CodeTypeOK, "", nil
 	}
 
 	context.AppStore().IncNonce(tf.FromAddr)
