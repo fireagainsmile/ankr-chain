@@ -17,5 +17,7 @@ func init() {
 	RootCmd.AddCommand(transactionCmd)
 	RootCmd.AddCommand(adminCmd)
 	RootCmd.AddCommand(queryCmd)
-	//RootCmd.GenBashCompletionFile("ankr-chain-cli.sh")
+	RootCmd.AddCommand(subscribeCmd)
+	RootCmd.AddCommand(signCmd)
+	RootCmd.AddCommand(broadcastCmd)
 }

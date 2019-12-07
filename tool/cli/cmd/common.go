@@ -60,16 +60,22 @@ var (
 
 
 	//query flags
+	queryParam     = "query"
+	titlePara      = "title"
+	timeoutParam   = "timeout"
+	capParam       = "cap"
 	heightParam    = "height"
 	txidParam      = "txid"
 	approveParam   = "approve"
 	limitParam     = "limit"
 	pageParam      = "page"
 	perPageParam   = "perpage"
+	transferOnlyParam= "transfer-only"
 	meteringParam  = "metering"
 	timeStampParam = "timestamp"
 	typeParam      = "type"
 	fromParam      = "from"
+	nonceParam      = "nonce"
 	creatorParam   = "creator"
 	detailParam    = "detail"
 )

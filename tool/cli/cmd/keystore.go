@@ -8,20 +8,16 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/crypto"
 
-	//"github.com/Ankr-network/ankr-chain/crypto"
-	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/crypto/sha3"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -71,22 +67,20 @@ type EncryptedKeyJSONV3 struct {
 	KeyJSONVersion int        `json:"version"`
 }
 
-func KeyFileWriter(path, keyFile string) (io.WriteCloser, error) {
-	if err := os.MkdirAll(path, 0755); err != nil {
-		return nil, err
-	}
-	kf := filepath.Join(path, keyFile)
-	f, err := os.Create(kf)
-	if err != nil {
-		//panic(err)
-		fmt.Println(err)
-		return nil, err
-	}
-	if err := os.Chmod(kf, 0600); err != nil {
-		return nil, err
-	}
+type KeyStore struct {
+	Name string `json:"name, omitempty"`
+	Address string `json:"address"`
+	FileName string `json:"file_name,omitempty"`
+}
 
-	return f, nil
+func WriteToFile(fileName string, content []byte ) error {
+	kfw, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	defer kfw.Close()
+	_, err = kfw.Write(content)
+	return err
 }
 
 func EncryptDataV3(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) {
@@ -244,7 +238,7 @@ func toISO8601(t time.Time) string {
 
 func generateAccount() Account {
 	priv, addr := GenAccount()
-	return Account{priv, addr}
+	return Account{PrivateKey:priv, Address:addr}
 }
 
 func GenAccount() (priv, addr string) {
@@ -261,35 +255,5 @@ func getAccountFromPrivatekey(privKey string) (Account, error) {
 	key := crypto.NewSecretKeyEd25519(privKey)
 	addr, _ := key.Address()
 	addrStr := fmt.Sprintf("%X", addr)
-	return Account{privKey, addrStr}, nil
-}
-
-func writePrivateKey(acc Account) error {
-	filePath := viper.GetString("output")
-	//path.Dir(filePath)
-	//path.Join(filePath)
-	if err := os.MkdirAll(filePath, 0755); err != nil {
-		return err
-	}
-
-	kf := filePath + "/" + acc.Address
-	f, err := os.Create(kf)
-	if err != nil {
-		//panic(err)
-		fmt.Println(err)
-		return err
-	}
-	defer f.Close()
-
-	if err := os.Chmod(kf, 0600); err != nil {
-		return err
-	}
-
-	keyByte, err := json.Marshal(acc)
-	if err != nil {
-		return err
-	}
-	fmt.Println("keyByte:", keyByte)
-	f.Write(keyByte)
-	return nil
+	return Account{PrivateKey:privKey, Address:addrStr}, nil
 }

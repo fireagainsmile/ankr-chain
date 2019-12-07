@@ -2,18 +2,17 @@ package cmd
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	client2 "github.com/Ankr-network/ankr-chain/client"
 	common2 "github.com/Ankr-network/ankr-chain/common"
+	common3 "github.com/Ankr-network/ankr-chain/tx/common"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/rpc/client"
 	core_types "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/types"
 	"regexp"
@@ -50,6 +49,7 @@ var(
 	blockHeight = "blockHeight"
 	blockPage = "blockPage"
 	blockPerPage ="blockPerPage"
+	blockTxTransferOnly = "blockTxTransferOnly"
 	validatorHeight = "validatorHeight"
 	unconfirmedTxLimit = "unconfirmedTxLimit"
 
@@ -65,6 +65,7 @@ var(
 
 	querySymbol     = "querySymbol"
 	queryAddress    = "queryAddress"
+	queryNonceAddr = "queryNonceAddr"
 	queryAccAddress = "queryAccAddress"
 )
 
@@ -89,14 +90,10 @@ func init() {
 	appendSubCmd(queryCmd, "transaction","transaction allows you to query the transaction results with multiple conditions.", transactionInfo, addTransactionInfoFlags)
 	appendSubCmd(queryCmd, "block", "Get block at a given height. If no height is provided, it will fetch the latest block. And you can use \"detail\" to show more information about transactions contained in block",
 		queryBlock, addQueryBlockFlags)
-	//deprecated
-	//appendSubCmd(queryCmd, "blockresult", "BlockResults gets ABCIResults at a given height. If no height is provided, it will fetch results for the latest block.",
-	//	queryBlockResult, addQueryBlockResultFlags)
 	appendSubCmd(queryCmd, "validators", "Get the validator set at the given block height. If no height is provided, it will fetch the current validator set.",
 		queryValidator, addQueryValidatorFlags)
 	appendSubCmd(queryCmd, "status", "Get Ankr status including node info, pubkey, latest block hash, app hash, block height and time.",
 		queryStatus, nil)
-	//appendSubCmd(queryCmd, "netinfo", "Get network info.", queryNetInfo, nil)
 	appendSubCmd(queryCmd, "genesis", "Get genesis file.", queryGenesis, nil)
 	appendSubCmd(queryCmd, "consensusstate", "ConsensusState returns a concise summary of the consensus state", queryConsensusState, nil)
 	appendSubCmd(queryCmd, "dumpconsensusstate", "dumps consensus state", queryDumpConsensusState, nil)
@@ -106,6 +103,7 @@ func init() {
 	appendSubCmd(queryCmd, "contract", "get smart contract data", runGetContract, addGetContractFlags)
 	appendSubCmd(queryCmd, "account", "query account info",queryAccount, addQueryAccountFlags)
 	appendSubCmd(queryCmd, "balance", "get the balance of an address.", getBalance, addGetBalanceFlags)
+	appendSubCmd(queryCmd, "nonce", "get the nonce of an address.", getNonce, addGetNonceFlags)
 }
 
 func transactionInfo(cmd *cobra.Command, args []string)  {
@@ -155,9 +153,10 @@ func transactionInfo(cmd *cobra.Command, args []string)  {
 }
 
 func displayTxMsg(txMsg *core_types.ResultTx, detail bool)  {
-	displayStruct(txMsg)
 	if detail{
 		displayTx(txMsg.Tx)
+	}else {
+		displayStruct(txMsg)
 	}
 }
 
@@ -167,6 +166,9 @@ func displayTx(data []byte)  {
 	if err != nil {
 		fmt.Println("Decode transaction error!")
 		fmt.Println(err)
+		return
+	}
+	if viper.GetBool(blockTxTransferOnly) && tx.Type() != common3.TxMsgTypeTransfer {
 		return
 	}
 	decodeAndDisplay(tx)
@@ -264,32 +266,6 @@ func formatInterval(period string) []string {
 		result = append(result, rightValue)
 	}
 	return result
-}
-
-//query transaction and display result
-func rpcTransaction(cl *client2.Client, hash []byte)  {
-	resp, err := cl.Tx(hash, viper.GetBool(trxApprove))
-	if err != nil {
-		fmt.Println("Failed to query transaction.")
-		fmt.Println(err)
-		return
-	}
-	displayStruct(resp)
-}
-
-func writeTxSearchResult(result *core_types.ResultTxSearch, w *tabwriter.Writer)  {
-	for _, txResult := range result.Txs {
-		txParsed := parseTx(txResult)
-		writeTx(txParsed, w)
-	}
-}
-
-func doTxSearch(cl *client.HTTP, qt string) (*core_types.ResultTxSearch, error) {
-	queryPage := viper.GetInt(trxPage)
-	queryPerPage := viper.GetInt(trxPerPage)
-	prove := viper.GetBool(trxApprove)
-	resp, err := cl.TxSearch(qt, prove, queryPage, queryPerPage)
-	return resp, err
 }
 
 func addTransactionInfoFlags(cmd *cobra.Command)  {
@@ -503,6 +479,10 @@ func addQueryBlockFlags(cmd *cobra.Command)  {
 	if err != nil {
 		panic(err)
 	}
+	err = addBoolFlag(cmd, blockTxTransferOnly, transferOnlyParam, "", false, "display transfer type transaction only", notRequired)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //query validator
@@ -570,17 +550,6 @@ func decodeAndDisplay(resp interface{})  {
 	fmt.Println(string(distByte.Bytes()))
 }
 
-func outputStatus(w *tabwriter.Writer, st *core_types.ResultStatus)  {
-	b, _ := json.MarshalIndent(st.NodeInfo, "", "    ")
-	fmt.Fprintf(w,"node_info:%s\n", string(b))
-	b, _ = json.MarshalIndent(st.SyncInfo, "", "    ")
-	fmt.Fprintf(w, "sync_info:%s\n", string(b))
-	fmt.Fprintf(w, "validator_info:{ \n", )
-	fmt.Fprintf(w, "\t\"address\":%s\n", st.ValidatorInfo.Address )
-	fmt.Fprintf(w, "\t\"pub_key\":%s\n", base64.StdEncoding.EncodeToString(st.ValidatorInfo.PubKey.Bytes()) )
-	fmt.Fprintf(w, "\t\"voting_power\":%d\n}\n", st.ValidatorInfo.VotingPower )
-}
-
 //query genesis
 func queryGenesis(cmd *cobra.Command, args []string)  {
 	validatorUrl = viper.GetString(queryUrl)
@@ -595,22 +564,6 @@ func queryGenesis(cmd *cobra.Command, args []string)  {
 		return
 	}
 	decodeAndDisplay(resp)
-}
-
-//format output result genesis
-func outputGenesis(w *tabwriter.Writer,resultGenesis * core_types.ResultGenesis )  {
-	fmt.Fprintf(w, "Genesis:{\n")
-	fmt.Fprintf(w, "\t\"genesis_time\": %v\n", resultGenesis.Genesis.GenesisTime)
-	fmt.Fprintf(w, "\t\"chain_id\": %v\n", resultGenesis.Genesis.ChainID)
-	b, _ := json.MarshalIndent(resultGenesis.Genesis.ConsensusParams, "", "\t")
-	fmt.Fprintf(w, "\t\"consensus_params\":%s\n",string(b))
-	fmt.Fprintf(w, "\t\"validators\":{\n")
-	fmt.Fprintf(w, "\t\taddress\tpub_key\tpower\tname\n")
-	for _, valid := range resultGenesis.Genesis.Validators {
-		fmt.Fprintf(w, "\t\t%v\t%v\t%v\t%v\n", valid.Address, base64.StdEncoding.EncodeToString(valid.PubKey.Bytes()), valid.Power, valid.Name)
-	}
-	fmt.Fprintf(w, "\t}\n")
-	fmt.Fprintf(w, "}\n")
 }
 
 //query consensus state
@@ -911,6 +864,26 @@ func addGetBalanceFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	err = addStringFlag(cmd, querySymbol, symbolParam, "", "ANKR", "token symbol", notRequired)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func getNonce(cmd *cobra.Command, args []string) {
+	client := newAnkrHttpClient(viper.GetString(queryUrl))
+	req := new(common2.NonceQueryReq)
+	req.Address = viper.GetString(queryNonceAddr)
+	nonceResp := new(common2.NonceQueryResp)
+	err := client.Query("/store/nonce", req, nonceResp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	displayStruct(nonceResp)
+}
+
+func addGetNonceFlags(cmd *cobra.Command) {
+	err := addStringFlag(cmd, queryNonceAddr, addressParam, "a", "", "the address of an account.", required)
 	if err != nil {
 		panic(err)
 	}
