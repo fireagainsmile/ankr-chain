@@ -62,10 +62,6 @@ type txSignMsg struct {
 }
 
 func spendGasExe(gasLimit []byte, gasUsed *big.Int, gas *big.Int) bool {
-	if gasUsed == nil {
-		gasUsed = new(big.Int).SetUint64(0)
-	}
-
 	gasUsedT := new(big.Int).SetUint64(gasUsed.Uint64())
 	gasUsedT = new(big.Int).Add(gasUsedT, gas)
 
@@ -132,6 +128,9 @@ func (tx *TxMsg) SignAndMarshal(txSerializer TxSerializer, key ankrcrypto.Secret
 }
 
 func (tx *TxMsg) SpendGas(gas *big.Int) bool {
+	if tx.GasUsed == nil {
+		tx.GasUsed = new(big.Int).SetUint64(0)
+	}
 	return spendGasExe(tx.GasLimit, tx.GasUsed, gas)
 }
 
@@ -218,7 +217,7 @@ func (tx *TxMsg) preRunForCheckTx(context ContextTx) types.ResponseCheckTx {
 		return types.ResponseCheckTx{Code: codeT, Log: log}
 	}
 
-	if tx.GasUsed == nil || tx.GasUsed.Cmp(big.NewInt(0)) == 0 {
+	if txSInfo.GasUsed == nil || txSInfo.GasUsed.Cmp(big.NewInt(0)) == 0 {
 		return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 0}
 	}
 
@@ -236,10 +235,6 @@ func (tx *TxMsg) preRunForCheckTx(context ContextTx) types.ResponseCheckTx {
 	}
 	if usedFee.Cmp(balFrom) == 1 || usedFee.Cmp(balFrom) == 0 {
 		context.AppStore().Rollback()
-		err = tx.gasCharge(context, balFrom)
-		if err != nil {
-			context.AppStore().Rollback()
-		}
 		return types.ResponseCheckTx{Code: code.CodeTypeFeeNotEnough, Log: fmt.Sprintf("TxMsg CheckTx, fee not enough, got %s, expected %s", usedFee.String(), balFrom.String())}
 	}
 
@@ -330,7 +325,7 @@ func (tx *TxMsg) DeliverTx(context ContextTx) (respDeliverTx types.ResponseDeliv
 
 	context.AppStore().SetBalance(tx.SignerAddr()[0], ankrcmm.Amount{ankrcmm.Currency{tx.GasPrice.Cur.Symbol, 18}, balFrom.Bytes()})
 
-	err = tx.gasCharge(context, balFrom)
+	err = tx.gasCharge(context, usedFee)
 	if err != nil {
 		context.AppStore().Rollback()
 		return types.ResponseDeliverTx{Code: code.CodeTypeGasChargeError, Log: fmt.Sprintf("TxMsg DeliverTx, gas charge err=%s", err.Error())}

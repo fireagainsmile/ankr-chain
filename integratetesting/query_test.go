@@ -14,7 +14,7 @@ func TestBalanceQueryWithProofVerify(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	resp := &ankrcmm.BalanceQueryResp{}
-	err := c.QueryWithOption("/store/balance", 0, true, "F:\\dccntendermint\\trnode\\", &ankrcmm.BalanceQueryReq{"065E37B3FC243B9FABB1519AB876E7632C510DC9324031", "ANKR"}, resp)
+	err := c.QueryWithOption("/store/balance", 0, true, "F:\\dccntendermint\\trnode\\", &ankrcmm.BalanceQueryReq{"64BC85F08C03F42B17EAAF5AFFAF9BFAF96CFCB85CA2F3", "ANKR"}, resp)
 
 	assert.Equal(t, nil, err)
 
