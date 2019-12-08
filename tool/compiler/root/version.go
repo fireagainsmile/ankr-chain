@@ -12,7 +12,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the contract compiler version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Version:",version.CompilerVersion)
+		fmt.Println(version.CompilerVersion)
 	},
 }
 
