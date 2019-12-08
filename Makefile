@@ -1,6 +1,8 @@
 BUILD_TAGS?='ankrchain'
-OUTPUT?=build/ankrchain
+OUTPUT?=build
 BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`"
+NODE_NAME=ankrchain
+COMPILER_NAME=contract-compiler
 
 OUTPUTTOOLDIR=build/tool
 
@@ -16,22 +18,27 @@ else
   endif
 endif
 
-all: build tools
+all: windows linux darwin
 
-build:	
-	@echo "build ankrchain node image"
-	@echo "OS:"${PLATFORM}
-	CGO_ENABLED=0 go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT) ./main.go
+define build_target
+    @echo "build ankrchain node image of $(0)"
+    CGO_ENABLED=0 GOOS=$(0) GOARCH=$(1) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(0)-$(1)/$(2) ./main.go
+    @echo "build all tools"
+    CGO_ENABLED=0 GOOS=$(0) GOARCH=$(1) go build  -o ${OUTPUT}/$(0)/$(COMPILER_NAME).exe   ./tool/compiler/main.go
+    CGO_ENABLED=0 GOOS=$(0) GOARCH=$(1) go build  -o ${OUTPUT}/$(0)/$(NODE_NAME)-cli.exe   ./tool/cli/main.go
+endif
 
-install:
-	CGO_ENABLED=0 go install  $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./main.go
+windows:
+    @echo "Currency OS:"${PLATFORM}
+	$(call build_target, windows, amd64, $(NODE_NAME).exe)
 
-tools:	
-	@echo "build all tools"
-	@echo "OS:"${PLATFORM}
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/keygen   ./tool/key/keygen.go
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/contract-compiler   ./tool/compiler/main.go
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/ankrchain-cli   ./tool/cli/main.go
+linux:
+    @echo "Currency OS:"${PLATFORM}
+    $(call build_target, linux, amd64, $(NODE_NAME))
+
+darwin:
+    @echo "Currency OS:"${PLATFORM}
+    $(call build_target, darwin, amd64, $(NODE_NAME))
 
 fmt:
 	@go fmt ./...
@@ -40,5 +47,7 @@ lint:
 	@echo "--> Running linter"
 	@golangci-lint run
 
-.PHONY: check build install fmt lint
+.PHONY : clean
+clean :
+    -rm -rf ./build
 

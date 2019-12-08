@@ -13,7 +13,7 @@ RUN chmod 600 /root/.ssh/id_rsa
 WORKDIR /ankr-chain
 COPY . .
 
-RUN make build
+RUN make linux
 
 # Build image
 FROM alpine:3.7 AS public
@@ -38,7 +38,7 @@ RUN apk update && \
 
 ARG BRANCH_NAME
 ENV BRANCH_NAME=${BRANCH_NAME}
-COPY --from=compiler /ankr-chain/build/ankrchain /usr/bin/ankrchain
+COPY --from=compiler /ankr-chain/build/ankrchain-linux-amd64/ankrchain /usr/bin/ankrchain
 COPY DOCKER/tmhome/config/config."${BRANCH_NAME}".toml "$TMHOME"/config/config.toml
 COPY DOCKER/tmhome/config/genesis."${BRANCH_NAME}".json "$TMHOME"/config/genesis.json
 RUN mkdir "$TMHOME"/data \
