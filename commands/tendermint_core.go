@@ -2,7 +2,9 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/Ankr-network/ankr-chain/log"
+	"github.com/Ankr-network/ankr-chain/version"
 	"github.com/spf13/cobra"
 	tmcorecommands "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	"github.com/tendermint/tendermint/p2p"
@@ -36,12 +38,19 @@ func showNodeID(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+var VersionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Show version info",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(version.APPVersion)
+	},
+}
 
 func AddTendermintCoreCommands(cmd *cobra.Command) {
 	cmd.AddCommand(
 		ResetAllCmd,
 		ShowNodeIDCmd,
-		tmcorecommands.VersionCmd)
+		VersionCmd)
 }
 
 

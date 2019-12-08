@@ -1,10 +1,12 @@
 BUILD_TAGS?='ankrchain'
 OUTPUT?=build
-BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`"
 NODE_NAME=ankrchain
 COMPILER_NAME=contract-compiler
 
-OUTPUTTOOLDIR=build/tool
+APP_VERSION=1.0.0
+COMPILER_VERSION=1.0.0
+BUILD_FLAGS_NODE = -ldflags "-X github.com/Ankr-network/ankr-chain/version.APPVersion=${APP_VERSION} -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
+BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CompilerVersion=${COMPILER_VERSION} -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
 export GO111MODULE=on
 
@@ -22,9 +24,9 @@ all: windows linux darwin
 
 define build_target
     @echo "build ankrchain node image of $(0)"
-    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(1)-$(2)/$(3) ./main.go
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_NODE) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(1)-$(2)/$(3) ./main.go
     @echo "build all tools"
-    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(4) ./tool/compiler/main.go
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_COMPILER) -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(4) ./tool/compiler/main.go
     CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(5) ./tool/cli/main.go
 endef
 
