@@ -24,21 +24,21 @@ define build_target
     @echo "build ankrchain node image of $(0)"
     CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(1)-$(2)/$(3) ./main.go
     @echo "build all tools"
-    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(COMPILER_NAME).exe   ./tool/compiler/main.go
-    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(NODE_NAME)-cli.exe   ./tool/cli/main.go
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(4) ./tool/compiler/main.go
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(5) ./tool/cli/main.go
 endef
 
 windows:
 	@echo "Currency OS:"${PLATFORM}
-	$(call build_target,windows,amd64,$(NODE_NAME).exe)
+	$(call build_target,windows,amd64,$(NODE_NAME).exe,$(COMPILER_NAME).exe,$(NODE_NAME)-cli.exe)
 
 linux:
 	@echo "Currency OS:"${PLATFORM}
-	$(call build_target,linux,amd64,$(NODE_NAME))
+	$(call build_target,linux,amd64,$(NODE_NAME),$(COMPILER_NAME),$(NODE_NAME)-cli)
 
 darwin:
 	@echo "Currency OS:"${PLATFORM}
-	$(call build_target,darwin,amd64,$(NODE_NAME))
+	$(call build_target,darwin,amd64,$(NODE_NAME),$(COMPILER_NAME),$(NODE_NAME)-cli)
 
 fmt:
 	@go fmt ./...
