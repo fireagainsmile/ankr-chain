@@ -52,7 +52,7 @@ func TestTxTransferWithNode(t *testing.T) {
 		Version: "1.0",
 	}
 
-	amount, _ := new(big.Int).SetString("100000000000000000000", 10)
+	amount, _ := new(big.Int).SetString("1000000000000000000000000", 10)
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
 		ToAddr:  "92005EF37E5990A374E683FD966CD6FC40FD444175CD3F",
@@ -294,7 +294,7 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-gw3hPf",
+		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractDeploy",
@@ -334,7 +334,7 @@ func TestContractInvokeWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-qODlBV",
+		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractInvoke",
@@ -345,7 +345,7 @@ func TestContractInvokeWithNode(t *testing.T) {
 
 	cdMsg := &contract.ContractInvokeMsg{
 		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ContractAddr: "A277D0BD075656C3DBF92F9FEDC396AFFC75C95B9CF6D6",
+		ContractAddr: "5448AE3966FABECB07F1827EC38F87848D88CB2FB2B000",
 		Method:       "testFuncWithString",
 		Args:         jsonArg,
 		RtnType:      "string",
@@ -367,11 +367,11 @@ func TestContractInvokeWithNode(t *testing.T) {
 	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d, contractR=%v", txHash, cHeight, contractR)
 }
 
-func TestContractDeployWithNodePattern2(t *testing.T) {
+func TestContractDeployWithNodePattern1(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-qODlBV",
+		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractDeploy",
@@ -408,11 +408,11 @@ func TestContractDeployWithNodePattern2(t *testing.T) {
 	t.Logf("conract=%v", resp)
 }
 
-func TestContractInvokeWithNodePattern2(t *testing.T) {
+func TestContractInvokeWithNodePattern1(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-qODlBV",
+		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractInvoke",
@@ -425,7 +425,7 @@ func TestContractInvokeWithNodePattern2(t *testing.T) {
 
 	cdMsg := &contract.ContractInvokeMsg{
 		FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		ContractAddr: "BFB8206804DC410AAFB8828ABDD36B488DCFB7FA8EF984",
+		ContractAddr: "73FC39E8B6A2B8BA5D372A8A663CFA74A15B3A782FBC24",
 		Method:       "testFuncWithString",
 		Args:         jsonArg,
 		RtnType:      "string",

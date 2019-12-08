@@ -77,7 +77,7 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 
     gasUsed := uint64(len(cd.Codes)) * gas.GasContractByte
     if !metric.SpendGas(new(big.Int).SetUint64(gasUsed)) {
-    	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %s", ), nil
+    	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %d", gasUsed), nil
 	}
 
 	cInfo = &ankrcmm.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
