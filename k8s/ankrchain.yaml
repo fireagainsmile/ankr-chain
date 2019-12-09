@@ -25,9 +25,14 @@ spec:
             claimName: tendermint-pvc-1
       containers:
         - name: ankrchain
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
+          image: ankrnetwork/ankr-chain:hub-feat
           imagePullPolicy: Always
-          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.1.json config/node_key.json && mv config/priv_validator_key.1.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`"]
+          command:
+            [
+              "sh",
+              "-c",
+              "cp config/priv_validator_state.json data/  && mv config/node_key.1.json config/node_key.json && mv config/priv_validator_key.1.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`",
+            ]
           ports:
             - name: p2p-1
               containerPort: 26656
@@ -67,9 +72,14 @@ spec:
             claimName: tendermint-pvc-2
       containers:
         - name: ankrchain
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
+          image: ankrnetwork/ankr-chain:hub-feat
           imagePullPolicy: Always
-          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.2.json config/node_key.json && mv config/priv_validator_key.2.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`"]
+          command:
+            [
+              "sh",
+              "-c",
+              "cp config/priv_validator_state.json data/  && mv config/node_key.2.json config/node_key.json && mv config/priv_validator_key.2.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`",
+            ]
           ports:
             - name: p2p-2
               containerPort: 26656
@@ -109,9 +119,14 @@ spec:
             claimName: tendermint-pvc-3
       containers:
         - name: ankrchain
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
+          image: ankrnetwork/ankr-chain:hub-feat
           imagePullPolicy: Always
-          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.3.json config/node_key.json && mv config/priv_validator_key.3.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`"]
+          command:
+            [
+              "sh",
+              "-c",
+              "cp config/priv_validator_state.json data/  && mv config/node_key.3.json config/node_key.json && mv config/priv_validator_key.3.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`",
+            ]
           ports:
             - name: p2p-3
               containerPort: 26656
@@ -151,9 +166,14 @@ spec:
             claimName: tendermint-pvc-4
       containers:
         - name: ankrchain
-          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/ankr-chain:hub-feat
+          image: ankrnetwork/ankr-chain:hub-feat
           imagePullPolicy: Always
-          command: ["sh", "-c", "cp config/priv_validator_state.json data/  && mv config/node_key.4.json config/node_key.json && mv config/priv_validator_key.4.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`"]
+          command:
+            [
+              "sh",
+              "-c",
+              "cp config/priv_validator_state.json data/  && mv config/node_key.4.json config/node_key.json && mv config/priv_validator_key.4.json config/priv_validator_key.json && ankrchain start --log_level=debug --moniker=`hostname`",
+            ]
           ports:
             - name: p2p-4
               containerPort: 26656

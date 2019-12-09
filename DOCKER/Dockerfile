@@ -2,16 +2,18 @@
 FROM golang:1.13-alpine AS compiler
 ARG PRIV_PATH
 
-RUN apk add --no-cache git make dep openssh-client
-
-COPY id_rsa /root/.ssh/
-RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN chmod go-w /root
-RUN chmod 700 /root/.ssh
-RUN chmod 600 /root/.ssh/id_rsa
+RUN apk add --no-cache git make
 
 WORKDIR /ankr-chain
 COPY . .
+
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+RUN echo "machine github.com login ${GITHUB_USER} password ${GITHUB_TOKEN}" > ~/.netrc
+
+ARG GOPROXY
+ENV GOPROXY=${GOPROXY}
+ENV GOPRIVATE=github.com/Ankr-network
 
 RUN make linux
 
