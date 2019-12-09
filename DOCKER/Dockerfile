@@ -55,6 +55,10 @@ WORKDIR $TMHOME
 # p2p and rpc port
 EXPOSE 26656 26657 26658
 
+ENTRYPOINT ["/bin/sh"]
+CMD ["-c", "ankrchain init && ankrchain start --log_level=info --moniker=`hostname`"]
+STOPSIGNAL SIGTERM
+
 FROM public AS hub
 USER root
 
