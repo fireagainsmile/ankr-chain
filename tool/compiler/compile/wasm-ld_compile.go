@@ -39,8 +39,8 @@ func (wo *WasmOptions) Options() []string {
 // and remove
 
 func (wasmOp *WasmOptions)Execute(args []string) error {
-	distFileName := strings.TrimLeft(args[0], abi.CurPath)
-	srcFileName := strings.TrimLeft(abi.ContractMainFile, abi.CurPath)
+	distFileName := path.Base(args[0])
+	srcFileName := path.Base(abi.ContractMainFile)
 	srcFileSlice := strings.Split(srcFileName, ".")
 	srcFile := fmt.Sprintf("%s.o", srcFileSlice[0])
 	distFile := distFileName
