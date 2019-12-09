@@ -42,7 +42,7 @@ char* Balance(const char* addr, const char* symbol);
 int SetAllowance(const char* addrSender, const char* addrSpender, const char* symbol, const char* amount);
 char* Allowance(const char* addrSender, const char* addrSpender, const char* symbol);
 char* ContractAddr();
-int CreateCurrency(const char* symbol, int decimals);
+int CreateCurrency(const char* symbol, int decimals, const char* totalSupply);
 int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr);
 int Height();
 

@@ -8,6 +8,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	vmevent "github.com/Ankr-network/wagon/exec/event"
 	"github.com/Ankr-network/wagon/exec/gas"
+	"github.com/tendermint/iavl"
 )
 
 type TxMsgCallBack interface {
@@ -15,19 +16,19 @@ type TxMsgCallBack interface {
 }
 
 type CurrencyInterface interface {
-	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
-	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+	CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error
+	CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error)
 }
 
 type ContextContract interface {
-	CreateCurrency(symbol string, currency *ankrcmm.Currency) error
-	CurrencyInfo(symbol string) (*ankrcmm.Currency, error)
+	CreateCurrency(symbol string, currency *ankrcmm.CurrencyInfo) error
+	CurrencyInfo(symbol string, height int64, prove bool) (*ankrcmm.CurrencyInfo, string, *iavl.RangeProof, []byte, error)
 	SpendGas(gas *big.Int) bool
 	SenderAddr() string
 	OwnerAddr() string
 	ContractAddr() string
 	SetBalance(address string, amount ankrcmm.Amount)
-	Balance(address string, symbol string) (*big.Int, error)
+	Balance(address string, symbol string, height int64, prove bool) (*big.Int, string, *iavl.RangeProof, []byte, error)
 	SetAllowance(addrSender string, addrSpender string, amount ankrcmm.Amount)
 	Allowance(addrSender string, addrSpender string, symbol string) (*big.Int, error)
 	Publish(ctx context.Context, msg interface{}) error

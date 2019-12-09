@@ -68,7 +68,7 @@ func (vm *ValidatorManager) CreateValidator(valInfo *ankrcmm.ValidatorInfo, appS
 }
 
 func (vm *ValidatorManager) UpdateValidator(valInfo *ankrcmm.ValidatorInfo, setFlag ankrcmm.ValidatorInfoSetFlag, appStore appstore.AppStore) error {
-	valInfoS, err := appStore.Validator(valInfo.ValAddress)
+	valInfoS, _, _, _, err := appStore.Validator(valInfo.ValAddress, 0, false)
 	if err != nil {
 		return err
 	}

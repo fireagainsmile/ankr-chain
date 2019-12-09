@@ -58,13 +58,13 @@ func (k *KeyMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
-func (k *KeyMsg) ProcessTx(context tx.ContextTx,  metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (k *KeyMsg) ProcessTx(context tx.ContextTx,  metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair) {
 	if k.KeyName != ankrcmm.ADMIN_OP_VAL_PUBKEY_NAME && k.KeyName != ankrcmm.ADMIN_OP_FUND_PUBKEY_NAME &&
 		k.KeyName != ankrcmm.ADMIN_OP_METERING_PUBKEY_NAME {
 		return code.CodeTypeEncodingError, fmt.Sprintf("Unexpected keyname. Got %v", k.KeyName), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck || flag == tx.TxExeFlag_PreRun {
 		return  code.CodeTypeOK, "", nil
 	}
 

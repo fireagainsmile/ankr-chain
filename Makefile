@@ -1,8 +1,12 @@
 BUILD_TAGS?='ankrchain'
-OUTPUT?=build/ankrchain
-BUILD_FLAGS = -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`"
+OUTPUT?=build
+NODE_NAME=ankrchain
+COMPILER_NAME=contract-compiler
 
-OUTPUTTOOLDIR=build/tool
+NODE_VERSION=1.0.0
+COMPILER_VERSION=1.0.0
+BUILD_FLAGS_NODE = -ldflags "-X github.com/Ankr-network/ankr-chain/version.NodeVersion=${NODE_VERSION} -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
+BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CompilerVersion=${COMPILER_VERSION} -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
 export GO111MODULE=on
 
@@ -16,22 +20,27 @@ else
   endif
 endif
 
-all: build tools
+all: windows linux darwin
 
-build:	
-	@echo "build ankrchain node image"
-	@echo "OS:"${PLATFORM}
-	CGO_ENABLED=0 go build $(BUILD_FLAGS) -tags $(BUILD_TAGS) -o $(OUTPUT) ./main.go
+define build_target
+    @echo "build ankrchain node image of $(0)"
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_NODE) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(1)-$(2)/$(3) ./main.go
+    @echo "build all tools"
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_COMPILER) -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(4) ./tool/compiler/main.go
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(5) ./tool/cli/main.go
+endef
 
-install:
-	CGO_ENABLED=0 go install  $(BUILD_FLAGS) -tags $(BUILD_TAGS) ./main.go
+windows:
+	@echo "Currency OS:"${PLATFORM}
+	$(call build_target,windows,amd64,$(NODE_NAME).exe,$(COMPILER_NAME).exe,$(NODE_NAME)-cli.exe)
 
-tools:	
-	@echo "build all tools"
-	@echo "OS:"${PLATFORM}
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/keygen   ./tool/key/keygen.go
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/contract-compiler   ./tool/compiler/main.go
-	CGO_ENABLED=0 go build  -o ${OUTPUTTOOLDIR}/ankrchain-cli   ./tool/cli/main.go
+linux:
+	@echo "Currency OS:"${PLATFORM}
+	$(call build_target,linux,amd64,$(NODE_NAME),$(COMPILER_NAME),$(NODE_NAME)-cli)
+
+darwin:
+	@echo "Currency OS:"${PLATFORM}
+	$(call build_target,darwin,amd64,$(NODE_NAME),$(COMPILER_NAME),$(NODE_NAME)-cli)
 
 fmt:
 	@go fmt ./...
@@ -40,5 +49,7 @@ lint:
 	@echo "--> Running linter"
 	@golangci-lint run
 
-.PHONY: check build install fmt lint
+.PHONY : clean
+clean :
+	-rm -rf ./build
 
