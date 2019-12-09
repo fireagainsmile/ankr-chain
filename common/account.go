@@ -7,8 +7,8 @@ type Code struct {
 }
 
 type Currency struct {
-	Symbol  string `json:"symbol"`
-	Decimal int64  `json:"decimal"`
+	Symbol       string `json:"symbol"`
+	Decimal      int64  `json:"decimal"`
 }
 
 type Amount struct {
@@ -41,4 +41,10 @@ type AllowanceInfo struct {
 	sender  string
 	spender string
 	amount  Amount
+}
+
+type CurrencyInfo struct {
+	Symbol       string `json:"symbol"`
+	Decimal      int64  `json:"decimal"`
+	TotalSupply  string `json:"totalsupply"`
 }

@@ -51,6 +51,35 @@ func (s *IavlStore) Get(key []byte) ([]byte, error) {
 	return val, nil
 }
 
+func (s *IavlStore) GetWithVersionProve(key []byte, ver int64, prove bool) ([]byte, *iavl.RangeProof, error) {
+	if ver <= 0 {
+		if !prove {
+ 			value, err := s.Get(key)
+			return value, nil, err
+		} else {
+			ver = s.tree.Version()
+		}
+	}
+
+	if len(key) == 0 {
+		s.log.Error("key is nil")
+		return nil, nil, errors.New("key is nil")
+	}
+
+	if !s.tree.VersionExists(ver) {
+		return  nil, nil, iavl.ErrVersionDoesNotExist
+	}
+
+	var val []byte
+	if prove {
+		return s.tree.GetVersionedWithProof(key, ver)
+	}else {
+		_, val = s.tree.GetVersioned(key, ver)
+	}
+
+	return val, nil, nil
+}
+
 func (s *IavlStore) Has(key []byte) bool {
 	return s.tree.Has(key)
 }

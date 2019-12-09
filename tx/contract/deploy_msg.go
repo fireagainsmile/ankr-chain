@@ -53,7 +53,7 @@ func (cd *ContractDeployMsg) SenderAddr() string {
 	return cd.FromAddr
 }
 
-func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair){
 	if len(cd.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("ContractDeployMsg ProcessTx, unexpected from address. Got %s, addr len=%d", cd.FromAddr, len(cd.FromAddr)), nil
 	}
@@ -62,22 +62,22 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 		return code.CodeTypeContractInvalidCodeSize, fmt.Sprintf("ContractDeployMsg ProcessTx, invalid code size, Got %v, code size=%d", cd.Codes, len(cd.Codes)), nil
 	}
 
-	nonce, _ := context.AppStore().Nonce(cd.FromAddr)
+	nonce, _, _, _, _ := context.AppStore().Nonce(cd.FromAddr, 0, false)
 	contractAddr := ankrcrypto.CreateContractAddress(cd.FromAddr, nonce)
-    cInfo, err := context.AppStore().LoadContract(contractAddr)
+    cInfo, _, _, _, err := context.AppStore().LoadContract(contractAddr, 0, false)
     if err != nil {
     	return code.CodeTypeLoadContractErr, fmt.Sprintf("ContractDeployMsg ProcessTx, load contract err: contractAddr=%s", contractAddr), nil
 	} else if cInfo != nil {
 		return code.CodeTypeContractAddrTakenUp, fmt.Sprintf("ContractDeployMsg ProcessTx, the contract adress has been taken up:contractAddr=%s", contractAddr), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
 
     gasUsed := uint64(len(cd.Codes)) * gas.GasContractByte
     if !metric.SpendGas(new(big.Int).SetUint64(gasUsed)) {
-    	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %s", ), nil
+    	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %d", gasUsed), nil
 	}
 
 	cInfo = &ankrcmm.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc}
@@ -92,6 +92,10 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 
 	if !rtn.IsSuccess {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=init", contractAddr), nil
+	}
+
+	if flag == tx.TxExeFlag_PreRun {
+		return code.CodeTypeOK, "", nil
 	}
 
 	context.AppStore().SaveContract(contractAddr, cInfo)
