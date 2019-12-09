@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 )
 
@@ -78,7 +79,7 @@ func (w *Wasm2WatOptions)Execute(args[]string) error {
 	//gen
 	out, err := exec.Command(w.Compiler, w.Options()...).Output()
 	if err != nil {
-		return err
+		return handleExeError(err)
 	}
 	if string(out) != "" {
 		return errors.New(string(out))
@@ -94,4 +95,20 @@ func filterWasm(args []string) string {
 		}
 	}
 	return  ""
+}
+
+//handle process exit error, not fully completed.
+func handleExeError(err error) error {
+	errType := reflect.TypeOf(err)
+	name := errType.String()
+	switch name {
+	case "*exec.Error":
+		ee := err.(*exec.Error)
+		return errors.New("wasm2wat: "+ ee.Error())
+	case "*exec.ExitError":
+		ee := err.(*exec.ExitError)
+		return errors.New(string(ee.Stderr))
+	default:
+		return errors.New(err.Error())
+	}
 }

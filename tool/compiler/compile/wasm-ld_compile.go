@@ -1,7 +1,6 @@
 package compile
 
 import (
-	"errors"
 	"fmt"
 	"github.com/Ankr-network/ankr-chain/tool/compiler/abi"
 	"io/ioutil"
@@ -50,8 +49,7 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 	wasmArgs = append(wasmArgs, srcFile, "-o", distFile)
 	out, err := exec.Command("wasm-ld", wasmArgs...).Output()
 	if err != nil {
-		ee := err.(*exec.ExitError)
-		return errors.New(string(ee.Stderr))
+		return handleExeError( "wasm-ld", err)
 	}
 	if len(out) != 0 {
 		fmt.Println(string(out))

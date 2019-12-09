@@ -56,7 +56,7 @@ func (tf *TransferMsg) SenderAddr() string {
 	return tf.FromAddr
 }
 
-func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair){
+func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair){
 	if len(tf.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected from address. Got %s, addr len=%d", tf.FromAddr, len(tf.FromAddr)), nil
 	}
@@ -64,7 +64,7 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeInvalidAddress, fmt.Sprintf("TransferMsg ProcessTx, unexpected to address. Got %s, addr len=%d", tf.ToAddr, len(tf.ToAddr)), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck {
 		return code.CodeTypeOK, "", nil
 	}
 
@@ -74,26 +74,30 @@ func (tf *TransferMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeContractCantFound, fmt.Sprintf("TransferMsg ProcessTx, can't find the currency contract, symbol=%s", trAmount.Cur.Symbol), nil
 	}
 
-	tokenContract, err := context.AppStore().LoadContract(contractAddr)
+	tokenContract, _, _, _, err := context.AppStore().LoadContract(contractAddr, 0, false)
 	if err != nil {
 		return code.CodeTypeLoadContractErr, fmt.Sprintf("load contract err: contractAddr = %s", contractAddr), nil
 	}
 
-	params :=  []*ankrcmm.Param{{0, "", "string", tf.FromAddr},
-		{1, "", "string", tf.ToAddr},
-		{2, "", "string", new(big.Int).SetBytes(tf.Amounts[0].Value).String()},
+	params :=  []*ankrcmm.Param{
+		{0, "", "string", tf.ToAddr},
+		{1, "", "string", new(big.Int).SetBytes(tf.Amounts[0].Value).String()},
 	}
 
 	contractType    := ankrcmm.ContractType(tokenContract.Codes[0])
 	contractPatt    := ankrcmm.ContractPatternType(tokenContract.Codes[2])
 	contractContext := ankrcontext.NewContextContract(context.AppStore(), metric, tf, tokenContract, context.AppStore(), context.Publisher())
-    rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, contractPatt, tokenContract.Codes[ankrcmm.CodePrefixLen:], trAmount.Cur.Symbol, "TransferFrom", params, "bool")
+    rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, contractPatt, tokenContract.Codes[ankrcmm.CodePrefixLen:], trAmount.Cur.Symbol, "Transfer", params, "bool")
     if err != nil {
-    	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=transferFrom, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
+    	return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=Transfer, err=%v", tf.Amounts[0].Cur.Symbol, err), nil
 	}
 
-    if !rtn.IsSuccess {
-		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=transferFrom", tf.Amounts[0].Cur.Symbol), nil
+    if !rtn.IsSuccess || (rtn.ResultType == "bool" && rtn.Value == false){
+		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=Transfer", tf.Amounts[0].Cur.Symbol), nil
+	}
+
+	if flag == tx.TxExeFlag_PreRun {
+		return code.CodeTypeOK, "", nil
 	}
 
 	context.AppStore().IncNonce(tf.FromAddr)

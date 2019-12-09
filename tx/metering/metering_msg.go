@@ -50,8 +50,8 @@ func (m *MeteringMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return true
 }
 
-func (m *MeteringMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
-	if isOnlyCheck {
+func (m *MeteringMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair) {
+	if flag == tx.TxExeFlag_OnlyCheck || flag == tx.TxExeFlag_PreRun {
 		return code.CodeTypeOK, "", nil
 	}
 
