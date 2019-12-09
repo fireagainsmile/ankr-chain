@@ -18,7 +18,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 )
 
 const (
@@ -66,6 +65,7 @@ var(
 	querySymbol     = "querySymbol"
 	queryAddress    = "queryAddress"
 	queryNonceAddr = "queryNonceAddr"
+	queryCurrencySymbol = "queryCurrencySymbol"
 	queryAccAddress = "queryAccAddress"
 )
 
@@ -104,6 +104,7 @@ func init() {
 	appendSubCmd(queryCmd, "account", "query account info",queryAccount, addQueryAccountFlags)
 	appendSubCmd(queryCmd, "balance", "get the balance of an address.", getBalance, addGetBalanceFlags)
 	appendSubCmd(queryCmd, "nonce", "get the nonce of an address.", getNonce, addGetNonceFlags)
+	appendSubCmd(queryCmd, "currency", "get currency info of a contract.", getCurrency, addQueryCurrencyFlags)
 }
 
 func transactionInfo(cmd *cobra.Command, args []string)  {
@@ -667,143 +668,6 @@ type ResultTx struct {
 	Data map[string] string `json:"data"` //used to store different type of transaction data
 }
 
-//parse transaction data from rpc response and write to ResultTx
-func parseSendTx(tx string) map[string]string {
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, TxPrefix)
-	txSlice := strings.Split(txString, ":")
-	data["from"] = string(txSlice[0])
-	data["to"] = string(txSlice[1])
-	data["amount"] = string(txSlice[2])
-	data["nonce"] = string(txSlice[3])
-	return data
-}
-
-func parseSetMeteringTx(tx string)  map[string]string{
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, setMeteringPrefix)
-	txSlice := strings.Split(txString, ":")
-	data["dc name"] = string(txSlice[0])
-	data["name space"] = string(txSlice[1])
-	//data["nonce"] = string(txSlice[4])
-	data["value"] = string(txSlice[5])
-	return data
-}
-
-func parseSetBalanceTx(tx string)  map[string]string{
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, setBalancePrefix)
-	txSlice := strings.Split(txString, ":")
-	data["address"] = string(txSlice[0])
-	data["amount"] = string(txSlice[1])
-	//data["nonce"] = string(txSlice[2])
-	return data
-}
-func parseSetStakeTx(tx string) map[string]string {
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, setStakePrefix)
-	txSlice := strings.Split(txString, ":")
-	data["amount"] = string(txSlice[0])
-	return data
-}
-
-func parseSetCertTx(tx string) map[string]string {
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, setCertPrefix)
-	txSlice := strings.Split(txString, ":")
-	data["dc name"] = string(txSlice[0])
-	data["cert perm"] = string(txSlice[1])
-	return data
-}
-
-func parseRemoveCertTx(tx string) map[string]string {
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, removeCertPrefix)
-	txSlice := strings.Split(txString, ":")
-	data["dc name"] = string(txSlice[0])
-	return data
-}
-
-func parseSetValidatorTx(tx string)map[string]string  {
-	data := make(map[string]string)
-	txString := strings.TrimPrefix(tx, setValidatorPrefix)
-	txSlice := strings.Split(txString, ":")
-	data["public key"] = string(txSlice[0])
-	data["power"] = string(txSlice[1])
-	return data
-}
-
-//parse transaction into ResultTx struct
-func parseTx(tx *core_types.ResultTx) ResultTx {
-	var result ResultTx
-	result.Data = make(map[string]string)
-	result.Hash = fmt.Sprintf("0x%x",tx.Hash)
-	result.Height = tx.Height
-	result.Index = tx.Index
-	txString := string(tx.Tx)
-	if strings.HasPrefix(txString, TxPrefix) {
-		result.Type = "transfer"
-		result.Data = parseSendTx(txString)
-		return  result
-	}else if strings.HasPrefix(txString, setMeteringPrefix) {
-		result.Type = "set metering"
-		result.Data = parseSetMeteringTx(txString)
-		return result
-	}else if strings.HasPrefix(txString, setBalancePrefix) {
-		result.Type = "set balance"
-		result.Data = parseSetBalanceTx(txString)
-		return result
-	}else if strings.HasPrefix(txString, setStakePrefix) {
-		result.Type = "set stake"
-		result.Data = parseSetStakeTx(txString)
-		return result
-	}else if strings.HasPrefix(txString, setCertPrefix) {
-		result.Type = "set cert"
-		result.Data = parseSetCertTx(txString)
-		return result
-	}else if strings.HasPrefix(txString, removeCertPrefix) {
-		result.Type = "remove cert"
-		result.Data = parseRemoveCertTx(txString)
-		return result
-	}else if strings.HasPrefix(txString, setValidatorPrefix) {
-		result.Type = "set validator"
-		result.Data = parseSetValidatorTx(txString)
-		return result
-	}else {
-		fmt.Println("Can not parse Transaction data:", string(tx.Tx))
-		return result
-	}
-}
-
-//display transaction information
-func writeTx(rt ResultTx, w *tabwriter.Writer)  {
-	//table header
-	fmt.Fprintf(w, "%s\t%s\t%d\t%d\t", rt.Type, rt.Hash, rt.Height, rt.Index)
-	//table contents
-	switch rt.Type {
-	case "transfer":
-		fmt.Fprintf(w, "from: %s\tto:%s\tamount:%s\tnonce:%s\n",rt.Data["from"],rt.Data["to"],rt.Data["amount"],rt.Data["nonce"])
-		//fmt.Fprintf(w, "from: %s\n",rt.Data["from"])
-		//fmt.Fprintf(w, "\t\t\t\tnonce: %s\n",rt.Data["from"])
-		//fmt.Fprintf(w, "\t\t\t\tto: %s\n",rt.Data["from"])
-		//fmt.Fprintf(w, "\t\t\t\tamount: %s\n",rt.Data["from"])
-	case "set metering":
-		fmt.Fprintf(w,"dc-name:%s\tname-space:%s\tvalue:%s\n",rt.Data["dc name"],rt.Data["name space"],rt.Data["value"])
-	case "set balance":
-		fmt.Fprintf(w,"address:%s\tamount:%s\n",rt.Data["address"],rt.Data["amount"])
-	case "set stake":
-		fmt.Fprintf(w,"tamount:%s\n", rt.Data["amount"])
-	case "set cert":
-		fmt.Fprintf(w,"dc name:%s\tcert perm:%s\n", rt.Data["dc name"],rt.Data["cert perm"])
-	case "remove cert":
-		fmt.Fprintf(w,"tdc name:%s\n",rt.Data["dc name"])
-	case "set validator":
-		fmt.Fprintf(w,"public key:%s\tpower:%s\n", rt.Data["public key"],rt.Data["power"])
-	default :
-		fmt.Fprintf(w, "unrecognized transaction!",)
-	}
-}
-
 func outPutHeader(header types.Header)  {
 	//information to be displayed in the window
 	fmt.Println("Version: ", header.Version)
@@ -884,6 +748,26 @@ func getNonce(cmd *cobra.Command, args []string) {
 
 func addGetNonceFlags(cmd *cobra.Command) {
 	err := addStringFlag(cmd, queryNonceAddr, addressParam, "a", "", "the address of an account.", required)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func getCurrency(cmd *cobra.Command, args []string) {
+	client := newAnkrHttpClient(viper.GetString(queryUrl))
+	req := new(common2.CurrencyQueryReq)
+	req.Symbol = viper.GetString(queryCurrencySymbol)
+	currencyResp := new(common2.CurrencyQueryResp)
+	err := client.Query("/store/nonce", req, currencyResp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	displayStruct(currencyResp)
+}
+
+func addQueryCurrencyFlags(cmd *cobra.Command) {
+	err := addStringFlag(cmd, queryCurrencySymbol, symbolParam, "", "", "currency symbol.", required)
 	if err != nil {
 		panic(err)
 	}
