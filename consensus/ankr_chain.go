@@ -220,8 +220,23 @@ func (app *AnkrChainApplication) Commit() types.ResponseCommit {
 	return app.app.Commit()
 }
 
-func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
+func (app *AnkrChainApplication) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
+	defer func() {
+		if rErr := recover(); rErr != nil {
+			resQuery.Code = code.CodeTypeQueryInvalidQueryReqData
+			resQuery.Log  = fmt.Sprintf("AnkrChainApplication Query, excetion catched, invalid query req data, path=%s, err=%v", reqQuery.Path, rErr)
+			app.logger.Error("AnkrChainApplication Query, excetion catched, invalid query req data", "path", reqQuery.Path, "err", rErr)
+		}
+	}()
+
 	qHandler, subPath := router.QueryRouterInstance().QueryHandler(reqQuery.Path)
+	if qHandler == nil {
+		resQuery.Code = code.CodeTypeQueryInvalidQueryReqData
+		resQuery.Log  = fmt.Sprintf("AnkrChainApplication Query, invalid query req data, path=%s", reqQuery.Path)
+		app.logger.Error("AnkrChainApplication Query, invalid query req data", "path", reqQuery.Path)
+		return
+	}
+
 	reqQuery.Path = subPath
 	return qHandler.Query(reqQuery)
 }
