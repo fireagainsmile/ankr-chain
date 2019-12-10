@@ -569,12 +569,12 @@ func addGenRawFlags(cmd *cobra.Command){
 		panic(err)
 	}
 
-	err = addStringFlag(cmd, rawTxFrom, fromParam, "", "", "transfer amount", required)
+	err = addStringFlag(cmd, rawTxFrom, fromParam, "", "", "transaction from address", required)
 	if err != nil {
 		panic(err)
 	}
 
-	err = addInt64Flag(cmd, rawTxNonce, nonceParam, "", 0, "transfer amount", required)
+	err = addInt64Flag(cmd, rawTxNonce, nonceParam, "", 0, "from account nonce", required)
 	if err != nil {
 		panic(err)
 	}
