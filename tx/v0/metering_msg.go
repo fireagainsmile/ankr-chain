@@ -56,10 +56,8 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	fromAddr, _ := key.Address()
 
 	/* verify nonce */
-	fmt.Printf("meteringMsg nonceInt: %d, fromAddr=%s\n", nonceInt, string(fromAddr))
 	nonce, _, _, _, _ := appStore.Nonce(string(fromAddr), 0, false)
-	fmt.Printf("meteringMsg nonce: %d, fromAddr=%s\n", nonce, string(fromAddr))
-	if nonceInt != nonce + 1 {
+	if nonceInt != nonce + 1 && nonceInt != nonce {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected metering nonce. Got %v, Expected %v", nonceS, nonce) }
 	}
 
@@ -70,7 +68,10 @@ func (m *meteringMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	appStore.SetMetering(dcS , nsS, valueS)
-	appStore.SetNonce(string(fromAddr), nonce+1)
+
+	if nonceInt != 1 {
+		appStore.SetNonce(string(fromAddr), nonce+1)
+	}
 
 	tvalue := time.Now().UnixNano()
 	tags := []cmn.KVPair{
