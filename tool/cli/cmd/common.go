@@ -143,11 +143,21 @@ func homeWindows() (string, error) {
 	return home, nil
 }
 
+//get the configuration home directory path
 func configHome() string {
 	userHome,_ := Home()
-	return filepath.Join(userHome, ".ankr-accounts")
-}
+	ankrPath := filepath.Join(userHome, ".ankr-accounts")
 
+	//create home director if director does not exist
+	_, err := os.Stat(ankrPath)
+	if err != nil {
+		err = os.MkdirAll(ankrPath, os.ModePerm)
+		if err != nil {
+			fmt.Println("Error occurred when creating directory:",err.Error())
+		}
+	}
+	return ankrPath
+}
 
 //helper functions used in most commands
 //add string type flags
