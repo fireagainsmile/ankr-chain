@@ -149,8 +149,8 @@ func configHome() string {
 	ankrPath := filepath.Join(userHome, ".ankr-accounts")
 
 	//create home director if director does not exist
-	_, err := os.Stat(ankrPath)
-	if err != nil {
+	fileInfo, err := os.Stat(ankrPath)
+	if err != nil || !fileInfo.IsDir() {
 		err = os.MkdirAll(ankrPath, os.ModePerm)
 		if err != nil {
 			fmt.Println("Error occurred when creating directory:",err.Error())
