@@ -48,7 +48,7 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeSet)
 	nonce, _, _, _ , _ := appStore.Nonce(addrFrom, 0, false)
 
-	if nonceInt != nonce + 1 {
+	if nonceInt != nonce + 1 && nonceInt != nonce {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
 	}
 
@@ -67,7 +67,9 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 
 	appStore.SetCertKey(dcS, pemB64S)
 
-	appStore.SetNonce(addrFrom, nonce+1)
+	if nonceInt != 1 {
+		appStore.SetNonce(addrFrom, nonce+1)
+	}
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeSetCertMsg)},
@@ -104,7 +106,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeRemove)
 	nonce, _, _, _, _ := appStore.Nonce(addrFrom, 0, false)
 
-	if nonceInt != nonce + 1 {
+	if nonceInt != nonce + 1 && nonceInt != nonce {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
 	}
 
@@ -122,7 +124,10 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	}
 
 	appStore.DeleteCertKey(dcS)
-	appStore.SetNonce(addrFrom, nonce+1)
+
+	if nonceInt != 1 {
+		appStore.SetNonce(addrFrom, nonce+1)
+	}
 
 	tags := []cmn.KVPair{
 		{Key: []byte("app.type"), Value: []byte(txcmm.TxMsgTypeRemoveCertMsg)},
