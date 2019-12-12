@@ -49,18 +49,9 @@ var(
 	blockPage = "blockPage"
 	blockPerPage ="blockPerPage"
 	blockTxTransferOnly = "blockTxTransferOnly"
+	blockDetail = "blockDetail"
 	validatorHeight = "validatorHeight"
 	unconfirmedTxLimit = "unconfirmedTxLimit"
-
-
-	//transaction prefix
-    TxPrefix = "trx_send="
-    setMeteringPrefix = "set_mtr="
-    setBalancePrefix = "set_bal="
-    setStakePrefix = "set_stk="
-    setCertPrefix = "set_crt="
-    removeCertPrefix = "rmv_crt="
-    setValidatorPrefix = "val:"
 
 	querySymbol     = "querySymbol"
 	queryAddress    = "queryAddress"
@@ -359,10 +350,7 @@ func queryBlock(cmd *cobra.Command, args []string)  {
 		resps = append(resps, resp)
 	}
 
-	detail := false
-	if len(args) > 0 && args[0] == "detail"{
-		detail = true
-	}
+	detail := viper.GetBool(blockDetail)
 	page := viper.GetInt(blockPage)
 	perPage := viper.GetInt(trxPerPage)
 	outPutBlockResp(resps, page, perPage, detail)
@@ -397,7 +385,6 @@ func validateSkipCount(page, perPage int) int {
 	if skipCount < 0 {
 		return 0
 	}
-
 	return skipCount
 }
 
@@ -484,6 +471,10 @@ func addQueryBlockFlags(cmd *cobra.Command)  {
 	if err != nil {
 		panic(err)
 	}
+	err = addBoolFlag(cmd, blockDetail, detailParam, "", false, "display transactions in detail", notRequired)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //query validator
@@ -529,7 +520,6 @@ func queryStatus(cmd *cobra.Command, args []string)  {
 		return
 	}
 	decodeAndDisplay(resp)
-	//displayStruct(resp)
 }
 
 // display messages that needs decode
@@ -539,16 +529,13 @@ func decodeAndDisplay(resp interface{})  {
 		fmt.Println(err)
 		return
 	}
-
 	var distByte bytes.Buffer
-	err = json.Indent(&distByte, jByte, "", "\t")
-	//jsonByte, err := json.MarshalIndent(tx, "", "\t")
+	err = json.Indent(&distByte, jByte, "", "  ")
 	if err != nil {
-		fmt.Println("Marshal Error.")
-		fmt.Println(err)
+		fmt.Println("Marshal Error:", err.Error())
 		return
 	}
-	fmt.Println(string(distByte.Bytes()))
+	fmt.Println(distByte.String())
 }
 
 //query genesis
