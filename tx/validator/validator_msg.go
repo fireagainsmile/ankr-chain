@@ -103,7 +103,7 @@ func (v *ValidatorMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return  bytes.Equal(pubKey, []byte(adminPubKeyStr))
 }
 
-func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string,  []cmn.KVPair) {
+func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string,  []cmn.KVPair) {
 	if len(v.FromAddress) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("ValidatorMsg ProcessTx, unexpected from address. Got %s, addr len=%d", v.FromAddress, len(v.FromAddress)), nil
 	}
@@ -116,7 +116,7 @@ func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeInvalidStakeCurrency, fmt.Sprintf("ValidatorMsg ProcessTx, invalid stake currency: currency=%s", v.StakeAmount.Cur.Symbol), nil
 	}
 
-	bal, err := context.AppStore().Balance(v.StakeAddress, "ANKR")
+	bal, _, _, _, err := context.AppStore().Balance(v.StakeAddress, "ANKR", 0, false)
 	if err != nil {
 		return code.CodeTypeLoadBalError, fmt.Sprintf("ValidatorMsg ProcessTx, load balance err: address=%s, err=%v", v.StakeAddress, v), nil
 	}
@@ -128,7 +128,7 @@ func (v *ValidatorMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isO
 		return code.CodeTypeBalNotEnough, fmt.Sprintf("ValidatorMsg ProcessTx, balance not enough, bal=%s, expected=%s", bal.String(), amountTemp.String()), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck  || flag == tx.TxExeFlag_PreRun{
 		return code.CodeTypeOK, "", nil
 	}
 

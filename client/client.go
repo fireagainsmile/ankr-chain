@@ -2,20 +2,47 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	ankrcmm "github.com/Ankr-network/ankr-chain/common"
 	"github.com/Ankr-network/ankr-chain/common/code"
+	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
 	"github.com/tendermint/go-amino"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/libs/pubsub/query"
+	tmliteErr "github.com/tendermint/tendermint/lite/errors"
+	tmliteProxy "github.com/tendermint/tendermint/lite/proxy"
 	"github.com/tendermint/tendermint/rpc/client"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
 )
 
 type Client struct {
 	cHttp *client.HTTP
 	cdc   *amino.Codec
+}
+
+var storeNameMap = map[string]string {
+	"/store/nonce" : iavl.IavlStoreAccountKey,
+	"/store/balance" : iavl.IavlStoreAccountKey,
+	"/store/certkey" : iavl.IAvlStoreMainKey,
+	"/store/metering" : iavl.IAvlStoreMainKey,
+	"/store/validator" : iavl.IAvlStoreMainKey,
+	"/store/contract" : iavl.IAvlStoreContractKey,
+	"/store/account" : iavl.IavlStoreAccountKey,
+	"/store/currency" : iavl.IAvlStoreContractKey,
+	"/store/statisticalinfo" : iavl.IAvlStoreMainKey,
+}
+
+func getStoreName(path string) (string, error) {
+	if storeName, ok := storeNameMap[path]; ok {
+		return storeName, nil
+	}
+
+	return "", fmt.Errorf("invalid path: %s", path)
 }
 
 func NewClient(nodeUrl string) *Client {
@@ -39,7 +66,101 @@ func (c *Client) Query(path string, req interface{}, resp interface{}) (err erro
 		return fmt.Errorf("Client query response code not ok, code=%d, log=%s", resultQ.Response.Code, resultQ.Response.Log)
 	}
 
-	c.cdc.UnmarshalJSON(resultQ.Response.Value, resp)
+	var qResp ankrcmm.QueryResp
+	err = c.cdc.UnmarshalJSON(resultQ.Response.Value, &qResp)
+	if err != nil {
+		return err
+	}
+
+	c.cdc.UnmarshalJSON(qResp.RespData, resp)
+
+	return nil
+}
+
+func (c *Client) verifyProof(home string, reqPath string, resp abcitypes.ResponseQuery, proofVal []byte) error {
+     if home == "" {
+     	return errors.New("home dir can't blank when need to verify")
+	 }
+
+	st, err := c.cHttp.Status()
+	if err !=nil {
+		return err
+	}
+
+	verifier, err := tmliteProxy.NewVerifier(
+		st.NodeInfo.Network,
+		home,
+		c.cHttp,
+		log.NewNopLogger(),
+		10,
+	)
+	if err != nil {
+		return err
+	}
+
+	sHeader, err := tmliteProxy.GetCertifiedCommit(resp.Height, c.cHttp,  verifier)
+	switch {
+	case tmliteErr.IsErrCommitNotFound(err):
+		return fmt.Errorf("can't find commit info: %w", err)
+	case err != nil:
+		return err
+	}
+
+	prt := iavl.DefaultProofRuntime()
+
+	storeName, err := getStoreName(reqPath)
+	if err != nil {
+		return err
+	}
+
+	kp := merkle.KeyPath{}
+	kp = kp.AppendKey([]byte(storeName), merkle.KeyEncodingURL)
+	kp = kp.AppendKey(resp.Key, merkle.KeyEncodingURL)
+
+	if resp.Value == nil {
+		err = prt.VerifyAbsence(resp.Proof, sHeader.Header.AppHash, kp.String())
+		if err != nil {
+			return fmt.Errorf("failed to prove merkle proof:%w", err)
+		}
+		return nil
+	}
+	err = prt.VerifyValue(resp.Proof, sHeader.Header.AppHash, kp.String(), proofVal)
+	if err != nil {
+		return fmt.Errorf("failed to prove merkle proof: %w", err)
+	}
+	
+	return nil	
+}
+
+func (c *Client) QueryWithOption(path string, height int64, needProofVerify bool, home string, req interface{}, resp interface{}) (err error) {
+	reqDataBytes, err := c.cdc.MarshalJSON(req)
+	if err != nil {
+		return err
+	}
+
+	resultQ, err := c.cHttp.ABCIQueryWithOptions(path, reqDataBytes, client.ABCIQueryOptions{height, needProofVerify})
+	if err != nil {
+		return err
+	}
+
+	if resultQ.Response.Code != code.CodeTypeOK {
+		return fmt.Errorf("Client query response code not ok, code=%d, log=%s", resultQ.Response.Code, resultQ.Response.Log)
+	}
+
+	var qResp ankrcmm.QueryResp
+	err = c.cdc.UnmarshalJSON(resultQ.Response.Value, &qResp)
+	if err != nil {
+		return err
+	}
+
+	if needProofVerify {
+		err = c.verifyProof(home, path, resultQ.Response, qResp.ProofValue)
+		if err != nil {
+			return err
+		}
+	}
+
+	c.cdc.UnmarshalJSON(qResp.RespData, resp)
 
 	return nil
 }
@@ -63,7 +184,7 @@ func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight 
 		return result.Hash.String(), result.Height, "", err
 	}
 
-	return result.Hash.String(), result.Height+1, result.DeliverTx.Log, nil
+	return result.Hash.String(), result.Height, result.DeliverTx.Log, nil
 }
 
 func (c *Client) Status() (*ctypes.ResultStatus, error) {
@@ -74,12 +195,12 @@ func (c *Client) ABCIInfo() (*ctypes.ResultABCIInfo, error) {
 	return c.cHttp.ABCIInfo()
 }
 
-func (c *Client) BroadcastTxAsync(tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	return c.cHttp.BroadcastTxAsync(tx)
+func (c *Client) BroadcastTxAsync(txBytes []byte) (*ctypes.ResultBroadcastTx, error) {
+	return c.cHttp.BroadcastTxAsync(txBytes)
 }
 
-func (c *Client) BroadcastTxSync(tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	return c.cHttp.BroadcastTxSync(tx)
+func (c *Client) BroadcastTxSync(txBytes []byte) (*ctypes.ResultBroadcastTx, error) {
+	return c.cHttp.BroadcastTxSync(txBytes)
 }
 
 func (c *Client) UnconfirmedTxs(limit int) (*ctypes.ResultUnconfirmedTxs, error) {

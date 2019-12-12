@@ -46,7 +46,7 @@ func (sc *setCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore) t
 	}
 
 	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeSet)
-	nonce, _ := appStore.Nonce(addrFrom)
+	nonce, _, _, _ , _ := appStore.Nonce(addrFrom, 0, false)
 
 	if nonceInt != nonce + 1 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }
@@ -102,7 +102,7 @@ func (rc *removeCertMsg) ProcessTx(txMsg interface{}, appStore appstore.AppStore
 	}
 
 	addrFrom := crypto.CreateCertAddress(admin_pubkey_str,"dc1", crypto.CertAddrTypeRemove)
-	nonce, _ := appStore.Nonce(addrFrom)
+	nonce, _, _, _, _ := appStore.Nonce(addrFrom, 0, false)
 
 	if nonceInt != nonce + 1 {
 		return types.ResponseDeliverTx{ Code: code.CodeTypeEncodingError, Log: fmt.Sprintf("Unexpected cert nonce. Got %v, Expected %v", nonceS, nonce) }

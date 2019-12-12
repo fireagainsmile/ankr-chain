@@ -26,7 +26,7 @@ func TestIavlStoreAccountCount(t *testing.T) {
 	storeApp.addAccountInfo(&accInfo1)
 	storeApp.addAccountInfo(&accInfo2)
 
-	_, accCnt := storeApp.AccountList()
+	_, accCnt := storeApp.AccountList(0)
 
 	assert.Equal(t, accCnt, uint64(2))
 }
@@ -44,7 +44,7 @@ func TestBalance(t *testing.T) {
 
 	storeApp.SetBalance("5AEBA6EB8BC51DA277CCF1EF229F0C05D9535FA36CC872", ankrcmm.Amount{ankrcmm.Currency{Symbol: "ANKR", Decimal: 18}, new(big.Int).SetUint64(1000).Bytes()})
 
-	bal, err := storeApp.Balance("5AEBA6EB8BC51DA277CCF1EF229F0C05D9535FA36CC872", "ANKR")
+	bal, _, _, _, err := storeApp.Balance("5AEBA6EB8BC51DA277CCF1EF229F0C05D9535FA36CC872", "ANKR", 0, false)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, bal.String(), "1000")
 }

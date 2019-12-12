@@ -1,19 +1,21 @@
 # Compile
-FROM golang:1.12-alpine AS compiler
+FROM golang:1.13-alpine AS compiler
 ARG PRIV_PATH
 
-RUN apk add --no-cache git make dep openssh-client
-
-COPY id_rsa /root/.ssh/
-RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN chmod go-w /root
-RUN chmod 700 /root/.ssh
-RUN chmod 600 /root/.ssh/id_rsa
+RUN apk add --no-cache git make
 
 WORKDIR /ankr-chain
 COPY . .
 
-RUN make build
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+RUN echo "machine github.com login ${GITHUB_USER} password ${GITHUB_TOKEN}" > ~/.netrc
+
+ARG GOPROXY
+ENV GOPROXY=${GOPROXY}
+ENV GOPRIVATE=github.com/Ankr-network
+
+RUN make linux
 
 # Build image
 FROM alpine:3.7 AS public
@@ -38,7 +40,7 @@ RUN apk update && \
 
 ARG BRANCH_NAME
 ENV BRANCH_NAME=${BRANCH_NAME}
-COPY --from=compiler /ankr-chain/build/ankrchain /usr/bin/ankrchain
+COPY --from=compiler /ankr-chain/build/ankrchain-linux-amd64/ankrchain /usr/bin/ankrchain
 COPY DOCKER/tmhome/config/config."${BRANCH_NAME}".toml "$TMHOME"/config/config.toml
 COPY DOCKER/tmhome/config/genesis."${BRANCH_NAME}".json "$TMHOME"/config/genesis.json
 RUN mkdir "$TMHOME"/data \
@@ -56,7 +58,7 @@ WORKDIR $TMHOME
 EXPOSE 26656 26657 26658
 
 ENTRYPOINT ["/bin/sh"]
-CMD ["-c", "ankrchain init && ankrchain node --log_level=info --moniker=`hostname`"]
+CMD ["-c", "ankrchain init && ankrchain start --log_level=info --moniker=`hostname`"]
 STOPSIGNAL SIGTERM
 
 FROM public AS hub
@@ -66,6 +68,3 @@ COPY DOCKER/tmhome/config/node_key.*.json "$TMHOME"/config/
 COPY DOCKER/tmhome/config/priv_validator_key.*.json "$TMHOME"/config/
 COPY DOCKER/tmhome/config/priv_validator_state.json "$TMHOME"/config/
 RUN chown -R tmuser:tmuser "$TMHOME"/config "$TMHOME"/config
-
-USER root
-CMD ["ankrchain","-h"]

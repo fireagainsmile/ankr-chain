@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"syscall"
+	"text/tabwriter"
 	"time"
 )
 
@@ -22,19 +23,24 @@ var accountCmd = &cobra.Command{
 //names of sub command bind in viper, which is used to bind flags
 //naming notions subCmdNameKey. eg. "account" have a flag named "url" shall named as accountUrl,
 var (
-	genAccNumber    = "genAccNumber"
-	genAccOutput    = "agenAccOutput"
-	genkeyPrivkey   = "genkeyPrivkey"
-	genkeyOutput    = "genkeyOutput"
-	exportKeystore  = "exportKeystore"
-	resetKeystore   = "resetKeystore"
+	genAccountName = "genAccountName"
+	genAccOutput   = "agenAccOutput"
+	genkeyPrivkey  = "genkeyPrivkey"
+	genkeyOutput   = "genkeyOutput"
+	genkeyName     = "genkeyName"
+	exportKeystore = "exportKeystore"
+	resetKeystore  = "resetKeystore"
+	importFileName = "importFileName"
+	importName     = "importName"
 )
 
 func init() {
 	appendSubCmd(accountCmd, "genaccount", "generate new account.", generateAccounts, addGenAccountFlags)
 	appendSubCmd(accountCmd, "genkeystore", "generate keystore file based on private key and user input password.", genKeystore, addGenkeystoreFlags)
 	appendSubCmd(accountCmd, "exportprivatekey", "recover private key from keystore.", exportPrivatekey, addExportFlags)
-	appendSubCmd(accountCmd,"resetpwd", "reset keystore password.", resetPwd, addResetPWDFlags)
+	appendSubCmd(accountCmd, "resetpwd", "reset keystore password.", resetPwd, addResetPWDFlags)
+	appendSubCmd(accountCmd, "list", "list ankr account store in local", listAccount, nil)
+	appendSubCmd(accountCmd, "importKey", "importKey <file>, import ankr account from keystore", importAccount, addImportAccountFlags)
 }
 
 type ExeCmd struct {
@@ -48,16 +54,16 @@ type ExeCmd struct {
 type Account struct {
 	PrivateKey string `json:"private_key"`
 	Address    string `json:"address"`
+	Name       string `json:"name,omitempty"`
 }
 
 //account genaccount functions
 func addGenAccountFlags(cmd *cobra.Command) {
-	err := addIntFlag(cmd, genAccNumber, numberAccountParam, "n", 1, "number of accounts to be generated", notRequired)
+	err := addStringFlag(cmd, genAccOutput, outputParam, "o", "", "output account to file", notRequired)
 	if err != nil {
 		panic(err)
 	}
-
-	err = addStringFlag(cmd, genAccOutput, outputParam, "o", "", "output account to file", notRequired)
+	err = addStringFlag(cmd, genAccountName, nameParam, "", "", "keystore alias name", required)
 	if err != nil {
 		panic(err)
 	}
@@ -65,26 +71,40 @@ func addGenAccountFlags(cmd *cobra.Command) {
 
 //generate new account, encrypt private key to keystore base on user input password
 func generateAccounts(cmd *cobra.Command, args []string) {
+	accName := viper.GetString(genAccountName)
+	if isKeyExists(accName) {
+		fmt.Println("KeyName already exist, try other key name.")
+		return
+	}
 	fmt.Println(`please record and backup keystore once it is generated, we don’t store your private key!`)
 	fmt.Println("\ngenerating accounts...")
-	numberAccount := viper.GetInt(genAccNumber)
-	for i := 0; i < numberAccount; i++ {
-		//generate single Account
-		//input password from terminal
-		acc := generateAccount()
-		s := fmt.Sprintf("\nAccount_%d", i)
-		fmt.Println(s)
-		fmt.Println("private key: ", acc.PrivateKey, "\naddress: ", acc.Address)
-		path := viper.GetString(genAccOutput)
-		if path == "" {
-			path = configHome()
-		}
-		err := generateKeystore(acc, path)
-		if err != nil {
-			fmt.Println(err)
-			return
+	acc := generateAccount()
+	acc.Name = accName
+	fmt.Println("private key: ", acc.PrivateKey, "\naddress: ", acc.Address)
+	path := viper.GetString(genAccOutput)
+	if path == "" {
+		path = configHome()
+	}
+	err := generateKeystore(acc, path)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+// check if a keyName is already exist in local files
+func isKeyExists(keyName string) bool {
+	localAccList := getKeyList()
+	if len(localAccList) == 0 {
+		return false
+	}
+
+	for _, key := range localAccList {
+		if key.Name == keyName {
+			return true
 		}
 	}
+	return false
 }
 
 //generate keystore based account and password
@@ -107,7 +127,6 @@ InputPassword:
 	if string(password) != string(confirmPassword) {
 		fmt.Println("\nError:password and confirm password not match!")
 		goto InputPassword
-		//return errors.New("\npassword and confirm password not match")
 	}
 
 	cryptoStruct, err := EncryptDataV3([]byte(acc.PrivateKey), []byte(password), StandardScryptN, StandardScryptP)
@@ -118,6 +137,7 @@ InputPassword:
 
 	encryptedKeyJSONV3 := EncryptedKeyJSONV3{
 		Address:        acc.Address,
+		Name:           acc.Name,
 		Crypto:         cryptoStruct,
 		KeyJSONVersion: keyJSONVersion,
 	}
@@ -128,20 +148,15 @@ InputPassword:
 
 	fmt.Println("\n\nexporting to keystore...")
 	ts := time.Now().UTC()
+	fileName := fmt.Sprintf("UTC--%s--%s", toISO8601(ts), acc.Address)
+	//writePrivateKey()
+	fileName = filepath.Join(path, fileName)
 
-	kfw, err := KeyFileWriter(path, fmt.Sprintf("UTC--%s--%s", toISO8601(ts), acc.Address))
+	err = WriteToFile(fileName, jsonKey)
 	if err != nil {
 		return err
 	}
-
-	defer kfw.Close()
-
-	_, err = kfw.Write(jsonKey)
-	if err != nil {
-		return errors.New("unable to write keystore")
-	}
-
-	fmt.Printf("\ncreated keystore: %s/UTC--%s--%s\n\n", path, toISO8601(ts), acc.Address)
+	fmt.Println("\ncreated keystore:", fileName)
 	return nil
 }
 
@@ -155,9 +170,18 @@ func addGenkeystoreFlags(cmd *cobra.Command) {
 	if err != nil {
 		panic(err)
 	}
+	err = addStringFlag(cmd, genkeyName, keyName, "", "", "keystore alias name.", required)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func genKeystore(cmd *cobra.Command, args []string) {
+	aliasName := viper.GetString(genkeyName)
+	if isKeyExists(aliasName){
+		fmt.Println("KeyName already exist, try other key name.")
+		return
+	}
 	privateKey := viper.GetString(genkeyPrivkey)
 	if len(privateKey) == 0 {
 		fmt.Println("invalid private key")
@@ -169,6 +193,7 @@ func genKeystore(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	acc.Name = aliasName
 	path := viper.GetString(genkeyOutput)
 	if path == "" {
 		path = configHome()
@@ -180,7 +205,7 @@ func genKeystore(cmd *cobra.Command, args []string) {
 }
 
 func addExportFlags(cmd *cobra.Command) {
-	err := addStringFlag(cmd, exportKeystore, fileParam, "f", "", "the path where keystore file is located.", required)
+	err := addStringFlag(cmd, exportKeystore, keystoreParam, "", "", "the path where keystore file is located or the keystore alias name.", required)
 	if err != nil {
 		panic(err)
 	}
@@ -189,6 +214,12 @@ func addExportFlags(cmd *cobra.Command) {
 //generate private key from keystore and password
 func exportPrivatekey(cmd *cobra.Command, args []string) {
 	ksf := viper.GetString(exportKeystore)
+	ksf, err := getKeystoreFile(ksf)
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return
+	}
+
 	privateKey := decryptPrivatekey(ksf)
 
 	if privateKey == "" {
@@ -205,7 +236,6 @@ func decryptPrivatekey(file string) string {
 		fmt.Println(err)
 		return ""
 	}
-
 	var key EncryptedKeyJSONV3
 
 	err = json.Unmarshal(ks, &key)
@@ -254,6 +284,7 @@ func resetPwd(cmd *cobra.Command, args []string) {
 
 	encryptedKeyJSONV3 := EncryptedKeyJSONV3{
 		Address:        acc.Address,
+		Name:           acc.Name,
 		Crypto:         cryptoStruct,
 		KeyJSONVersion: keyJSONVersion,
 	}
@@ -262,23 +293,15 @@ func resetPwd(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	kfw, err := os.OpenFile(ksf, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0600)
+	err = WriteToFile(ksf, jsonKey)
 	if err != nil {
-		fmt.Println("\nUnable to open file:", ksf)
-		fmt.Println(err)
+		fmt.Println("Failed to reset password:", err.Error())
 		return
 	}
-	defer kfw.Close()
-	_, err = kfw.Write(jsonKey)
-	if err != nil {
-		fmt.Println("\nUnable to write keystore")
-		return
-	}
-
 	fmt.Println("\nPassword reset success.")
 }
 
-func addResetPWDFlags(cmd *cobra.Command){
+func addResetPWDFlags(cmd *cobra.Command) {
 	err := addStringFlag(cmd, resetKeystore, fileParam, "f", "", "the path where keystore file is located.", required)
 	if err != nil {
 		panic(err)
@@ -308,4 +331,94 @@ InputPassword:
 	return password
 }
 
+func listAccount(cmd *cobra.Command, args []string) {
+	keyList := getKeyList()
+	displayKeyList(keyList)
+}
 
+// iterator all the files stored in config home, read account name and address
+func getKeyList() []*KeyStore {
+	var keyList []*KeyStore
+	homeDir := configHome()
+	files, err := ioutil.ReadDir(homeDir)
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		return keyList
+	}
+	for _, file := range files {
+		keyFile := filepath.Join(homeDir, file.Name())
+		fileByte, err := ioutil.ReadFile(keyFile)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		var keyStore EncryptedKeyJSONV3
+		err = json.Unmarshal(fileByte, &keyStore)
+		if err != nil {
+			continue
+		}
+		keyList = append(keyList, &KeyStore{
+			Name:    keyStore.Name,
+			Address: keyStore.Address,
+			FileName:file.Name(),
+		})
+	}
+	return keyList
+}
+
+func displayKeyList(keyList []*KeyStore) {
+	if len(keyList) == 0 {
+		fmt.Println("can not find keystore in path")
+		return
+	}
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 0, 4, ' ', 0)
+	fmt.Fprintf(w, "\n Name \tAddress\n")
+	for _, key := range keyList {
+		fmt.Fprintf(w, "%s \t%s\n", key.Name, key.Address)
+	}
+	w.Flush()
+}
+
+func importAccount(cmd *cobra.Command, args []string) {
+	aliasName := viper.GetString(importName)
+	if isKeyExists(aliasName){
+		fmt.Println("KeyName already exist, try other key name.")
+		return
+	}
+	keyFile := viper.GetString(importFileName)
+	keyByte, err := ioutil.ReadFile(keyFile)
+	var encryptedKeyJSONV3 EncryptedKeyJSONV3
+	err = json.Unmarshal(keyByte, &encryptedKeyJSONV3)
+	if err != nil {
+		fmt.Println("Failed to read encrypted key from keystore.")
+		fmt.Println("Error:", err.Error())
+		return
+	}
+	encryptedKeyJSONV3.Name = aliasName
+	writeByte, err := json.Marshal(encryptedKeyJSONV3)
+	if err != nil {
+		fmt.Println("Failed to marshal keystore:", err.Error())
+		return
+	}
+	ts := time.Now().UTC()
+	fileName := fmt.Sprintf("UTC--%s--%s", toISO8601(ts), encryptedKeyJSONV3.Address)
+	fileName = filepath.Join(configHome(), fileName)
+	err = WriteToFile(fileName, writeByte)
+	if err != nil {
+		fmt.Println("Import keystore failed:", err.Error())
+		return
+	}
+	fmt.Println("Import keystore success.")
+}
+
+func addImportAccountFlags(cmd *cobra.Command) {
+	err := addStringFlag(cmd, importFileName, fileParam, "f", "", "the path where keystore file is located.", required)
+	if err != nil {
+		panic(err)
+	}
+	err = addStringFlag(cmd, importName, nameParam, "", "", "keystore alias name", required)
+	if err != nil {
+		panic(err)
+	}
+}

@@ -57,12 +57,12 @@ func (sc *SetCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool {
 	return  bytes.Equal(pubKey, adminPubKey.Bytes())
 }
 
-func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (sc *SetCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair) {
 	if len(sc.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("SetCertMsg ProcessTx, unexpected from address. Got %s, addr len=%d", sc.FromAddr, len(sc.FromAddr)), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck || flag == tx.TxExeFlag_PreRun{
 		return code.CodeTypeOK, "", nil
 	}
 
@@ -119,12 +119,12 @@ func (sc *RemoveCertMsg) PermitKey(store appstore.AppStore, pubKey []byte) bool 
 	return  bytes.Equal(pubKey, adminPubKey.Bytes())
 }
 
-func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, isOnlyCheck bool) (uint32, string, []cmn.KVPair) {
+func (rc *RemoveCertMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetric, flag tx.TxExeFlag) (uint32, string, []cmn.KVPair) {
 	if len(rc.FromAddr) != ankrcmm.KeyAddressLen {
 		return  code.CodeTypeInvalidAddress, fmt.Sprintf("RemoveCertMsg ProcessTx, unexpected from address. Got %s, addr len=%d", rc.FromAddr, len(rc.FromAddr)), nil
 	}
 
-	if isOnlyCheck {
+	if flag == tx.TxExeFlag_OnlyCheck || flag == tx.TxExeFlag_PreRun{
 		return code.CodeTypeOK, "", nil
 	}
 

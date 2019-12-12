@@ -39,6 +39,7 @@ var (
 	//sub cmd flags
 	setCertDc           = "setCertDc"
 	setCertPerm         = "setCertPerm"
+	setCertPub          = "setCertPub"
 	setValidPub         = "setValidPub"
 	setValidAction      = "setValidAction"
 	setValidName        = "setValidName"
@@ -49,6 +50,7 @@ var (
 	setValidGasUsed     = "setValidGasUsed"
 	removeCertDc        = "removeCertDc"
 	removeCertNs = "removeCertNs"
+	removeCertPub = "removeCertPub"
 )
 
 func init() {
@@ -104,13 +106,15 @@ func setCert(cmd *cobra.Command, args []string) {
 	txMsg.DCName = viper.GetString(setCertDc)
 	txMsg.PemBase64 = viper.GetString(setCertPerm)
 	key := crypto.NewSecretKeyEd25519(viper.GetString(adminPrivateKey))
-	keyAddr, _ := key.Address()
-	txMsg.FromAddr = fmt.Sprintf("%X", keyAddr)
+
+	pubBS64 := viper.GetString(setCertPub)
+	txMsg.FromAddr = crypto.CreateCertAddress(pubBS64,txMsg.DCName, crypto.CertAddrTypeSet)
 	header,err := getAdminMsgHeader()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	//build and send transaction
 	builder :=client2.NewTxMsgBuilder(*header, txMsg, serializer.NewTxSerializerCDC(), key)
 	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, _, err := builder.BuildAndCommit(client)
@@ -134,11 +138,14 @@ func addCertFlags(cmd *cobra.Command) {
 	if err != nil {
 		panic(err)
 	}
+	err = addStringFlag(cmd, setCertPub, pubkeyParam, "", "", "public key of opreator address", required)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // setvalidator --action --name --pubkey --address --amount --height --flag --gas-used
 func setValidator(cmd *cobra.Command, args []string) {
-
 	client := newAnkrHttpClient(viper.GetString(adminUrl))
 	opPrivateKey := viper.GetString(adminPrivateKey)
 	if len(opPrivateKey) < 1 {
@@ -262,8 +269,9 @@ func removeCert(cmd *cobra.Command, args []string) {
 	txMsg.DCName = viper.GetString(removeCertDc)
 	txMsg.NSName = viper.GetString(removeCertNs)
 	key := crypto.NewSecretKeyEd25519(amdinPriv)
-	keyAddr, _ := key.Address()
-	txMsg.FromAddr = fmt.Sprintf("%X", keyAddr)
+	pubBS64 := viper.GetString(removeCertPub)
+	txMsg.FromAddr = crypto.CreateCertAddress(pubBS64,txMsg.DCName, crypto.CertAddrTypeRemove)
+	
 	builder := client2.NewTxMsgBuilder(*header, txMsg, serializer.NewTxSerializerCDC(), key)
 	fmt.Println("Start Sending transaction...")
 	txHash, cHeight, _, err := builder.BuildAndCommit(client)
@@ -285,6 +293,10 @@ func addRemoveCertFlags(cmd *cobra.Command) {
 		panic(err)
 	}
 	err = addStringFlag(cmd, removeCertNs, nameSpaceParam, "", "", "name space", required)
+	if err != nil {
+		panic(err)
+	}
+	err = addStringFlag(cmd, removeCertPub, pubkeyParam, "", "", "public key of opreator address", required)
 	if err != nil {
 		panic(err)
 	}
