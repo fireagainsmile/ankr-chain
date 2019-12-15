@@ -1,6 +1,7 @@
 package iavl
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/iavl"
@@ -126,5 +127,19 @@ func TestIavlStoreMultiOpEncode(t *testing.T) {
 	cdc.UnmarshalBinaryLengthPrefixed(dataBytes, &op1)
 
 	t.Logf("op1=%v", op1)
+}
+
+func TestRollBack(t *testing.T)  {
+	storeAPP := NewMockIavlStoreApp()
+
+	storeAPP.SetTotalTx(28)
+
+	storeAPP.Set([]byte("testkey1"), []byte("testvalue1"))
+
+	//storeAPP.Rollback()
+
+	totalTx, _,_, _, _ := storeAPP.TotalTx(0, false)
+	fmt.Printf("totalTx=%d\n", totalTx)
+	fmt.Printf("testkey1's=%s\n", string(storeAPP.Get([]byte("testkey1"))))
 }
 
