@@ -15,6 +15,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/store/appstore"
 	"github.com/Ankr-network/ankr-chain/store/appstore/iavl"
 	"github.com/Ankr-network/ankr-chain/tx"
+	txcmm "github.com/Ankr-network/ankr-chain/tx/common"
 	_ "github.com/Ankr-network/ankr-chain/tx/metering"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	_ "github.com/Ankr-network/ankr-chain/tx/token"
@@ -166,8 +167,8 @@ func (app *AnkrChainApplication) dispossTxWithCDCV1(tx []byte) (*tx.TxMsg, uint3
 			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID=%s", txMsg.ChID, app.ChainId)
 		}
 
-		if txMsg.Version != "1.0" {
-			return nil, code.CodeTypeMismatchTxVersion, fmt.Sprintf("can't mistach the tx version 1.0, txVersion=%s", txMsg.Version)
+		if txMsg.Type() == txcmm.TxMsgTypeTransfer &&  txMsg.Version != "1.0" {
+			return nil, code.CodeTypeMismatchTxVersion, fmt.Sprintf("expected version 1.0 for new tx transfer, txVersion=%s", txMsg.Version)
 		}
 	}
 
