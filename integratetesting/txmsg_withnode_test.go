@@ -45,14 +45,14 @@ func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-dltzyF",
+		ChID: "test-chain-JwZGJK",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
 		Version: "1.0",
 	}
 
-	amount, _ := new(big.Int).SetString("1000000000000000000000000", 10)
+	amount, _ := new(big.Int).SetString("10000000000000000000", 10)
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
 		ToAddr:  "92005EF37E5990A374E683FD966CD6FC40FD444175CD3F",
