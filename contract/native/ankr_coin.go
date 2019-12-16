@@ -118,16 +118,19 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	balTo     = new(big.Int).Add(balTo, value)
 
 	stepGas := gas.GasSlowStep * 2
-	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	isSucess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	if !isSucess {
+		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value", "senderAddr", ac.context.SenderAddr())
+	}
 
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balSender.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
-	gasUsed := uint64(len(balSender.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	//gasUsed := uint64(len(balSender.Bytes())) * gas.GasContractByte
+	//ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
 
-	gasUsed = uint64(len(balTo.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	//gasUsed = uint64(len(balTo.Bytes())) * gas.GasContractByte
+	//ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
 
 	toAddrParam   := fmt.Sprintf("\"%s\"", toAddr)
 	amountParam   := fmt.Sprintf("\"%s\"", amount)
@@ -190,7 +193,10 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 	balTo   = new(big.Int).Add(balTo, value)
 
 	stepGas := gas.GasSlowStep * 2
-	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	isSucess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	if !isSucess {
+		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value", "senderAddr", ac.context.SenderAddr())
+	}
 
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol,18}, balFrom.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})

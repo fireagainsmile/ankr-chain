@@ -154,8 +154,8 @@ func (app *AnkrChainApplication) SetOption(req types.RequestSetOption) types.Res
 	return types.ResponseSetOption{}
 }
 
-func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string) {
-	txMsg, err := app.txSerializer.Deserialize(tx)
+func (app *AnkrChainApplication) dispossTxWithCDCV1(tx []byte) (*tx.TxMsg, uint32, string) {
+	txMsg, err := app.txSerializer.DeserializeCDCV1(tx)
 	if err != nil {
 		if app.logger != nil {
 			app.logger.Error("can't deserialize tx", "err", err)
@@ -165,25 +165,54 @@ func (app *AnkrChainApplication) dispossTx(tx []byte) (*tx.TxMsg, uint32, string
 		if txMsg.ChID != app.ChainId {
 			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID=%s", txMsg.ChID, app.ChainId)
 		}
+
+		if txMsg.Version != "1.0" {
+			return nil, code.CodeTypeMismatchTxVersion, fmt.Sprintf("can't mistach the tx version 1.0, txVersion=%s", txMsg.Version)
+		}
 	}
 
 	return txMsg, code.CodeTypeOK, ""
 }
 
-// tx is either "val:pubkey/power" or "key=value" or just arbitrary bytes
-func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
-	txMsg, codeVal, logStr := app.dispossTx(tx)
-	if codeVal == code.CodeTypeOK {
-		return txMsg.DeliverTx(app)
+func (app *AnkrChainApplication) dispossTxWithCDCV0(tx []byte) (*tx.TxMsgCDCV0, uint32, string) {
+	txMsg, err := app.txSerializer.DeserializeCDCV0(tx)
+	if err != nil {
+		if app.logger != nil {
+			app.logger.Error("can't deserialize tx", "err", err)
+		}
+		return nil, code.CodeTypeDecodingError, fmt.Sprintf("can't deserialize tx: tx=%v, err=%s", tx, err.Error())
+	} else {
+		if txMsg.ChID != app.ChainId {
+			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID=%s", txMsg.ChID, app.ChainId)
+		}
+
+		if txMsg.Version != "" {
+			return nil, code.CodeTypeMismatchTxVersion, fmt.Sprintf("can't mistach the tx version 0, txVersion=%s", txMsg.Version)
+		}
 	}
 
-	app.logger.Info("AnkrChainApplication DeliverTx new tx serialize error, switch to V0 tx", "logStr", logStr)
+	return txMsg, code.CodeTypeOK, ""
+}
+
+func (app *AnkrChainApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
+	txMsg, codeVal, logStr := app.dispossTxWithCDCV1(tx)
+	if codeVal == code.CodeTypeOK {
+		return txMsg.DeliverTx(app)
+	} else {
+		app.logger.Info("AnkrChainApplication DeliverTx new tx cdcv1 serialize error, switch to cdcv0 tx", "logStr", logStr)
+		txMsgCDCV0, codeVal, logStr := app.dispossTxWithCDCV0(tx)
+		if codeVal == code.CodeTypeOK {
+			return txMsgCDCV0.DeliverTx(app)
+		}
+
+		app.logger.Info("AnkrChainApplication DeliverTx new tx cdcv0 serialize error, switch to V0 tx", "logStr", logStr)
+	}
 
 	return v0.MsgRouterInstance().DeliverTx(tx, app.AppStore())
 }
 
 func (app *AnkrChainApplication) CheckTx(tx []byte) types.ResponseCheckTx {
-	txMsg, codeVal, logStr := app.dispossTx(tx)
+	txMsg, codeVal, logStr := app.dispossTxWithCDCV1(tx)
 	if codeVal == code.CodeTypeOK {
 		return txMsg.CheckTx(app)
 	}
