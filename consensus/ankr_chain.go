@@ -187,7 +187,7 @@ func (app *AnkrChainApplication) dispossTxWithCDCV0(tx []byte) (*tx.TxMsgCDCV0, 
 			return nil, code.CodeTypeMismatchChainID, fmt.Sprintf("can't mistach the chain id, txChainID=%s, appChainID=%s", txMsg.ChID, app.ChainId)
 		}
 
-		if txMsg.Version != "0.31.5" ||  txMsg.Version != "1.0" || txMsg.Version != "" {
+		if txMsg.Version != "0.31.5" &&  txMsg.Version != "1.0" && txMsg.Version != "" {
 			return nil, code.CodeTypeMismatchTxVersion, fmt.Sprintf("can't mistach the tx version(0.31.5, 1.0 or 0), txVersion=%s", txMsg.Version)
 		}
 	}
