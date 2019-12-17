@@ -373,9 +373,11 @@ func displayKeyList(keyList []*KeyStore) {
 	}
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintf(w, "\n Name \tAddress\n")
+	homeDir := configHome()
+	fmt.Fprintf(w, "\n Name \tAddress\tFile\n")
 	for _, key := range keyList {
-		fmt.Fprintf(w, "%s \t%s\n", key.Name, key.Address)
+		fileName := filepath.Join(homeDir, key.FileName)
+		fmt.Fprintf(w, "%s\t%s\t%s\n", key.Name, key.Address,fileName)
 	}
 	w.Flush()
 }
