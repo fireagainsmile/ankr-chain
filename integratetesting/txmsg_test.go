@@ -36,7 +36,7 @@ func TestTxTransfer(t *testing.T) {
 	log := log.NewNopLogger()
 	txContext := ankrchain.NewMockAnkrChainApplication("testApp", log)
 
-	txM, err := txContext.TxSerializer().Deserialize(sendBytes)
+	txM, err := txContext.TxSerializer().DeserializeCDCV1(sendBytes)
 	assert.Equal(t, err, nil)
 
 	t.Logf("txM:%v", txM)
