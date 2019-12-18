@@ -1,0 +1,371 @@
+swagger: "2.0"
+info:
+  description: >-
+    A REST interface for state queries, transaction generation and
+    send.
+  version: "1.0.2.rc.1"
+  title: ankrchain-las Swagger-UI
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Version
+    description: 'Version of the lite access service node'
+  - name: Node
+    description: 'Node info query'
+  - name: Account
+    description: 'Account info query'
+  - name: Block
+    description: 'Block info query'
+  - name: Tx
+    description: 'Transactions query and send'
+  - name: Version
+    description: Query app version
+schemes:
+- "http"
+- "https"
+paths:
+  /v1/version:
+    get:
+      summary: Version of lite access service node
+      tags:
+      - Version
+      description: >-
+        Get the version of lite access service node
+      responses:
+        '200':
+          description: Version of lite access service node
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+  /v1/node/info:
+    get:
+      summary: Node info
+      tags:
+      - Node
+      description: >-
+        Get the node info
+      responses:
+        '200':
+          description: Node info
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/NodeInfo"
+
+  /v1/account/generate/{count}:
+    get:
+      tags:
+      - Account
+      summary: Generate new ankrchain accounts
+      description: >-
+        Generate new ankrchain accounts
+      operationId: "generateAccounts"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "count"
+        in: "path"
+        description: "The account count to generate"
+        required: false
+        type: number
+      responses:
+        '200':
+          description: Sucessfully generate new ankrchain accounts
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/definitions/AccountInfo"
+        '400':
+          description: The parameter was malformated
+        '500':
+          description: Server internal error
+  /v1/account/nonce/{address}:
+    get:
+      summary: Account nonce of a address
+      tags:
+        - Account
+      description: >-
+        Get the account nonce of a address
+      parameters:
+        - in: path
+          name: address
+          description: Account address
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account nonce of a address
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nonce:
+                    type: number
+  /v1/account/balance:
+    get:
+      summary: Account balance of a address
+      tags:
+      - Account
+      description: >-
+        Get the account balance of a address
+      parameters:
+      - name: "address"
+        in: "query"
+        description: "Account address"
+        required: true
+        type: string
+      - name: "symbol"
+        in: "query"
+        description: "Coin name"
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Account balance of a address
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  amount:
+                    type: string
+
+  /v1/tx/transfer:
+    post:
+      tags:
+      - Tx
+      summary: Transfer coin from a address to another address
+      description: >-
+        Transfer coin from a address to another address by a full ankrchain node
+      operationId: "transfer"
+      produces:
+        - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Transfer Info"
+        required: true
+        schema:
+          $ref: "#/definitions/TransferMsg"
+      responses:
+        '200':
+          description: Transfer was sent and has been added to the next block
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/TxCommitResult"
+        '400':
+          description: The transfer was malformated
+        '500':
+          description: Server internal error
+
+  /v1/block/tx/transfers:
+    get:
+      tags:
+      - Tx
+      summary: All tx transfers of a address
+      description: >-
+        Get all tx transfers of a height
+      operationId: "txTransfers"
+      produces:
+        - "application/json"
+      parameters:
+      - name: "height"
+        in: "query"
+        description: "Block height"
+        required: true
+        type: number
+      - name: "page"
+        in: "query"
+        description: "page number, begin from 1"
+        required: false
+        type: number
+      - name: "perPage"
+        in: "query"
+        description: "per page tx number, max is 100"
+        required: false
+        type: number
+      responses:
+        '200':
+          description: Sucessfully get all tx transfers of a height
+          content:
+            application/json:
+              schema:
+                  $ref: "#/definitions/TransferResultsOfOneBlock"
+        '400':
+          description: The query was malformated
+        '500':
+          description: Server internal error
+
+  /v1/block/syncing:
+    get:
+      summary: Block synchronization status
+      tags:
+      - Block
+      description: >-
+        Check if the block is syncing
+      responses:
+        '200':
+          description: Block synchronization status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nonce:
+                    type: bool
+definitions:
+  NodeInfo:
+    type: object
+    properties:
+      id:
+        type: string
+      listenAddr:
+        type: string
+      chainID:
+        type: string
+      moniker:
+        type: string
+      txIndex:
+        type: string
+      rpcAddr:
+        type: string
+      latestHeight:
+        type: number
+      version:
+        type: string
+  AccountInfo:
+    type: object
+    properties:
+      priKey:
+        type: string
+      pubKey:
+        type: string
+      address:
+        type: string
+  TransferResultsOfOneBlock:
+    type: object
+    properties:
+      totalTxs:
+        type: number
+      transferResults:
+        type: "array"
+        items:
+          $ref: "#/definitions/TransferResultItem"
+  TransferResultItem:
+    type: object
+    properties:
+      hash:
+        $ref: "#/definitions/TxHash"
+      height:
+        type: number
+      fromAddr:
+        type: string
+      toAddr:
+        type: string
+      amounts:
+        type: "array"
+        items:
+          $ref: "#/definitions/Amount"
+      status:
+        type: string
+      gasLimit:
+        type: number
+      gasPrice:
+        $ref: "#/definitions/GasPrice"
+      gasUsed:
+        type: number
+      timeStamp:
+        type: string
+      memo:
+        type: string
+  TransferMsg:
+    type: object
+    properties:
+      header:
+        $ref: "#/definitions/TxMsgHeader"
+      data:
+        $ref: "#/definitions/TransferMsgData"
+  TransferMsgData:
+    type: object
+    properties:
+      priKey:
+        type: string
+      fromAddr:
+        type: string
+      toAddr:
+        type: string
+      amount:
+        $ref: "#/definitions/Amount"
+  TxMsgHeader:
+    type: object
+    properties:
+      gasLimit:
+        type: number
+      gasPrice:
+        $ref: "#/definitions/GasPrice"
+      memo:
+        type: string
+  TxCommitResult:
+    type: object
+    properties:
+      hash:
+        $ref: "#/definitions/TxHash"
+      height:
+        type: number
+      status:
+        type: string
+      gasUsed:
+        type: number
+      timeStamp:
+        type: string
+      log:
+        type: string
+      err:
+        type: string
+    example:
+      hash: A4000E88C03E178DC13CACE474B5E3DDC19B7A0C6C5257E28E9DA43A8EBDB3DA
+      height: 9583
+      log: ""
+      err: ""
+  TxHash:
+    type: string
+    example: AB9ACC4D5293D20E191E5D8207200116B1EFB484BFB88B2FF2C68E38E841C1E7
+  GasPrice:
+    type: object
+    properties:
+      symbol:
+        type: string
+      value:
+        type: string
+    example:
+      symbol: "ANKR"
+      value: "100.09"
+  Amount:
+    type: object
+    properties:
+      symbol:
+        type: string
+      value:
+        type: string
+    example:
+      symbol: "ANKR"
+      value: "100.01"
+
+
+
+
+
+
+
+
+
