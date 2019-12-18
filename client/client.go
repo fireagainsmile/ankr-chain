@@ -165,6 +165,24 @@ func (c *Client) QueryWithOption(path string, height int64, needProofVerify bool
 	return nil
 }
 
+func (c *Client) BroadcastTxCommitWithRawResult(txBytes []byte) (*ctypes.ResultBroadcastTxCommit, error){
+	result, err := c.cHttp.BroadcastTxCommit(txBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.CheckTx.Code != code.CodeTypeOK {
+		return result, fmt.Errorf("Client BroadcastTxCommit CheckTx response code not ok, code=%d, log=%s", result.CheckTx.Code, result.CheckTx.Log)
+	}
+
+	err = client.WaitForHeight(c.cHttp, result.Height+1, nil)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight int64, log string, err error) {
 	result, err := c.cHttp.BroadcastTxCommit(txBytes)
 	if err != nil {
@@ -176,7 +194,7 @@ func (c *Client) BroadcastTxCommit(txBytes []byte) (txHash string, commitHeight 
 	}
 
 	if result.DeliverTx.Code != code.CodeTypeOK {
-		return "", -1, "", fmt.Errorf("Client BroadcastTxCommit DeliverTx response code not ok, code=%d, log=%s", result.DeliverTx.Code, result.DeliverTx.Log)
+		return result.Hash.String(), result.Height, "", fmt.Errorf("Client BroadcastTxCommit DeliverTx response code not ok, code=%d, log=%s", result.DeliverTx.Code, result.DeliverTx.Log)
 	}
 
 	err = client.WaitForHeight(c.cHttp, result.Height+1, nil)
