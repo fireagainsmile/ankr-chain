@@ -35,12 +35,12 @@ var (
 )
 
 func init() {
-	appendSubCmd(accountCmd, "genaccount", "generate new account.", generateAccounts, addGenAccountFlags)
-	appendSubCmd(accountCmd, "genkeystore", "generate keystore file based on private key and user input password.", genKeystore, addGenkeystoreFlags)
-	appendSubCmd(accountCmd, "exportprivatekey", "recover private key from keystore.", exportPrivatekey, addExportFlags)
-	appendSubCmd(accountCmd, "resetpwd", "reset keystore password.", resetPwd, addResetPWDFlags)
+	appendSubCmd(accountCmd, "generate", "generate new account.", generateAccounts, addGenAccountFlags)
+	appendSubCmd(accountCmd, "export", "export keystore file based on private key and user input password.", genKeystore, addGenkeystoreFlags)
+	appendSubCmd(accountCmd, "recover", "recover private key from keystore.", exportPrivatekey, addExportFlags)
+	appendSubCmd(accountCmd, "reset", "reset keystore password.", resetPwd, addResetPWDFlags)
 	appendSubCmd(accountCmd, "list", "list ankr account store in local", listAccount, nil)
-	appendSubCmd(accountCmd, "importKey", "importKey <file>, import ankr account from keystore", importAccount, addImportAccountFlags)
+	appendSubCmd(accountCmd, "import", "import <file>, import ankr account from keystore", importAccount, addImportAccountFlags)
 }
 
 type ExeCmd struct {
@@ -373,9 +373,11 @@ func displayKeyList(keyList []*KeyStore) {
 	}
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 4, ' ', 0)
-	fmt.Fprintf(w, "\n Name \tAddress\n")
+	homeDir := configHome()
+	fmt.Fprintf(w, "\n Name \tAddress\tFile\n")
 	for _, key := range keyList {
-		fmt.Fprintf(w, "%s \t%s\n", key.Name, key.Address)
+		fileName := filepath.Join(homeDir, key.FileName)
+		fmt.Fprintf(w, "%s\t%s\t%s\n", key.Name, key.Address,fileName)
 	}
 	w.Flush()
 }

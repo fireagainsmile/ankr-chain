@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +22,6 @@ import (
 var (
 	//flag key words which is used in different cmd, use variable as key name
 	fileParam         = "file"    //short `f`
-	numberAccountParam = "number"  //short name `n`
 	outputParam       = "output"  //short name `o`
 	privkeyParam      = "privkey" //short name `p`
 	addressParam      = "address"
@@ -60,45 +58,30 @@ var (
 
 
 	//query flags
-	queryParam     = "query"
-	titlePara      = "title"
-	timeoutParam   = "timeout"
-	capParam       = "cap"
-	heightParam    = "height"
-	txidParam      = "txid"
-	approveParam   = "approve"
-	limitParam     = "limit"
-	pageParam      = "page"
-	perPageParam   = "perpage"
-	transferOnlyParam= "transfer-only"
-	meteringParam  = "metering"
-	timeStampParam = "timestamp"
-	typeParam      = "type"
-	fromParam      = "from"
-	nonceParam      = "nonce"
-	creatorParam   = "creator"
-	detailParam    = "detail"
+	queryParam        = "query"
+	subscriberPara    = "subscriber"
+	timeoutParam      = "timeout"
+	capParam          = "cap"
+	heightParam       = "height"
+	txidParam         = "txid"
+	approveParam      = "approve"
+	limitParam        = "limit"
+	pageParam         = "page"
+	perPageParam      = "perpage"
+	transferOnlyParam = "transfer-only"
+	meteringParam     = "metering"
+	timeStampParam    = "timestamp"
+	typeParam         = "type"
+	fromParam         = "from"
+	nonceParam        = "nonce"
+	creatorParam      = "creator"
+	detailParam       = "detail"
 )
 
 var (
 	TxSerializer = serializer.NewTxSerializerCDC()
 	ankrCurrency = common.Currency{"ANKR", 18}
 )
-
-// retriveUserInput is a function that can retrive user input in form of string. By default,
-// it will prompt the user. In test, you can replace this with code that returns the appropriate response.
-func retrieveUserInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	answer, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-
-	answer = strings.Replace(answer, "\r", "", 1)
-	answer = strings.Replace(answer, "\n", "", 1)
-
-	return answer, nil
-}
 
 //get the home directory
 func Home() (string, error){
@@ -266,7 +249,7 @@ func displayStruct(stru interface{})  {
 		fmt.Println("[]")
 		return
 	}
-	jsonByte, err := json.MarshalIndent(stru, "", "\t")
+	jsonByte, err := json.MarshalIndent(stru, "", "  ")
 	if err != nil {
 		fmt.Println(err)
 		return
