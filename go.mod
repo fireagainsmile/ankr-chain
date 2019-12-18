@@ -11,11 +11,14 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/mock v1.1.1
+	github.com/gorilla/mux v1.7.3
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
+	github.com/rakyll/statik v0.1.6
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
 	github.com/rs/cors v1.7.0 // indirect
+	github.com/shopspring/decimal v0.0.0-20191130220710-360f2bc03045
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
@@ -25,6 +28,7 @@ require (
 	github.com/tendermint/iavl v0.12.0
 	github.com/tendermint/tendermint v0.32.6
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-	google.golang.org/genproto v0.0.0-20180831171423-11092d34479b // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 )
+
+go 1.13
