@@ -10,8 +10,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestBalanceQuery(t *testing.T) {
+	c := client.NewClient("chain.dccn.ankr.com:26657")
+
+	resp := &ankrcmm.BalanceQueryResp{}
+	err := c.Query("/store/balance",&ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, resp)
+
+	assert.Equal(t, nil, err)
+
+	t.Logf("resp=%v", resp)
+}
+
 func TestBalanceQueryWithProofVerify(t *testing.T) {
-	c := client.NewClient("localhost:26657")
+	c := client.NewClient("chain.dccn.ankr.com:26657")
 
 	resp := &ankrcmm.BalanceQueryResp{}
 	err := c.QueryWithOption("/store/balance", 0, true, "F:\\dccntendermint\\trnode\\", &ankrcmm.BalanceQueryReq{"64BC85F08C03F42B17EAAF5AFFAF9BFAF96CFCB85CA2F3", "ANKR"}, resp)

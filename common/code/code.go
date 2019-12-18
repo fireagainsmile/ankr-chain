@@ -39,4 +39,5 @@ const (
 	CodeTypeInvalidFromAddr          uint32 = 31
 	CodeTypeCheckTxError             uint32 = 32
 	CodeTypeDeliverTxError           uint32 = 33
+	CodeTypeMismatchTxVersion        uint32 = 34
 )
