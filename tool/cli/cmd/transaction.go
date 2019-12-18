@@ -91,7 +91,7 @@ func init() {
 		panic(err)
 	}
 
-	err = addPersistentString(transactionCmd, transferVersion, versionParam, "", "1.0", "block chain net version", notRequired)
+	err = addPersistentString(transactionCmd, transferVersion, versionParam, "", "1.0.2", "block chain net version", notRequired)
 	if err != nil {
 		panic(err)
 	}
