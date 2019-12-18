@@ -187,7 +187,7 @@ func (sp *IavlStoreApp) Nonce(address string, height int64, prove bool) (uint64,
 
 	if !sp.iavlSM.storeMap[IavlStoreAccountKey].Has([]byte(containAccountPrefix(address))) {
 		sp.AddAccount(address, ankrcmm.AccountGenesis)
-		return 1, containAccountPrefix(address), nil, nil, nil
+		return 0, containAccountPrefix(address), nil, nil, nil
 	}
 
 	accBytes, proof, err := sp.iavlSM.storeMap[IavlStoreAccountKey].GetWithVersionProve([]byte(containAccountPrefix(address)), height, prove)
