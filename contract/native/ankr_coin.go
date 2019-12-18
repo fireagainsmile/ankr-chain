@@ -168,6 +168,11 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 	}
 
 	allowAccount := ac.Allowance(ac.context.SenderAddr(), fromAddr)
+	if allowAccount == nil {
+		ac.log.Error("Get invalid allowance", "SenderAddr", ac.context.SenderAddr(), "fromAddr", fromAddr)
+		return false
+	}
+
 	if value.Cmp(allowAccount) == 1 {
 		ac.log.Error("AnkrCoin Transfer amount >= allowAccount", "amount", amount, "allowAccount", allowAccount.String())
 		return false
@@ -214,6 +219,63 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 	jsonArgFromat := "[{\"index\":1,\"Name\":\"fromAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
 		              "{\"index\":2,\"Name\":\"toAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
 		              "{\"index\":3,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":%s}]"
+
+	jsonArg := fmt.Sprintf(jsonArgFromat, fromAddrParam, toAddrParam, amountParam)
+
+	TrigEvent("transferFrom(string, string, string))", jsonArg, ac.log, ac.context)
+
+	return true
+}
+
+func (ac *AnkrCoin) TransferFromCDCV0(fromAddr string, toAddr string, amount string) bool {
+	value, isSucess := new(big.Int).SetString(amount, 10)
+	if !isSucess || value == nil{
+		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSucess", isSucess)
+	}
+
+	if toAddr == "" {
+		ac.log.Error("AnkrCoin TransferFrom toAddr blank")
+		return false
+	}
+
+	balFrom := ac.BalanceOf(fromAddr)
+	if balFrom == nil || balFrom.Cmp(value) == -1 || balFrom.Cmp(value) == 0 {
+		if balFrom == nil {
+			ac.log.Error("AnkrCoin TransferFrom from balance nil", "fromAddr", ac.context.SenderAddr())
+		} else {
+			ac.log.Error("AnkrCoin TransferFrom from balance less than or equal to value", "fromAddr", ac.context.SenderAddr(), "balance", balFrom.String(), "value", value.String())
+		}
+
+		return false
+	}
+
+	balTo := ac.BalanceOf(toAddr)
+	if balTo == nil {
+		balTo = new(big.Int).SetUint64(0)
+	}
+
+	balFrom = new(big.Int).Sub(balFrom, value)
+	balTo   = new(big.Int).Add(balTo, value)
+
+	stepGas := gas.GasSlowStep * 2
+	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+
+	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol,18}, balFrom.Bytes()})
+	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
+
+	gasUsed := uint64(len(balFrom.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	gasUsed = uint64(len(balTo.Bytes())) * gas.GasContractByte
+	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+
+	fromAddrParam := fmt.Sprintf("\"%s\"", fromAddr)
+	toAddrParam   := fmt.Sprintf("\"%s\"", toAddr)
+	amountParam   := fmt.Sprintf("\"%s\"", amount)
+
+	jsonArgFromat := "[{\"index\":1,\"Name\":\"fromAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		"{\"index\":2,\"Name\":\"toAddr\",\"ParamType\":\"string\",\"Value\":%s}," +
+		"{\"index\":3,\"Name\":\"amount\",\"ParamType\":\"string\",\"Value\":%s}]"
 
 	jsonArg := fmt.Sprintf(jsonArgFromat, fromAddrParam, toAddrParam, amountParam)
 
