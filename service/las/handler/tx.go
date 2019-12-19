@@ -13,33 +13,7 @@ import (
 	lascmm "github.com/Ankr-network/ankr-chain/service/las/common"
 	"github.com/Ankr-network/ankr-chain/tx/serializer"
 	"github.com/Ankr-network/ankr-chain/tx/token"
-	"github.com/shopspring/decimal"
 )
-
-func convertToDevimalValFromFloat64str(val string) (*big.Int, error) {
-	valF,  err := decimal.NewFromString(val)
-	if err != nil {
-		return nil, err
-	}
-
-	if !valF.GreaterThan(decimal.Zero) {
-		return nil, fmt.Errorf("invalid val: %s", val)
-	}
-
-	valDString := valF.Shift(18).String()
-
-	valBigInt, isSucc := new(big.Int).SetString(valDString, 10)
-	if !isSucc {
-		return nil, fmt.Errorf("invalid val: %s", val)
-	}
-
-	return valBigInt, nil
-}
-
-func convertToFloat64strFromDevimalVal(val *big.Int) string {
-	valD := decimal.NewFromBigInt(val, 0)
-	return valD.Shift(-18).String()
-}
 
 func TxTransferHandler(c *client.Client) http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
