@@ -5,6 +5,7 @@ import (
 	_ "encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"math/big"
 	"net/http"
 	"strconv"
 
@@ -98,6 +99,14 @@ func QueryAccountBalanceHandler(c *client.Client) http.HandlerFunc {
 			WriteErrorResponse(resp, http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		balBig, isSuccess := new(big.Int).SetString(respData.Amount, 10)
+		if !isSuccess {
+			WriteErrorResponse(resp, http.StatusInternalServerError, fmt.Sprintf("invalid balance value, addr=%s, symbol=%s", addr, symbol))
+			return
+		}
+
+		respData.Amount = convertToFloat64strFromDevimalVal(balBig)
 
 		respJson, err := Cdc.MarshalJSON(respData)
 		if err != nil {

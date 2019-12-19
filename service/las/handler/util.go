@@ -3,10 +3,37 @@ package handler
 import (
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"net/http"
 
+	"github.com/shopspring/decimal"
 	tmcmm "github.com/tendermint/tendermint/libs/common"
 )
+
+func convertToDevimalValFromFloat64str(val string) (*big.Int, error) {
+	valF,  err := decimal.NewFromString(val)
+	if err != nil {
+		return nil, err
+	}
+
+	if !valF.GreaterThan(decimal.Zero) {
+		return nil, fmt.Errorf("invalid val: %s", val)
+	}
+
+	valDString := valF.Shift(18).String()
+
+	valBigInt, isSucc := new(big.Int).SetString(valDString, 10)
+	if !isSucc {
+		return nil, fmt.Errorf("invalid val: %s", val)
+	}
+
+	return valBigInt, nil
+}
+
+func convertToFloat64strFromDevimalVal(val *big.Int) string {
+	valD := decimal.NewFromBigInt(val, 0)
+	return valD.Shift(-18).String()
+}
 
 func WriteErrorResponse(w http.ResponseWriter, status int, err string) {
 	w.WriteHeader(status)
