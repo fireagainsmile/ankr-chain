@@ -7,7 +7,7 @@ NODE_VERSION=1.0.0
 COMPILER_VERSION=1.0.0
 CLI_VERSION=1.0.0
 LAS_VERSION=1.0.0
-NODE_RUNMODE=RunModeUnk
+NODE_RUNMODE=RunModeTesting
 BUILD_FLAGS_NODE = -ldflags "-X github.com/Ankr-network/ankr-chain/version.NodeVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD` -X github.com/Ankr-network/ankr-chain/common.RM=${NODE_RUNMODE}"
 BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CompilerVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
 BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CliVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
