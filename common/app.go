@@ -29,11 +29,9 @@ const (
 	ADMIN_OP_METERING_PUBKEY_NAME string = "admin_op_metering_pubkey"
 )
 
-type RunMode int
 const (
-	_ RunMode = iota
-	RunModeTesting
-	RunModeProd
+	RunModeTesting string = "RunModeTesting"
+	RunModeProd    string = "RunModeProd"
 )
 
 var RM = RunModeTesting
@@ -47,9 +45,4 @@ type CommitID struct {
 	Version int64
 	Hash    []byte
 }
-
-func PrefixBalanceKey(key []byte) []byte {
-	return append([]byte(AccountBlancePrefix), key...)
-}
-
 
