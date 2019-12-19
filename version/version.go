@@ -7,8 +7,9 @@ const (
 var (
 	NodeVersion     = "1.0.0"
 	CompilerVersion = "1.0.0"
+	CliVersion      = "1.0.0"
 	LasVersion      = "1.0.0"
-	GitCommit  string
+  GitCommit       string
 )
 
 func init() {
