@@ -32,18 +32,21 @@ jobs:
               AWS_ZONE=us-west-2a
               ACM_REGION="us-west-2"
               ANKRCHAIN_DNS="chain.dccn.ankr.com"
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS_PROD\"/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             elif [[ ($BRANCH_NAME == "develop") ]]; then
               BRANCH_NAME="dev"
               K8S_CLUSTER="stage.hub"
               CHARTMUSEUM_URL="http://chart-stage.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
               ANKRCHAIN_DNS="chain-stage.dccn.ankr.com"
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS_STAGE\"/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             else
               BRANCH_NAME="feat"
               K8S_CLUSTER="dev.hub"
               CHARTMUSEUM_URL="http://chart-dev.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
               ANKRCHAIN_DNS="chain-dev.dccn.ankr.com"
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS_DEV\"/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             fi
             sed -i "s/seeds = \"\"/$SEEDS/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
 
