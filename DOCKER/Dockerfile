@@ -15,7 +15,8 @@ ARG GOPROXY
 ENV GOPROXY=${GOPROXY}
 ENV GOPRIVATE=github.com/Ankr-network
 
-RUN make linux
+ARG NODE_RUNMODE
+RUN make linux NODE_RUNMODE=${NODE_RUNMODE}
 
 # Build image
 FROM alpine:3.7 AS public
