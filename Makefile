@@ -10,8 +10,8 @@ LAS_VERSION=1.0.0
 NODE_RUNMODE=RunModeTesting
 BUILD_FLAGS_NODE = -ldflags "-X github.com/Ankr-network/ankr-chain/version.NodeVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD` -X github.com/Ankr-network/ankr-chain/common.RM=${NODE_RUNMODE}"
 BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CompilerVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
-BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CliVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
-BUILD_FLAGS_COMPILER = -ldflags "-X github.com/Ankr-network/ankr-chain/version.LasVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
+BUILD_FLAGS_CLI = -ldflags "-X github.com/Ankr-network/ankr-chain/version.CliVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
+BUILD_FLAGS_LAS = -ldflags "-X github.com/Ankr-network/ankr-chain/version.LasVersion=`git describe --abbrev=0 --tags` -X github.com/Ankr-network/ankr-chain/version.GitCommit=`git rev-parse --short=8 HEAD`"
 
 export GO111MODULE=on
 
@@ -32,8 +32,8 @@ define build_target
     CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_NODE) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(1)-$(2)/$(3) ./main.go
     @echo "build all tools"
     CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_COMPILER) -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(4) ./tool/compiler/main.go
-    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(5) ./tool/cli/main.go
-    GGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build  -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(6) ./service/las/main.go
+    CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_CLI) -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(5) ./tool/cli/main.go
+    GGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_LAS) -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(6) ./service/las/main.go
 endef
 
 windows:
