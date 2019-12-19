@@ -63,7 +63,7 @@ func TxTransferHandler(c *client.Client) http.HandlerFunc {
 			GasLimit: new(big.Int).SetUint64(uint64(transferInfo.Header.GasLimit)).Bytes(),
 			GasPrice: ankrcmm.Amount{ankrcmm.Currency{transferInfo.Header.GasPrice.Symbol, 18}, gasPriceBigValWithDecimal.Bytes()},
 			Memo:     transferInfo.Header.Memo,
-			Version:  "1.0",
+			Version:  "1.0.2",
 		}
 
 		tfMsg := &token.TransferMsg{

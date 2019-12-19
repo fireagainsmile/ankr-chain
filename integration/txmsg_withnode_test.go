@@ -90,7 +90,7 @@ func TestBroadcastTxAsyncWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "TestBroadcastTxAsync",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
@@ -119,7 +119,7 @@ func TestBroadcastTxAsyncParallelWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "TestBroadcastTxAsync",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
@@ -153,7 +153,7 @@ func TestBroadcastTxSyncWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "TestBroadcastTxSyncWithNode",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
@@ -182,7 +182,7 @@ func TestBroadcastTxSyncParallelWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "TestBroadcastTxSyncParallelWithNode",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
@@ -216,7 +216,7 @@ func TestCertMsgWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test CertMsg",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	pubBS64 := account.AccountManagerInstance().AdminOpAccount(ankrcmm.AccountAdminMetering)
@@ -256,7 +256,7 @@ func TestMeteringWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test metering",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	resp := &ankrcmm.CertKeyQueryResp{}
@@ -298,7 +298,7 @@ func TestContractDeployWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractDeploy",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
@@ -338,7 +338,7 @@ func TestContractInvokeWithNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractInvoke",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	jsonArg := "[{\"index\":1,\"Name\":\"args\",\"ParamType\":\"string\",\"Value\":{\"testStr\":\"testFuncWithInt arg\"}}]"
@@ -375,7 +375,7 @@ func TestContractDeployWithNodePattern1(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractDeploy",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	//rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract2.wasm")
@@ -416,7 +416,7 @@ func TestContractInvokeWithNodePattern1(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test ContractInvoke",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	jsonArg := "[{\"index\":1,\"Name\":\"args\",\"ParamType\":\"string\",\"Value\":\"testFuncWithInt arg\"}]"

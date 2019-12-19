@@ -40,7 +40,7 @@ func TestMultiAccountToOneWithSingleNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	var addArray []string
@@ -182,7 +182,7 @@ func TestMultiAccountToOneWithMultiNode(t *testing.T) {
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
-		Version: "1.0",
+		Version: "1.0.2",
 	}
 
 	var addArray []string
