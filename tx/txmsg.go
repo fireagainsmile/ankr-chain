@@ -183,8 +183,8 @@ func (tx *TxMsg) BasicVerify(context ContextTx) (uint32, string) {
 	if err != nil {
 		return code.CodeTypeGetStoreNonceError, err.Error()
 	}
-	if onceStore != tx.Nonce {
-		return code.CodeTypeBadNonce, fmt.Sprintf("bad nonce: address=%s", tx.SignerAddr()[0])
+	if onceStore != tx.Nonce && (tx.Nonce == 0 && onceStore != tx.Nonce + 1){
+		return code.CodeTypeBadNonce, fmt.Sprintf("bad nonce: address=%s, onceStore=%d, tx.Nonce=%d", tx.SignerAddr()[0], onceStore, tx.Nonce)
 	}
 
     return code.CodeTypeOK, ""
