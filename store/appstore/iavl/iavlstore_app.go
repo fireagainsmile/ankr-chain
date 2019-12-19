@@ -569,10 +569,14 @@ func (sp *IavlStoreApp) ResetKVState() {
 }
 
 func (sp *IavlStoreApp) Rollback() {
+	curTotalTx, _, _, _ , _  := sp.TotalTx(0, false)
+
 	for _, iavlS := range sp.iavlSM.storeMap {
 		iavlS.Rollback()
 	}
-	sp.totalTx, _, _, _ , _ = sp.TotalTx(0, false)
+
+	sp.totalTx = curTotalTx
+	sp.SetTotalTx(curTotalTx)
 }
 
 func (sp *IavlStoreApp) DB() dbm.DB {

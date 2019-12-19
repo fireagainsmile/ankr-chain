@@ -7,6 +7,7 @@ import (
 	"github.com/Ankr-network/ankr-chain/common/code"
 	ankrcrypto "github.com/Ankr-network/ankr-chain/crypto"
 	"github.com/Ankr-network/ankr-chain/tx"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
 type TxMsgHeader struct {
@@ -32,6 +33,26 @@ func (builder *TxMsgBuilder) BuildOnly(nonce uint64) ([]byte, error) {
 	txMsg := &tx.TxMsg{ChID: builder.msgHeader.ChID, Nonce: nonce, GasLimit: builder.msgHeader.GasLimit, GasPrice: builder.msgHeader.GasPrice, Memo: builder.msgHeader.Memo, Version: builder.msgHeader.Version, ImplTxMsg: builder.msgData}
 
 	return  txMsg.SignAndMarshal(builder.serializer, builder.key)
+}
+
+func (builder *TxMsgBuilder) BuildAndCommitWithRawResult(c *Client) (*ctypes.ResultBroadcastTxCommit, error){
+	signer := builder.msgData.SignerAddr()
+	resp := &ankrcmm.NonceQueryResp{}
+	err := c.Query("/store/nonce", &ankrcmm.NonceQueryReq{signer[0]}, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := resp.Nonce
+
+	txMsg := &tx.TxMsg{ChID: builder.msgHeader.ChID, Nonce: nonce, GasLimit: builder.msgHeader.GasLimit, GasPrice: builder.msgHeader.GasPrice, Memo: builder.msgHeader.Memo, Version: builder.msgHeader.Version, ImplTxMsg: builder.msgData}
+
+	txBytes, err := txMsg.SignAndMarshal(builder.serializer, builder.key)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.BroadcastTxCommitWithRawResult(txBytes)
 }
 
 func (builder *TxMsgBuilder) BuildAndCommit(c *Client) (txHash string, commitHeight int64, log string, err error){

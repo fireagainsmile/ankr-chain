@@ -161,7 +161,7 @@ func (d *TxDecoder) Decode(tx []byte) (*tx.TxMsg, error){
 		return nil, errors.New("can't creat tx cdc serializer")
 	}
 
-	txMsg, err := cdcTxSerializer.Deserialize(tx)
+	txMsg, err := cdcTxSerializer.DeserializeCDCV1(tx)
 	if err != nil {
 		txType, data, err := d.v0TxSerializer.Deserialize(tx)
 		if err != nil {
