@@ -28,7 +28,7 @@ endif
 all: windows linux darwin
 
 define build_target
-    @echo "build ankrchain node image of $(0) for runing mode ${NODE_RUNMODE}"
+    @echo "build ankrchain node image of $(0) for running mode ${NODE_RUNMODE}"
     CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_NODE) -tags $(BUILD_TAGS) -o $(OUTPUT)/${NODE_NAME}-$(1)-$(2)/$(3) ./main.go
     @echo "build all tools"
     CGO_ENABLED=0 GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS_COMPILER) -o ${OUTPUT}/${NODE_NAME}-$(1)-$(2)/$(4) ./tool/compiler/main.go
