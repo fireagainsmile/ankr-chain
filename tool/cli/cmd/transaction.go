@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -326,8 +327,13 @@ func runDeploy(cmd *cobra.Command, args []string){
 	//acc, _ := getAccountFromPrivatekey(privateKey)
 	
 	contractMsg := new(contract.ContractDeployMsg)
+	contractName := viper.GetString(deployContractName)
+	if contractName == ""{
+		name := filepath.Base(contractFile)
+		nameSlice := strings.Split(name, ".")
+		contractName = nameSlice[0]
+	}
 	contractMsg.Name = viper.GetString(deployContractName)
-	//contractMsg.FromAddr = acc.Address
 	contractMsg.Codes = wasmBin
 	contractMsg.CodesDesc = viper.GetString(abiParam)
 	key := crypto.NewSecretKeyEd25519(privKey)
@@ -362,7 +368,7 @@ func addDeployFlags(cmd *cobra.Command)  {
 	if err != nil {
 		panic(err)
 	}
-	err = addStringFlag(cmd, deployContractName, nameParam, "", "contract", "smart contract name", notRequired)
+	err = addStringFlag(cmd, deployContractName, nameParam, "", "", "smart contract name", notRequired)
 	if err != nil {
 		panic(err)
 	}
