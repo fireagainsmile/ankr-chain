@@ -41,7 +41,6 @@ var (
 	meteringValue   = "meteringValue"
 	meteringPriv    = "meteringPriv"
 	transferVersion = "transferVersion"
-	keyName = "keyName"
 	transferSymbol = "ANKR"
 	deployPriv = "deployPriv"
 	deployContractName = "deployContractName"
@@ -74,7 +73,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	err = addPersistentString(transactionCmd, transferChainId, chainIDParam, "", "ankr-chain", "block chain id", notRequired)
+	err = addPersistentString(transactionCmd, transferChainId, chainIDParam, "", "Ankr-chain", "block chain id", notRequired)
 	if err != nil {
 		panic(err)
 	}
