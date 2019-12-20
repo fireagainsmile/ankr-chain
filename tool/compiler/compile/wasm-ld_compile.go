@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -38,8 +38,8 @@ func (wo *WasmOptions) Options() []string {
 // and remove
 
 func (wasmOp *WasmOptions)Execute(args []string) error {
-	distFileName := path.Base(args[0])
-	srcFileName := path.Base(abi.ContractMainFile)
+	distFileName := filepath.Base(args[0])
+	srcFileName := filepath.Base(abi.ContractMainFile)
 	srcFileSlice := strings.Split(srcFileName, ".")
 	srcFile := fmt.Sprintf("%s.o", srcFileSlice[0])
 	distFile := distFileName
@@ -69,7 +69,7 @@ func (wasmOp *WasmOptions)Execute(args []string) error {
 			return err
 		}
 	}
-	renameFile := path.Join(OutPutDir, distFile)
+	renameFile := filepath.Join(OutPutDir, distFile)
 	if _, err = os.Stat(OutPutDir); os.IsNotExist(err) {
 		err = os.MkdirAll(OutPutDir, 0600)
 		if err != nil {
