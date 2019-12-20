@@ -66,6 +66,7 @@ jobs:
             docker build --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
               --label=ankrchain --target=hub --build-arg BRANCH_NAME=${BRANCH_NAME} \
               --build-arg PRIV_PATH=${PRIV_PATH} -t ankr-chain:hub-$BRANCH_NAME \
+              --build-arg NODE_RUNMODE=${NODE_RUNMODE} \
               . -f DOCKER/Dockerfile
             for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
               docker tag ankr-chain:hub-$BRANCH_NAME ankrnetwork/ankr-chain:hub-$TAG

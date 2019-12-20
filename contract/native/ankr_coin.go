@@ -120,7 +120,8 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	stepGas := gas.GasSlowStep * 2
 	isSucess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
 	if !isSucess {
-		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value", "senderAddr", ac.context.SenderAddr())
+		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr())
+		return false
 	}
 
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balSender.Bytes()})
@@ -146,9 +147,10 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 }
 
 func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) bool {
-	value, isSucess := new(big.Int).SetString(amount, 10)
-	if !isSucess || value == nil{
-		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSucess", isSucess)
+	value, isSuccess := new(big.Int).SetString(amount, 10)
+	if !isSuccess || value == nil{
+		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSuccess", isSuccess)
+		return false
 	}
 
 	zeroAmount := new(big.Int).SetUint64(0)
@@ -198,19 +200,28 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 	balTo   = new(big.Int).Add(balTo, value)
 
 	stepGas := gas.GasSlowStep * 2
-	isSucess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
-	if !isSucess {
-		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value", "senderAddr", ac.context.SenderAddr())
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr(), "stepGas", stepGas)
+		return false
 	}
 
 	ac.context.SetBalance(ac.context.SenderAddr(), ankrcmm.Amount{ankrcmm.Currency{ac.symbol,18}, balFrom.Bytes()})
 	ac.context.SetBalance(toAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18}, balTo.Bytes()})
 
 	gasUsed := uint64(len(balFrom.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after balFrom bytes gas", "senderAddr", ac.context.SenderAddr(), "gasUsed", gasUsed)
+		return false
+	}
 
 	gasUsed = uint64(len(balTo.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after balTo bytes gas", "senderAddr", ac.context.SenderAddr(), "gasUsed", gasUsed)
+		return false
+	}
 
 	fromAddrParam := fmt.Sprintf("\"%s\"", fromAddr)
 	toAddrParam   := fmt.Sprintf("\"%s\"", toAddr)
@@ -228,9 +239,9 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 }
 
 func (ac *AnkrCoin) TransferFromCDCV0(fromAddr string, toAddr string, amount string) bool {
-	value, isSucess := new(big.Int).SetString(amount, 10)
-	if !isSucess || value == nil{
-		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSucess", isSucess)
+	value, isSuccess := new(big.Int).SetString(amount, 10)
+	if !isSuccess || value == nil{
+		ac.log.Error("AnkrCoin TransferFrom invalid amount", "isSucess", isSuccess)
 	}
 
 	if toAddr == "" {
@@ -285,9 +296,10 @@ func (ac *AnkrCoin) TransferFromCDCV0(fromAddr string, toAddr string, amount str
 }
 
 func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
-	value, isSucess := new(big.Int).SetString(amount, 10)
-	if !isSucess || value == nil{
-		ac.log.Error("AnkrCoin Approve invalid amount", "isSucess", isSucess)
+	value, isSuccess := new(big.Int).SetString(amount, 10)
+	if !isSuccess || value == nil{
+		ac.log.Error("AnkrCoin Approve invalid amount", "isSucess", isSuccess)
+		return false
 	}
 
 	zeroAmount := new(big.Int).SetUint64(0)
@@ -304,7 +316,11 @@ func (ac *AnkrCoin) Approve(spenderAddr string, amount string) bool {
 	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{ac.symbol, 18},value.Bytes()})
 
 	gasUsed := uint64(len(value.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin Approve gasUsed reach the limit value after val bytes gas", "senderAddr", ac.context.SenderAddr(), "gasUsed", gasUsed)
+		return false
+	}
 
 	spenderAddrParam   := fmt.Sprintf("\"%s\"", spenderAddr)
 	amountParam   := fmt.Sprintf("\"%s\"", amount)
@@ -329,9 +345,10 @@ func (ac *AnkrCoin) Allowance(ownerAddr string, spenderAddr string) *big.Int {
 }
 
 func (ac *AnkrCoin) IncreaseApproval(spenderAddr string, addedAmount string) bool{
-	addedValue, isSucess := new(big.Int).SetString(addedAmount, 10)
-	if !isSucess || addedValue == nil{
-		ac.log.Error("AnkrCoin IncreaseApproval invalid addedAmount", "isSucess", isSucess)
+	addedValue, isSuccess := new(big.Int).SetString(addedAmount, 10)
+	if !isSuccess || addedValue == nil{
+		ac.log.Error("AnkrCoin IncreaseApproval invalid addedAmount", "isSucess", isSuccess)
+		return false
 	}
 
 	zeroAmount := new(big.Int).SetUint64(0)
@@ -354,12 +371,20 @@ func (ac *AnkrCoin) IncreaseApproval(spenderAddr string, addedAmount string) boo
 	allowVal = new(big.Int).Add(allowVal, addedValue)
 
 	stepGas := gas.GasSlowStep
-	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin IncreaseApproval gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr(), "gasUsed", stepGas)
+		return false
+	}
 
 	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},allowVal.Bytes()})
 
 	gasUsed := uint64(len(allowVal.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin IncreaseApproval gasUsed reach the limit value after allowVal bytes gas", "senderAddr", ac.context.SenderAddr(), "gasUsed", gasUsed)
+		return false
+	}
 
 	spenderAddrParam := fmt.Sprintf("\"%s\"", spenderAddr)
 	addedAmountParam := fmt.Sprintf("\"%s\"", addedAmount)
@@ -375,9 +400,10 @@ func (ac *AnkrCoin) IncreaseApproval(spenderAddr string, addedAmount string) boo
 }
 
 func (ac *AnkrCoin) DecreaseApproval(spenderAddr string, subtractedAmount string) bool {
-	subtractedValue, isSucess := new(big.Int).SetString(subtractedAmount, 10)
-	if !isSucess || subtractedValue == nil{
-		ac.log.Error("AnkrCoin DecreaseApproval invalid subtractedAmount", "isSucess", isSucess)
+	subtractedValue, isSuccess := new(big.Int).SetString(subtractedAmount, 10)
+	if !isSuccess || subtractedValue == nil{
+		ac.log.Error("AnkrCoin DecreaseApproval invalid subtractedAmount", "isSucess", isSuccess)
+		return false
 	}
 
 	zeroAmount := new(big.Int).SetUint64(0)
@@ -399,12 +425,20 @@ func (ac *AnkrCoin) DecreaseApproval(spenderAddr string, subtractedAmount string
 
 	allowVal = new(big.Int).Sub(allowVal, subtractedValue)
 	stepGas := gas.GasSlowStep
-	ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin DecreaseApproval gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr(), "gasUsed", stepGas)
+		return false
+	}
 
 	ac.context.SetAllowance(ac.context.SenderAddr(), spenderAddr, ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18},allowVal.Bytes()})
 
 	gasUsed := uint64(len(allowVal.Bytes())) * gas.GasContractByte
-	ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(gasUsed))
+	if !isSuccess {
+		ac.log.Error("AnkrCoin DecreaseApproval gasUsed reach the limit value after allowVal bytes gas", "senderAddr", ac.context.SenderAddr(), "gasUsed", gasUsed)
+		return false
+	}
 
 	spenderAddrParam      := fmt.Sprintf("\"%s\"", spenderAddr)
 	subtractedAmountParam := fmt.Sprintf("\"%s\"", subtractedAmount)

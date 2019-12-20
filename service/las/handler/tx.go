@@ -24,6 +24,11 @@ func TxTransferHandler(c *client.Client) http.HandlerFunc {
 			return
 		}
 
+		if transferInfo.Header.GasLimit == 0 {
+			WriteErrorResponse(resp, http.StatusBadRequest, "gasLimit should be greater than 0")
+			return
+		}
+
 		gasPriceBigValWithDecimal, err := convertToDevimalValFromFloat64str(transferInfo.Header.GasPrice.Value)
 		if err != nil {
 			WriteErrorResponse(resp, http.StatusBadRequest, err.Error())

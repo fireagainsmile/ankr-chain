@@ -9,7 +9,7 @@ import (
 func QueryVersionHandler() http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 
-		respData := &LASVersion{version.NodeVersion}
+		respData := &LASVersion{version.LasVersion}
 
 		respJson, err :=Cdc.MarshalJSON(respData)
 		if err != nil {

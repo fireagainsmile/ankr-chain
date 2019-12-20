@@ -10,7 +10,7 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the contract compiler version",
+	Short: "Print the cli version",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(version.CliVersion)
 	},
