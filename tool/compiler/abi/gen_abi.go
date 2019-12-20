@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/scanner"
@@ -58,7 +58,7 @@ func (cc *ContractClass)Execute(args []string) error  {
 		ContractMainFile = file
 	}else {
 		ABIPrefix.PattenTypeBin = ContractPatternType1
-		TempCppFile = path.Join(CurPath, TempCppFile)
+		TempCppFile = filepath.Join(PrefixPath, TempCppFile)
 		ContractMainFile = TempCppFile
 		err = cc.GenCode(file)
 		if err != nil {
@@ -94,10 +94,7 @@ func (cc *ContractClass)genAbi(file string, functions []InvokeType) error {
 
 func getAbiFileName(srcFile string) string {
 	// replace cpp or cc with json
-	n := strings.LastIndex(srcFile, "/")
-	if n != -1 {
-		srcFile = srcFile[n+1:]
-	}
+	srcFile = filepath.Base(srcFile)
 	abiFile := strings.TrimRight(srcFile, "cpp")
 	abiFile = strings.TrimRight(abiFile, "cc")
 	return  fmt.Sprintf("%sabi",abiFile)
@@ -110,20 +107,14 @@ func writeABI(abi []byte, fileName string) error {
 
 func parseClassFromFile(file string, cc *ContractClass) error {
 	cl := searchClass(file)
-	n := strings.LastIndex(file, "/")
-	if n != -1 {
-		CurPath = file[0:n]
-	}
+	PrefixPath = filepath.Dir(file)
 	if len(cl) != 0 {
 		ClassDefineFile = file
 	}else {
-		n := strings.LastIndex(file, "/")
-		if n != -1 {
-			CurPath = file[0:n]
-		}
+		PrefixPath = filepath.Dir(file)
 		includes := searchIncludes(file)
 		for _, include := range includes {
-			defineFile := path.Join(CurPath, include)
+			defineFile := filepath.Join(PrefixPath, include)
 			cl = searchClass(defineFile)
 			if len(cl) != 0 {
 				ClassDefineFile = defineFile
