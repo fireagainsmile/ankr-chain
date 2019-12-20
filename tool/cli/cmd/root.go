@@ -20,4 +20,5 @@ func init() {
 	RootCmd.AddCommand(subscribeCmd)
 	RootCmd.AddCommand(signCmd)
 	RootCmd.AddCommand(broadcastCmd)
+	RootCmd.AddCommand(versionCmd)
 }

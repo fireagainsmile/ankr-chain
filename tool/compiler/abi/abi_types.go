@@ -19,7 +19,7 @@ var (
 var (
 	ClassDefineFile  string
 	ContractMainFile string
-	CurPath string
+	PrefixPath       string
 )
 
 const (

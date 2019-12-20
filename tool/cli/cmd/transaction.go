@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -91,7 +92,7 @@ func init() {
 		panic(err)
 	}
 
-	err = addPersistentString(transactionCmd, transferVersion, versionParam, "", "1.0", "block chain net version", notRequired)
+	err = addPersistentString(transactionCmd, transferVersion, versionParam, "", "1.0.2", "block chain net version", notRequired)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +100,7 @@ func init() {
 	appendSubCmd(transactionCmd, "metering", "send metering transaction", sendMetering, addMeteringFlags)
 	appendSubCmd(transactionCmd, "deploy", "deploy smart contract", runDeploy, addDeployFlags)
 	appendSubCmd(transactionCmd, "invoke", "invoke smart contract", runInvoke, addInvokeFlags)
-	appendSubCmd(transactionCmd, "genraw", "sign a transaction offline", runGenRaw, addGenRawFlags)
+	appendSubCmd(transactionCmd, "generate", "generate raw transaction and output to file in json", runGenRaw, addGenRawFlags)
 }
 
 //transaction transfer functions
@@ -326,8 +327,13 @@ func runDeploy(cmd *cobra.Command, args []string){
 	//acc, _ := getAccountFromPrivatekey(privateKey)
 	
 	contractMsg := new(contract.ContractDeployMsg)
+	contractName := viper.GetString(deployContractName)
+	if contractName == ""{
+		name := filepath.Base(contractFile)
+		nameSlice := strings.Split(name, ".")
+		contractName = nameSlice[0]
+	}
 	contractMsg.Name = viper.GetString(deployContractName)
-	//contractMsg.FromAddr = acc.Address
 	contractMsg.Codes = wasmBin
 	contractMsg.CodesDesc = viper.GetString(abiParam)
 	key := crypto.NewSecretKeyEd25519(privKey)
@@ -362,7 +368,7 @@ func addDeployFlags(cmd *cobra.Command)  {
 	if err != nil {
 		panic(err)
 	}
-	err = addStringFlag(cmd, deployContractName, nameParam, "", "contract", "smart contract name", notRequired)
+	err = addStringFlag(cmd, deployContractName, nameParam, "", "", "smart contract name", notRequired)
 	if err != nil {
 		panic(err)
 	}
@@ -569,12 +575,12 @@ func addGenRawFlags(cmd *cobra.Command){
 		panic(err)
 	}
 
-	err = addStringFlag(cmd, rawTxFrom, fromParam, "", "", "transfer amount", required)
+	err = addStringFlag(cmd, rawTxFrom, fromParam, "", "", "transaction from address", required)
 	if err != nil {
 		panic(err)
 	}
 
-	err = addInt64Flag(cmd, rawTxNonce, nonceParam, "", 0, "transfer amount", required)
+	err = addInt64Flag(cmd, rawTxNonce, nonceParam, "", 0, "from account nonce", required)
 	if err != nil {
 		panic(err)
 	}

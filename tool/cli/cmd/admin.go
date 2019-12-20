@@ -88,7 +88,6 @@ func init() {
 	}
 
 	//add sub cmd to adminCmd
-	//appendSubCmd(adminCmd, "setbalance", "set target account with specified amount", setBalance, addSetBalanceFlag)
 	appendSubCmd(adminCmd, "setcert", "set metering cert", setCert, addCertFlags)
 	appendSubCmd(adminCmd, "validator", "add a new validator", setValidator, addSetValidatorFlags)
 	appendSubCmd(adminCmd, "removecert", "remove cert from validator", removeCert, addRemoveCertFlags)

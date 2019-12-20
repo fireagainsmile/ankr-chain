@@ -7,12 +7,16 @@ const (
 var (
 	NodeVersion     = "1.0.0"
 	CompilerVersion = "1.0.0"
-	GitCommit  string
+	CliVersion      = "1.0.0"
+	LasVersion      = "1.0.0"
+  	GitCommit       string
 )
 
 func init() {
 	if GitCommit != "" {
-		NodeVersion += "-" + GitCommit
+		NodeVersion     += "-" + GitCommit
 		CompilerVersion += "-" + GitCommit
+		CliVersion      += "-" + GitCommit
+		LasVersion      += "-" + GitCommit
 	}
 }

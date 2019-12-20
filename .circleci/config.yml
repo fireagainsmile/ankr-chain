@@ -32,24 +32,31 @@ jobs:
               AWS_ZONE=us-west-2a
               ACM_REGION="us-west-2"
               ANKRCHAIN_DNS="chain.dccn.ankr.com"
+              NODE_RUNMODE=RunModeProd
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS_PROD\"/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             elif [[ ($BRANCH_NAME == "develop") ]]; then
               BRANCH_NAME="dev"
               K8S_CLUSTER="stage.hub"
               CHARTMUSEUM_URL="http://chart-stage.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
               ANKRCHAIN_DNS="chain-stage.dccn.ankr.com"
+              NODE_RUNMODE=RunModeTesting
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS_STAGE\"/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             else
               BRANCH_NAME="feat"
               K8S_CLUSTER="dev.hub"
               CHARTMUSEUM_URL="http://chart-dev.dccn.ankr.com:8080"
               ACM_REGION="us-west-1"
               ANKRCHAIN_DNS="chain-dev.dccn.ankr.com"
+              NODE_RUNMODE=RunModeTesting
+              sed -i "s/persistent_peers = \"\"/persistent_peers = \"$PERSISTENT_PEERS_DEV\"/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
             fi
             sed -i "s/seeds = \"\"/$SEEDS/"  DOCKER/tmhome/config/config.$BRANCH_NAME.toml
 
             docker build --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
               --label=ankrchain --target=public --build-arg BRANCH_NAME=${BRANCH_NAME} \
               --build-arg PRIV_PATH=${PRIV_PATH} --build-arg BRANCH_NAME=${BRANCH_NAME} \
+              --build-arg NODE_RUNMODE=${NODE_RUNMODE} \
               -t ankr-chain:$BRANCH_NAME . -f DOCKER/Dockerfile
             for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
               docker tag ankr-chain:$BRANCH_NAME ankrnetwork/ankr-chain:$TAG
@@ -59,6 +66,7 @@ jobs:
             docker build --build-arg GITHUB_USER=${GITHUB_USER} --build-arg GITHUB_TOKEN=${GITHUB_TOKEN} \
               --label=ankrchain --target=hub --build-arg BRANCH_NAME=${BRANCH_NAME} \
               --build-arg PRIV_PATH=${PRIV_PATH} -t ankr-chain:hub-$BRANCH_NAME \
+              --build-arg NODE_RUNMODE=${NODE_RUNMODE} \
               . -f DOCKER/Dockerfile
             for TAG in $BRANCH_NAME $SHA1_SHORT $BRANCH_NAME$DATE; do
               docker tag ankr-chain:hub-$BRANCH_NAME ankrnetwork/ankr-chain:hub-$TAG
