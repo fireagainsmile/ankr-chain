@@ -78,7 +78,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	err = addPersistentString(transactionCmd, transferGasPrice, gasPriceParam, "", "10000000000000000", "gas price(should more than 10000000000000000)", notRequired)
+	err = addPersistentString(transactionCmd, transferGasPrice, gasPriceParam, "", "100000000000000000", "gas price(should more than 10000000000000000)", notRequired)
 	if err != nil {
 		panic(err)
 	}
