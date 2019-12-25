@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="English">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ankrchain-cli query | AnkrChain Document</title>
+    <meta name="description" content="">
+    
+    
+    <link rel="preload" href="/ankr-chain/assets/css/0.styles.274ffd6b.css" as="style"><link rel="preload" href="/ankr-chain/assets/js/app.606b32a8.js" as="script"><link rel="preload" href="/ankr-chain/assets/js/2.1ef86885.js" as="script"><link rel="preload" href="/ankr-chain/assets/js/9.0d0378cc.js" as="script"><link rel="prefetch" href="/ankr-chain/assets/js/10.b4c3beec.js"><link rel="prefetch" href="/ankr-chain/assets/js/11.c17713ef.js"><link rel="prefetch" href="/ankr-chain/assets/js/12.f256b946.js"><link rel="prefetch" href="/ankr-chain/assets/js/13.08ef2520.js"><link rel="prefetch" href="/ankr-chain/assets/js/14.942dddb4.js"><link rel="prefetch" href="/ankr-chain/assets/js/15.ec027e92.js"><link rel="prefetch" href="/ankr-chain/assets/js/16.50a7ca78.js"><link rel="prefetch" href="/ankr-chain/assets/js/17.4647f9be.js"><link rel="prefetch" href="/ankr-chain/assets/js/18.a8b905a2.js"><link rel="prefetch" href="/ankr-chain/assets/js/19.bf7fafe9.js"><link rel="prefetch" href="/ankr-chain/assets/js/3.32db2e49.js"><link rel="prefetch" href="/ankr-chain/assets/js/4.4ce433e9.js"><link rel="prefetch" href="/ankr-chain/assets/js/5.0c71fcb9.js"><link rel="prefetch" href="/ankr-chain/assets/js/6.3545c966.js"><link rel="prefetch" href="/ankr-chain/assets/js/7.ac937dd0.js"><link rel="prefetch" href="/ankr-chain/assets/js/8.95a8afbf.js">
+    <link rel="stylesheet" href="/ankr-chain/assets/css/0.styles.274ffd6b.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/ankr-chain/" class="home-link router-link-active"><!----> <span class="site-name">AnkrChain Document</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/ankr-chain/introduction/" class="nav-link">Introduction</a></div><div class="nav-item"><a href="/ankr-chain/get-started/" class="nav-link">Getting Started</a></div><div class="nav-item"><a href="/ankr-chain/smart-contracts/" class="nav-link">Smart Contracts</a></div><div class="nav-item"><a href="/ankr-chain/sdk/" class="nav-link">SDK</a></div><div class="nav-item"><a href="/ankr-chain/cli/" class="nav-link router-link-active">CLI</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/ankr-chain/cli/doc/ankr_cli_query.html" class="nav-link router-link-exact-active router-link-active">English</a></li><li class="dropdown-item"><!----> <a href="/ankr-chain/zh/" class="nav-link">简体中文</a></li></ul></div></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/ankr-chain/introduction/" class="nav-link">Introduction</a></div><div class="nav-item"><a href="/ankr-chain/get-started/" class="nav-link">Getting Started</a></div><div class="nav-item"><a href="/ankr-chain/smart-contracts/" class="nav-link">Smart Contracts</a></div><div class="nav-item"><a href="/ankr-chain/sdk/" class="nav-link">SDK</a></div><div class="nav-item"><a href="/ankr-chain/cli/" class="nav-link router-link-active">CLI</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/ankr-chain/cli/doc/ankr_cli_query.html" class="nav-link router-link-exact-active router-link-active">English</a></li><li class="dropdown-item"><!----> <a href="/ankr-chain/zh/" class="nav-link">简体中文</a></li></ul></div></div> <!----></nav>  <!----> </aside> <main class="page"> <div class="theme-default-content content__default"><h2 id="ankrchain-cli-query"><a href="#ankrchain-cli-query" class="header-anchor">#</a> ankrchain-cli query</h2> <p>query information from ankr chain</p> <h3 id="sub-commands"><a href="#sub-commands" class="header-anchor">#</a> Sub commands</h3> <div class="language- extra-class"><pre class="language-text"><code>  PS D:\&gt; ankrchain-cli query
+  query information from ankr chain
+  
+  Usage:
+    ankrchain-cli query [command]
+  
+  Available Commands:
+    account            query account info
+    balance            get the balance of an address.
+    block              Get block at a given height. If no height is provided, it will fetch the latest block.
+    consensusstate     ConsensusState returns a concise summary of the consensus state
+    dumpconsensusstate dumps consensus state
+    genesis            Get genesis file.
+    numunconfirmedtxs  Get number of unconfirmed transactions.
+    status             Get Ankr status including node info, pubkey, latest block hash, app hash, block height and time.
+    transaction        transaction allows you to query the transaction results.
+    unconfirmedtxs     Get unconfirmed transactions (maximum ?limit entries) including their number
+    validators         Get the validator set at the given block height. If no height is provided, it will fetch the current validator set.
+  
+  Flags:
+    -h, --help         help for query
+        --nodeurl string   validator url
+  
+  Use &quot;ankrchain-cli query [command] --help&quot; for more information about a command.
+</code></pre></div><h3 id="example"><a href="#example" class="header-anchor">#</a> example</h3> <ul><li>balance<div class="language- extra-class"><pre class="language-text"><code> PS D:\&gt; ankrchain-cli query balance --nodeurl http://localhost:26657 --address E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+ {
+         &quot;amount&quot;: &quot;10000000000000000000000000000&quot;
+ }
+</code></pre></div></li> <li>account<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query balance --nodeurl http://localhost:26657 --address E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+{
+           &quot;accounttype&quot;: &quot;7&quot;,
+           &quot;nonce&quot;: &quot;16&quot;,
+           &quot;address&quot;: &quot;E1403CA0DC201F377E820CFA62117A48D4D6124&quot;,
+           &quot;pubkey&quot;: &quot;&quot;,
+           &quot;asserts&quot;: [
+                   {
+                           &quot;currency&quot;: {
+                                   &quot;symbol&quot;: &quot;ANKR&quot;,
+                                   &quot;decimal&quot;: &quot;18&quot;
+                           },
+                           &quot;value&quot;: &quot;IE/OXj4lAmEQAAAA&quot;
+                   }
+           ]
+   }
+</code></pre></div></li> <li>block<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query block --nodeurl http://localhost:26657 --height 631 
+Total count: 1
+
+Block info:
+Version:  {10 1}
+Chain-Id: test-chain-4J6Kvw
+Height:  48
+Time: 2019-11-04 10:21:05.3357335 +0000 UTC
+Number-Txs:  1
+Total-Txs: 1
+Last-block-id:  B6195927CDB7BDA8530BBB2FFB8B4C1B49794B33EB54A776B03E78FE7335338C:1:60B7C6EA3085
+Last-commit-hash: 846C4ED895D0F18C978BB9CEB18216EE27839C2CDE5C94D6C1FE60614A564D4B
+Data-hash:  68BE7B0F901EA0158DAA11ED31D28723867E6CC4A19A64FF424FD5CF03AA523D
+Validator: 1805057E3381391B344B55017820DE2FC49E42388B2FF7213AC59885477885B0
+Consensus:  048091BC7DDC283F77BFBF91D73C44DA58C3DF8A9CBC867405D8B7F3DAADA22F
+Version:  {10 1}
+App-hash: 0000000000000000
+Proposer-Address: F840E36AD0CF3564DD9EE01E2E5948A6F42ABE80B6D16B
+
+Transactions contained in block:
+{
+        &quot;type&quot;: &quot;ankr-chain/tx/txMsg&quot;,
+        &quot;value&quot;: {
+                &quot;chainid&quot;: &quot;test-chain-4J6Kvw&quot;,
+                &quot;nonce&quot;: &quot;0&quot;,
+                &quot;gaslimit&quot;: &quot;A+g=&quot;,
+                &quot;gasprice&quot;: {
+                        &quot;currency&quot;: {
+                                &quot;symbol&quot;: &quot;ANKR&quot;,
+                                &quot;decimal&quot;: &quot;18&quot;
+                        },
+                        &quot;value&quot;: &quot;AWNFeF2KAAA=&quot;
+                },
+                &quot;gasused&quot;: null,
+                &quot;signs&quot;: [
+                        {
+                                &quot;pubkey&quot;: {
+                                        &quot;type&quot;: &quot;tendermint/PubKeyEd25519&quot;,
+                                        &quot;value&quot;: &quot;wvHG3EddBbXQHcyJal0CS/YQcNYtEbFYxejnqf9OhM4=&quot;
+                                },
+                                &quot;signed&quot;: &quot;/IAa8vAGF2sFcbq6ZJ6xY3u5HYZyLhiqFyFRcXzXOt3qKJTZwtMyQnjw1Q7yFfqpxmcuWPQZvddT+UTBgpyTAw==&quot;,
+                                &quot;R&quot;: &quot;&quot;,
+                                &quot;S&quot;: &quot;&quot;,
+                                &quot;PubPEM&quot;: &quot;&quot;
+                        }
+                ],
+                &quot;memo&quot;: &quot;test transfer&quot;,
+                &quot;version&quot;: &quot;1.0&quot;,
+                &quot;data&quot;: {
+                        &quot;type&quot;: &quot;ankr-chain/tx/token/tranferTxMsg&quot;,
+                        &quot;value&quot;: {
+                                &quot;fromaddr&quot;: &quot;B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67&quot;,
+                                &quot;toaddr&quot;: &quot;065E37B3FC243B9FABB1519AB876E7632C510DC9324031&quot;,
+                                &quot;amounts&quot;: [
+                                        {
+                                                &quot;currency&quot;: {
+                                                        &quot;symbol&quot;: &quot;ANKR&quot;,
+                                                        &quot;decimal&quot;: &quot;18&quot;
+                                                },
+                                                &quot;value&quot;: &quot;U0RINexYAAA=&quot;
+                                        }
+                                ]
+                        }
+                }
+        }
+}
+
+</code></pre></div></li> <li>consensusstate<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query consensusstate --nodeurl http://localhost:26657
+{
+    &quot;round_state&quot;: {
+        &quot;height/round/step&quot;: &quot;117983/0/1&quot;,
+        &quot;start_time&quot;: &quot;2019-08-01T05:35:21.2209774Z&quot;,
+        &quot;proposal_block_hash&quot;: &quot;&quot;,
+        &quot;locked_block_hash&quot;: &quot;&quot;,
+        &quot;valid_block_hash&quot;: &quot;&quot;,
+        &quot;height_vote_set&quot;: [
+            {
+                &quot;round&quot;: &quot;0&quot;,
+                &quot;prevotes&quot;: [
+                    &quot;nil-Vote&quot;
+                ],
+                &quot;prevotes_bit_array&quot;: &quot;BA{1:_} 0/10 = 0.00&quot;,
+                &quot;precommits&quot;: [
+                    &quot;nil-Vote&quot;
+                ],
+                &quot;precommits_bit_array&quot;: &quot;BA{1:_} 0/10 = 0.00&quot;
+            }
+        ]
+    }
+}
+</code></pre></div></li> <li>dumpconsensusstate<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query consensusstate --nodeurl http://localhost:26657
+{
+    &quot;round_state&quot;: {
+        &quot;height/round/step&quot;: &quot;118015/0/1&quot;,
+        &quot;start_time&quot;: &quot;2019-08-01T05:35:54.1263101Z&quot;,
+        &quot;proposal_block_hash&quot;: &quot;&quot;,
+        &quot;locked_block_hash&quot;: &quot;&quot;,
+        &quot;valid_block_hash&quot;: &quot;&quot;,
+        &quot;height_vote_set&quot;: [
+            {
+                &quot;round&quot;: &quot;0&quot;,
+                &quot;prevotes&quot;: [
+                    &quot;nil-Vote&quot;
+                ],
+                &quot;prevotes_bit_array&quot;: &quot;BA{1:_} 0/10 = 0.00&quot;,
+                &quot;precommits&quot;: [
+                    &quot;nil-Vote&quot;
+                ],
+                &quot;precommits_bit_array&quot;: &quot;BA{1:_} 0/10 = 0.00&quot;
+            }
+        ]
+    }
+}
+</code></pre></div></li> <li>genesis<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query genesis --nodeurl http://localhost:26657
+{
+    Genesis:{
+        &quot;genesis_time&quot;: 2019-07-24 10:44:03.9174995 +0000 UTC
+        &quot;chain_id&quot;: test-chain-0bOrck
+        &quot;consensus_params&quot;:{
+        &quot;block&quot;: {
+            &quot;max_bytes&quot;: 22020096,
+            &quot;max_gas&quot;: -1,
+            &quot;time_iota_ms&quot;: 1000
+        },
+        &quot;evidence&quot;: {
+            &quot;max_age&quot;: 100000
+        },
+        &quot;validator&quot;: {
+            &quot;pub_key_types&quot;: [
+                &quot;ed25519&quot;
+            ]
+        }
+    }
+    &quot;validators&quot;: [
+        {
+             &quot;address&quot;: &quot;6BAE4972E4DEA417461BFC8C41198E9F9DF5D8F13CE359&quot;,
+             &quot;pub_key&quot;: {
+                 &quot;type&quot;: &quot;tendermint/PubKeyEd25519&quot;,
+                 &quot;value&quot;: &quot;voN51o4hX95tLWfF0FYg+JPEjzc71G9OCrje3k+IZ/c=&quot;
+              },
+             &quot;power&quot;: &quot;10&quot;,
+             &quot;name&quot;: &quot;&quot;
+        }
+    ],
+    &quot;app_hash&quot;: &quot;&quot;
+    }
+ }
+</code></pre></div></li> <li>numunconfirmedtxs<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query numunconfirmedtxs --nodeurl http://localhost:26657
+{
+        &quot;n_txs&quot;: &quot;0&quot;,
+        &quot;total&quot;: &quot;0&quot;,
+        &quot;total_bytes&quot;: &quot;0&quot;,
+        &quot;txs&quot;: null
+}
+</code></pre></div></li> <li>status<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query status --nodeurl http://localhost:26657
+{
+        &quot;node_info&quot;: {
+                &quot;protocol_version&quot;: {
+                        &quot;p2p&quot;: &quot;7&quot;,
+                        &quot;block&quot;: &quot;10&quot;,
+                        &quot;app&quot;: &quot;1&quot;
+                },
+                &quot;id&quot;: &quot;2df293afa2a0ef722f9c73ea05bbdea28b1c8391503996&quot;,
+                &quot;listen_addr&quot;: &quot;tcp://0.0.0.0:26656&quot;,
+                &quot;network&quot;: &quot;test-chain-4J6Kvw&quot;,
+                &quot;version&quot;: &quot;0.31.5&quot;,
+                &quot;channels&quot;: &quot;4020212223303800&quot;,
+                &quot;moniker&quot;: &quot;DESKTOP-NF0AS58&quot;,
+                &quot;other&quot;: {
+                        &quot;tx_index&quot;: &quot;on&quot;,
+                        &quot;rpc_address&quot;: &quot;tcp://0.0.0.0:26657&quot;
+                }
+        },
+        &quot;sync_info&quot;: {
+                &quot;latest_block_hash&quot;: &quot;250485A6C75A6AFC1923AF4DA9E8749F63DCEF5E8427BB3B996278C04E10C424&quot;,
+                &quot;latest_app_hash&quot;: &quot;0200000000000000&quot;,
+                &quot;latest_block_height&quot;: &quot;802&quot;,
+                &quot;latest_block_time&quot;: &quot;2019-11-04T10:33:58.9193676Z&quot;,
+                &quot;catching_up&quot;: false
+        },
+        &quot;validator_info&quot;: {
+                &quot;address&quot;: &quot;F840E36AD0CF3564DD9EE01E2E5948A6F42ABE80B6D16B&quot;,
+                &quot;pub_key&quot;: {
+                        &quot;type&quot;: &quot;tendermint/PubKeyEd25519&quot;,
+                        &quot;value&quot;: &quot;ojlpHiDda9iGTKUDalu5dqtIvdWitBMRmDWq3J76Hxs=&quot;
+                },
+                &quot;voting_power&quot;: &quot;10&quot;
+        }
+}
+</code></pre></div></li> <li>transaction<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query transaction --nodeurl http://localhost:26657 --txid 0x72fb3fa4735e2de3e56ab50a5d2ddcdbd019012b34a226dce0b7a3d2e13bddeb
+{
+        &quot;hash&quot;: &quot;A6C50753C6CB41A0495C9BDB7E7635368F4C675B96A2F1AA353704CDC05C9B00&quot;,
+        &quot;height&quot;: 48,
+        &quot;index&quot;: 0,
+        &quot;tx_result&quot;: {
+                &quot;gasWanted&quot;: &quot;1000&quot;,
+                &quot;gasUsed&quot;: &quot;20&quot;,
+                &quot;tags&quot;: [
+                        {
+                                &quot;key&quot;: &quot;YXBwLmZyb21hZGRyZXNz&quot;,
+                                &quot;value&quot;: &quot;QjUwOEVEMEQ1NDU5N0Q1MTZBNjgwRTc5NTFGMThDQUQyNEM3RUM5RkNGQ0Q2Nw==&quot;
+                        },
+                        {
+                                &quot;key&quot;: &quot;YXBwLnRvYWRkcmVzcw==&quot;,
+                                &quot;value&quot;: &quot;MDY1RTM3QjNGQzI0M0I5RkFCQjE1MTlBQjg3NkU3NjMyQzUxMERDOTMyNDAzMQ==&quot;
+                        },
+                        {
+                                &quot;key&quot;: &quot;YXBwLnRpbWVzdGFtcA==&quot;,
+                                &quot;value&quot;: &quot;MTU3Mjg2Mjg2NjM3Mzg5NzgwMA==&quot;
+                        },
+                        {
+                                &quot;key&quot;: &quot;YXBwLnR5cGU=&quot;,
+                                &quot;value&quot;: &quot;VHJhbnNmZXI=&quot;
+                        }
+                ]
+        },
+        &quot;tx&quot;: &quot;rAK/ms8MChF0ZXN0LWNoYWluLTRKNkt2dxoCA+giFAoICgRBTktSEBISCAFjRXhdigAAMmkKJRYk3mQgwvHG3EddBbXQHcyJal0CS/YQcNYtEbFYxejnqf9OhM4SQPyAGvLwBhdrBXG6umSesWN7uR2Gci4YqhchUXF81zrd6iiU2cLTMkJ48NUO8hX6qcZnLlj0Gb3XU/lEwYKckwM6DXRlc3QgdHJhbnNmZXJCAzEuMEp6Seac0wouQjUwOEVEMEQ1NDU5N0Q1MTZBNjgwRTc5NTFGMThDQUQyNEM3RUM5RkNGQ0Q2NxIuMDY1RTM3QjNGQzI0M0I5RkFCQjE1MTlBQjg3NkU3NjMyQzUxMERDOTMyNDAzMRoUCggKBEFOS1IQEhIIU0RINexYAAA=&quot;,
+        &quot;proof&quot;: {
+                &quot;RootHash&quot;: &quot;&quot;,
+                &quot;Data&quot;: null,
+                &quot;Proof&quot;: {
+                        &quot;total&quot;: 0,
+                        &quot;index&quot;: 0,
+                        &quot;leaf_hash&quot;: null,
+                        &quot;aunts&quot;: null
+                }
+        }
+}
+
+</code></pre></div><div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query transaction --to 065E37B3FC243B9FABB1519AB876E7632C510DC9324031 --nodeurl http://localhost:26657
+Total Tx Count: 1
+Transactions search result:
+{
+        &quot;hash&quot;: &quot;A6C50753C6CB41A0495C9BDB7E7635368F4C675B96A2F1AA353704CDC05C9B00&quot;,
+        &quot;height&quot;: 48,
+        &quot;index&quot;: 0,
+        &quot;tx_result&quot;: {
+                &quot;gasWanted&quot;: &quot;1000&quot;,
+                &quot;gasUsed&quot;: &quot;20&quot;,
+                &quot;tags&quot;: [
+                        {
+                                &quot;key&quot;: &quot;YXBwLmZyb21hZGRyZXNz&quot;,
+                                &quot;value&quot;: &quot;QjUwOEVEMEQ1NDU5N0Q1MTZBNjgwRTc5NTFGMThDQUQyNEM3RUM5RkNGQ0Q2Nw==&quot;
+                        },
+                        {
+                                &quot;key&quot;: &quot;YXBwLnRvYWRkcmVzcw==&quot;,
+                                &quot;value&quot;: &quot;MDY1RTM3QjNGQzI0M0I5RkFCQjE1MTlBQjg3NkU3NjMyQzUxMERDOTMyNDAzMQ==&quot;
+                        },
+                        {
+                                &quot;key&quot;: &quot;YXBwLnRpbWVzdGFtcA==&quot;,
+                                &quot;value&quot;: &quot;MTU3Mjg2Mjg2NjM3Mzg5NzgwMA==&quot;
+                        },
+                        {
+                                &quot;key&quot;: &quot;YXBwLnR5cGU=&quot;,
+                                &quot;value&quot;: &quot;VHJhbnNmZXI=&quot;
+                        }
+                ]
+        },
+        &quot;tx&quot;: &quot;rAK/ms8MChF0ZXN0LWNoYWluLTRKNkt2dxoCA+giFAoICgRBTktSEBISCAFjRXhdigAAMmkKJRYk3mQgwvHG3EddBbXQHcyJal0CS/YQcNYtEbFYxejnqf9OhM4SQPyAGvLwBhdrBXG6umSesWN7uR2Gci4YqhchUXF81zrd6iiU2cLTMkJ48NUO8hX6qcZnLlj0Gb3XU/lEwYKckwM6DXRlc3QgdHJhbnNmZXJCAzEuMEp6Seac0wouQjUwOEVEMEQ1NDU5N0Q1MTZBNjgwRTc5NTFGMThDQUQyNEM3RUM5RkNGQ0Q2NxIuMDY1RTM3QjNGQzI0M0I5RkFCQjE1MTlBQjg3NkU3NjMyQzUxMERDOTMyNDAzMRoUCggKBEFOS1IQEhIIU0RINexYAAA=&quot;,
+        &quot;proof&quot;: {
+                &quot;RootHash&quot;: &quot;&quot;,
+                &quot;Data&quot;: null,
+                &quot;Proof&quot;: {
+                        &quot;total&quot;: 0,
+                        &quot;index&quot;: 0,
+                        &quot;leaf_hash&quot;: null,
+                        &quot;aunts&quot;: null
+                }
+        }
+}
+</code></pre></div></li> <li>unconfirmedtxs<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli query unconfirmedtxs --nodeurl http://localhost:26657
+n_tx: 0
+total: 0
+total_bytes: 0
+transactions:
+[]
+</code></pre></div></li> <li>validators<div class="language- extra-class"><pre class="language-text"><code> PS D:\&gt; ankrchain-cli query validators --nodeurl http://localhost:26657
+ {
+         &quot;block_height&quot;: &quot;1022&quot;,
+         &quot;validators&quot;: [
+                 {
+                         &quot;address&quot;: &quot;F840E36AD0CF3564DD9EE01E2E5948A6F42ABE80B6D16B&quot;,
+                         &quot;pub_key&quot;: {
+                                 &quot;type&quot;: &quot;tendermint/PubKeyEd25519&quot;,
+                                 &quot;value&quot;: &quot;ojlpHiDda9iGTKUDalu5dqtIvdWitBMRmDWq3J76Hxs=&quot;
+                         },
+                         &quot;voting_power&quot;: &quot;10&quot;,
+                         &quot;proposer_priority&quot;: &quot;0&quot;
+                 }
+         ]
+ }
+</code></pre></div></li></ul></div> <footer class="page-edit"><!----> <!----></footer> <!----> </main></div><div class="global-ui"></div></div>
+    <script src="/ankr-chain/assets/js/app.606b32a8.js" defer></script><script src="/ankr-chain/assets/js/2.1ef86885.js" defer></script><script src="/ankr-chain/assets/js/9.0d0378cc.js" defer></script>
+  </body>
+</html>

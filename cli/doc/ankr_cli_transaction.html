@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="English">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ankrchain-cli transaction | AnkrChain Document</title>
+    <meta name="description" content="">
+    
+    
+    <link rel="preload" href="/ankr-chain/assets/css/0.styles.274ffd6b.css" as="style"><link rel="preload" href="/ankr-chain/assets/js/app.606b32a8.js" as="script"><link rel="preload" href="/ankr-chain/assets/js/2.1ef86885.js" as="script"><link rel="preload" href="/ankr-chain/assets/js/10.b4c3beec.js" as="script"><link rel="prefetch" href="/ankr-chain/assets/js/11.c17713ef.js"><link rel="prefetch" href="/ankr-chain/assets/js/12.f256b946.js"><link rel="prefetch" href="/ankr-chain/assets/js/13.08ef2520.js"><link rel="prefetch" href="/ankr-chain/assets/js/14.942dddb4.js"><link rel="prefetch" href="/ankr-chain/assets/js/15.ec027e92.js"><link rel="prefetch" href="/ankr-chain/assets/js/16.50a7ca78.js"><link rel="prefetch" href="/ankr-chain/assets/js/17.4647f9be.js"><link rel="prefetch" href="/ankr-chain/assets/js/18.a8b905a2.js"><link rel="prefetch" href="/ankr-chain/assets/js/19.bf7fafe9.js"><link rel="prefetch" href="/ankr-chain/assets/js/3.32db2e49.js"><link rel="prefetch" href="/ankr-chain/assets/js/4.4ce433e9.js"><link rel="prefetch" href="/ankr-chain/assets/js/5.0c71fcb9.js"><link rel="prefetch" href="/ankr-chain/assets/js/6.3545c966.js"><link rel="prefetch" href="/ankr-chain/assets/js/7.ac937dd0.js"><link rel="prefetch" href="/ankr-chain/assets/js/8.95a8afbf.js"><link rel="prefetch" href="/ankr-chain/assets/js/9.0d0378cc.js">
+    <link rel="stylesheet" href="/ankr-chain/assets/css/0.styles.274ffd6b.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/ankr-chain/" class="home-link router-link-active"><!----> <span class="site-name">AnkrChain Document</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/ankr-chain/introduction/" class="nav-link">Introduction</a></div><div class="nav-item"><a href="/ankr-chain/get-started/" class="nav-link">Getting Started</a></div><div class="nav-item"><a href="/ankr-chain/smart-contracts/" class="nav-link">Smart Contracts</a></div><div class="nav-item"><a href="/ankr-chain/sdk/" class="nav-link">SDK</a></div><div class="nav-item"><a href="/ankr-chain/cli/" class="nav-link router-link-active">CLI</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/ankr-chain/cli/doc/ankr_cli_transaction.html" class="nav-link router-link-exact-active router-link-active">English</a></li><li class="dropdown-item"><!----> <a href="/ankr-chain/zh/" class="nav-link">简体中文</a></li></ul></div></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/ankr-chain/introduction/" class="nav-link">Introduction</a></div><div class="nav-item"><a href="/ankr-chain/get-started/" class="nav-link">Getting Started</a></div><div class="nav-item"><a href="/ankr-chain/smart-contracts/" class="nav-link">Smart Contracts</a></div><div class="nav-item"><a href="/ankr-chain/sdk/" class="nav-link">SDK</a></div><div class="nav-item"><a href="/ankr-chain/cli/" class="nav-link router-link-active">CLI</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/ankr-chain/cli/doc/ankr_cli_transaction.html" class="nav-link router-link-exact-active router-link-active">English</a></li><li class="dropdown-item"><!----> <a href="/ankr-chain/zh/" class="nav-link">简体中文</a></li></ul></div></div> <!----></nav>  <!----> </aside> <main class="page"> <div class="theme-default-content content__default"><h2 id="ankrchain-cli-transaction"><a href="#ankrchain-cli-transaction" class="header-anchor">#</a> ankrchain-cli transaction</h2> <p>transaction is used to send coins to specified address or send metering</p> <h3 id="sub-commands"><a href="#sub-commands" class="header-anchor">#</a> Sub commands</h3> <div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli transaction --help
+transaction is used to send coins to specified address or send metering
+
+Usage:
+  ankr-chain-cli transaction [flags]
+  ankr-chain-cli transaction [command]
+
+Available Commands:
+  deploy      deploy smart contract
+  invoke      invoke smart contract
+  metering    send metering transaction
+  transfer    send coins to another account
+
+Flags:
+      --chain-id string    block chain id (default &quot;ankr-chain&quot;)
+      --gas-limit string   gas limit (default &quot;20000&quot;)
+      --gas-price string   gas price(should more than 10000000000000000) (default &quot;10000000000000000&quot;)
+  -h, --help               help for transaction
+      --memo string        transaction memo
+      --nodeurl string     the url of a validator
+      --version string     block chain net version (default &quot;1.0&quot;)
+Use &quot;ankrchain-cli transaction [command] --help&quot; for more information about a command.
+</code></pre></div><h3 id="example"><a href="#example" class="header-anchor">#</a> example</h3> <ul><li>metering<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli transaction metering --nodeurl http://localhost:26657 --dcname datacenter_name --namespace test --value test-value --privkey privkey --chain-id test-chain-FojX8z
+Set metering success.
+</code></pre></div></li> <li>transfer<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli transaction transfer --to F4656949BD747057A59DDF90A218EC352E3916A096924D --amount 20000000000000000000 --keystore .\UTC--2019-08-01T02-25-01.685454800Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3 --nodeurl http://localhost:26657 --chain-id test-chain-FojX8z
+Please input the keystore password:
+
+Transaction sent. Tx hash: 210AEB37AD654AE04CC7A5FC650C23CD4E03A12CC4D2A63A1288D534A8475C31
+</code></pre></div></li> <li>deploy<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli transaction deploy  --gas-limit 5000000000000 --nodeurl localhost:26657 --keystore .\UTC--2019-11-07T10-16-25.504436700Z--B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67 --file TestContract.wasm --abi  test --chain-id test-chain-ZFaVSj
+
+Please input the keystore password:
+Start Sending transaction...
+Contract deployed successful.
+transaction hash: 59F1B9025D813D6B8ED0CF33B7979E8778B93D1D39F3773B6F74C528F5BC3D5D
+block height: 20
+contract address: A277D0BD075656C3DBF92F9FEDC396AFFC75C95B9CF6D6
+</code></pre></div></li> <li>invoke<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli transaction invoke --nodeurl localhost:26657 --address A277D0BD075656C3DBF92F9FEDC396AFFC75C95B9CF6D6 --method testFuncWithString --rtn-type string --keystore .\UTC--2019-11-07T10-16-25.504436700Z--B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67 --chain-id test-chain-ZFaVSj --args '[{\&quot;index\&quot;:1,\&quot;Name\&quot;:\&quot;args\&quot;,\&quot;ParamType\&quot;:\&quot;string\&quot;,\&quot;Value\&quot;:{\&quot;testStr\&quot;:\&quot;testFuncWithInt\&quot;}}]'
+Please input the keystore password:
+Start Sending transaction...
+Invoke smart contract successful.
+transaction hash: 27B1BFDE5C09A8DA3B159EDD8EEC2EEAFD243C445F19E66C7C2FE6BB629A53A7
+block height: 3725
+result: {&quot;issuccess&quot;:true,&quot;resultType&quot;:&quot;string&quot;,&quot;value&quot;:&quot;{\&quot;testFuncWithString\&quot;:\&quot;testfuncwithstring sucess\&quot;}&quot;}
+</code></pre></div></li></ul></div> <footer class="page-edit"><!----> <!----></footer> <!----> </main></div><div class="global-ui"></div></div>
+    <script src="/ankr-chain/assets/js/app.606b32a8.js" defer></script><script src="/ankr-chain/assets/js/2.1ef86885.js" defer></script><script src="/ankr-chain/assets/js/10.b4c3beec.js" defer></script>
+  </body>
+</html>

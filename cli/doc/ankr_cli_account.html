@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="English">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ankrchain-cli account | AnkrChain Document</title>
+    <meta name="description" content="">
+    
+    
+    <link rel="preload" href="/ankr-chain/assets/css/0.styles.274ffd6b.css" as="style"><link rel="preload" href="/ankr-chain/assets/js/app.606b32a8.js" as="script"><link rel="preload" href="/ankr-chain/assets/js/2.1ef86885.js" as="script"><link rel="preload" href="/ankr-chain/assets/js/7.ac937dd0.js" as="script"><link rel="prefetch" href="/ankr-chain/assets/js/10.b4c3beec.js"><link rel="prefetch" href="/ankr-chain/assets/js/11.c17713ef.js"><link rel="prefetch" href="/ankr-chain/assets/js/12.f256b946.js"><link rel="prefetch" href="/ankr-chain/assets/js/13.08ef2520.js"><link rel="prefetch" href="/ankr-chain/assets/js/14.942dddb4.js"><link rel="prefetch" href="/ankr-chain/assets/js/15.ec027e92.js"><link rel="prefetch" href="/ankr-chain/assets/js/16.50a7ca78.js"><link rel="prefetch" href="/ankr-chain/assets/js/17.4647f9be.js"><link rel="prefetch" href="/ankr-chain/assets/js/18.a8b905a2.js"><link rel="prefetch" href="/ankr-chain/assets/js/19.bf7fafe9.js"><link rel="prefetch" href="/ankr-chain/assets/js/3.32db2e49.js"><link rel="prefetch" href="/ankr-chain/assets/js/4.4ce433e9.js"><link rel="prefetch" href="/ankr-chain/assets/js/5.0c71fcb9.js"><link rel="prefetch" href="/ankr-chain/assets/js/6.3545c966.js"><link rel="prefetch" href="/ankr-chain/assets/js/8.95a8afbf.js"><link rel="prefetch" href="/ankr-chain/assets/js/9.0d0378cc.js">
+    <link rel="stylesheet" href="/ankr-chain/assets/css/0.styles.274ffd6b.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/ankr-chain/" class="home-link router-link-active"><!----> <span class="site-name">AnkrChain Document</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/ankr-chain/introduction/" class="nav-link">Introduction</a></div><div class="nav-item"><a href="/ankr-chain/get-started/" class="nav-link">Getting Started</a></div><div class="nav-item"><a href="/ankr-chain/smart-contracts/" class="nav-link">Smart Contracts</a></div><div class="nav-item"><a href="/ankr-chain/sdk/" class="nav-link">SDK</a></div><div class="nav-item"><a href="/ankr-chain/cli/" class="nav-link router-link-active">CLI</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/ankr-chain/cli/doc/ankr_cli_account.html" class="nav-link router-link-exact-active router-link-active">English</a></li><li class="dropdown-item"><!----> <a href="/ankr-chain/zh/" class="nav-link">简体中文</a></li></ul></div></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/ankr-chain/introduction/" class="nav-link">Introduction</a></div><div class="nav-item"><a href="/ankr-chain/get-started/" class="nav-link">Getting Started</a></div><div class="nav-item"><a href="/ankr-chain/smart-contracts/" class="nav-link">Smart Contracts</a></div><div class="nav-item"><a href="/ankr-chain/sdk/" class="nav-link">SDK</a></div><div class="nav-item"><a href="/ankr-chain/cli/" class="nav-link router-link-active">CLI</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/ankr-chain/cli/doc/ankr_cli_account.html" class="nav-link router-link-exact-active router-link-active">English</a></li><li class="dropdown-item"><!----> <a href="/ankr-chain/zh/" class="nav-link">简体中文</a></li></ul></div></div> <!----></nav>  <!----> </aside> <main class="page"> <div class="theme-default-content content__default"><h2 id="ankrchain-cli-account"><a href="#ankrchain-cli-account" class="header-anchor">#</a> ankrchain-cli account</h2> <p>account is used to generate new accounts, encrypt privatekey or decrypt privatekey from keystore</p> <h3 id="sub-commands"><a href="#sub-commands" class="header-anchor">#</a> Sub commands</h3> <div class="language- extra-class"><pre class="language-text"><code>  PS D:\&gt; ankrchain-cli account --help
+  account is used to generate new accounts, encrypt privatekey or decrypt privatekey from keystore
+  
+  Usage:
+    ankrchain-cli account [command]
+  
+  Available Commands:
+    exportprivatekey recover private key from keystore.
+    genaccount       generate new account.
+    genkeystore      generate keystore file based on private key and user input password.
+    resetpwd         reset keystore password.
+  
+  Flags:
+    -h, --help   help for account
+  
+  Use &quot;ankrchain-cli account [command] --help&quot; for more information about a command.
+</code></pre></div><h2 id="examples"><a href="#examples" class="header-anchor">#</a> examples</h2> <ul><li>exportprivatekey<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli account exportprivatekey -f .\UTC--2019-08-01T02-25-01.685454800Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+
+Please input the keystore password:
+
+Private key exported: 1gEcOfgXL/rmMvDJPAyL48CanFTeLMU5yASNA9KXmrEVLKr+ZNU879Z3Ew0IwQqIDlRUEVdUvw4CcOyk75u5lg==
+</code></pre></div></li> <li>genaccount<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli account genaccount -o ./
+
+generating accounts...
+
+Account_0
+private key:  1gEcOfgXL/rmMvDJPAyL48CanFTeLMU5yASNA9KXmrEVLKr+ZNU879Z3Ew0IwQqIDlRUEVdUvw4CcOyk75u5lg==
+public key:  FSyq/mTVPO/WdxMNCMEKiA5UVBFXVL8OAnDspO+buZY=
+address:  E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+
+about to export to keystore..
+please input the keystore encryption password:
+please input password again:
+
+exporting to keystore...
+
+created keystore: .//UTC--2019-08-01T02-25-01.685454800Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+</code></pre></div></li> <li>genkeystore<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli account genkeystore -p 1gEcOfgXL/rmMvDJPAyL48CanFTeLMU5yASNA9KXmrEVLKr+ZNU879Z3Ew0IwQqIDlRUEVdUvw
+4CcOyk75u5lg== -o ./
+
+about to export to keystore..
+please input the keystore encryption password:
+please input password again:
+
+exporting to keystore...
+
+created keystore: .//UTC--2019-08-01T02-35-08.700515700Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+</code></pre></div></li> <li>resetpwd<div class="language- extra-class"><pre class="language-text"><code>PS D:\&gt; ankrchain-cli account resetpwd -f ./UTC--2019-08-01T02-34-55.230477100Z--E1403CA0DC201F377E820CFA62117A48D4D612400C20D3
+
+Please input the keystore password:
+please input the keystore encryption password:
+please input password again:
+Password reset success.
+</code></pre></div></li></ul></div> <footer class="page-edit"><!----> <!----></footer> <!----> </main></div><div class="global-ui"></div></div>
+    <script src="/ankr-chain/assets/js/app.606b32a8.js" defer></script><script src="/ankr-chain/assets/js/2.1ef86885.js" defer></script><script src="/ankr-chain/assets/js/7.ac937dd0.js" defer></script>
+  </body>
+</html>
