@@ -19,7 +19,12 @@ func CreateContractAddress(callerAddr string, nonce uint64) string {
 	hasher.Write(common.UInt64ToBytes(nonce))
 	bytesSum :=  hasher.Sum(nil)
 
-	return  crypto.Address(bytesSum).String()
+	rawAddr  := crypto.Address(bytesSum).String()
+	rawAddrR := []rune(rawAddr)
+
+	conAddr := append(rawAddrR[:len(rawAddrR)-3], []rune("@ak")...)
+
+	return  string(conAddr)
 }
 
 func CreateCertAddress(pubBS64 string, dcName string, addrType CertAddrType) string{
