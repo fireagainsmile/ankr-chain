@@ -20,7 +20,7 @@ const (
 	PrintIFunc                 = "print_i"
 	StrlenFunc                 = "strlen"
 	StrcmpFunc                 = "strcmp"
-	StrcatFunc                 = "Strcat"
+	StrcatFunc                 = "strcat"
 	AtoiFunc                   = "Atoi"
     ItoaFunc                   = "Itoa"
 	BigIntSubFunc              =  "BigIntSub"
@@ -788,16 +788,16 @@ func IsContractNormal(proc *exec.Process, cAddrIndex int32) int32 {
 	cAddr, err := proc.ReadString(int64(cAddrIndex))
 	if err != nil {
 		proc.VM().Logger().Error("IsContractNormal can't read cAddr", "err", err)
-		return -1
+		return 0
 	}
 
 	isNormal := ankrcontext.GetBCContext().IsContractNormal(cAddr)
 
 	if !isNormal {
-		return -1
+		return 0
 	}
 
-	return 0
+	return 1
 }
 
 func SuspendContract(proc *exec.Process, cAddrIndex int32) int32 {
