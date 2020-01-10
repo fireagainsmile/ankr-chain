@@ -13,6 +13,16 @@ const (
 	CertAddrTypeRemove
 )
 
+func IsContractAddress(addr string) bool {
+	len := len([]rune(addr))
+	subStr := addr[len-3:]
+	if subStr == "@ak" {
+		return true
+	}
+
+	return false
+}
+
 func CreateContractAddress(callerAddr string, nonce uint64) string {
 	hasher := tmhash.NewTruncated()
 	hasher.Write([]byte(callerAddr))
