@@ -714,6 +714,64 @@ func (sp *IavlStoreApp) LoadContract(cAddr string, height int64, prove bool) (*a
 	return &cInfo, containContractInfoPrefix(cAddr), proof, cInfoBytes, nil
 }
 
+func (sp *IavlStoreApp) UpdateContractState(cAddr string, state ankrcmm.ContractState) error {
+	if cAddr == "" {
+		return errors.New("UpdateContractState, blank cAddr")
+	}
+	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
+	if err != nil || len(cInfoBytes) == 0 {
+		sp.storeLog.Error("UpdateContractState can't get the contract", "addr", cAddr)
+		return err
+	}
+
+	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
+	cInfo.State = state
+
+
+	cInfoBytes = ankrcmm.EncodeContractInfo(sp.cdc, &cInfo)
+	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containContractInfoPrefix(cAddr)), cInfoBytes)
+
+	return nil
+}
+
+func (sp *IavlStoreApp) ChangeContractOwner(cAddr string, ownerAddr string) error {
+	if cAddr == "" {
+		return errors.New("ChangeContractOwner, blank cAddr")
+	}
+	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
+	if err != nil || len(cInfoBytes) == 0 {
+		sp.storeLog.Error("ChangeContractOwner can't get the contract", "addr", cAddr)
+		return err
+	}
+
+	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
+	cInfo.Owner = ownerAddr
+
+
+	cInfoBytes = ankrcmm.EncodeContractInfo(sp.cdc, &cInfo)
+	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containContractInfoPrefix(cAddr)), cInfoBytes)
+
+	return nil
+}
+
+func (sp *IavlStoreApp) IsContractNormal(cAddr string) bool {
+	if cAddr == "" {
+		return false
+	}
+	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
+	if err != nil || len(cInfoBytes) == 0 {
+		sp.storeLog.Error("IsContractNormal can't get the contract", "addr", cAddr)
+		return false
+	}
+
+	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
+	if cInfo.State != ankrcmm.ContractNormal {
+		return false
+	}
+
+	return true
+}
+
 func (sp *IavlStoreApp) LoadContractQuery(cAddr string, height int64, prove bool) (*ankrcmm.QueryResp, string, *iavl.RangeProof, error) {
 	cInfo, storeKey, proof, proofVal, err := sp.LoadContract(cAddr, height, prove)
 	if err != nil {

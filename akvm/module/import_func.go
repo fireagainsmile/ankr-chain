@@ -16,35 +16,40 @@ import (
 )
 
 const (
-	PrintSFunc                = "print_s"
-	PrintIFunc                = "print_i"
-	StrlenFunc                = "strlen"
-	StrcmpFunc                = "strcmp"
-	StrcatFunc                = "Strcat"
-	AtoiFunc                  = "Atoi"
-    ItoaFunc                  = "Itoa"
-	BigIntSubFunc             =  "BigIntSub"
-	BigIntAddFunc             =  "BigIntAdd"
-	BigIntCmpFunc             =  "BigIntCmp"
-	JsonObjectIndexFunc       = "JsonObjectIndex"
-	JsonCreateObjectFunc      = "JsonCreateObject"
-	JsonGetIntFunc            = "JsonGetInt"
-	JsonGetStringFunc         = "JsonGetString"
-	JsonPutIntFunc            = "JsonPutInt"
-	JsonPutStringFunc         = "JsonPutString"
-	JsonToStringFunc          = "JsonToString"
-	ContractCallFunc          = "ContractCall"
-	ContractDelegateCallFunc  = "ContractDelegateCall"
-	TrigEventFunc             = "TrigEvent"
-	SenderAddrFunc            = "SenderAddr"
-	SetBalanceFunc            = "SetBalance"
-	BalanceFunc               = "Balance"
-	SetAllowanceFunc          = "SetAllowance"
-	AllowanceFunc             = "Allowance"
-	CreateCurrencyFunc        = "CreateCurrency"
-	ContractAddrFunc          = "ContractAddr"
-	BuildCurrencyCAddrMapFunc = "BuildCurrencyCAddrMap"
-	HeightFunc                = "Height"
+	PrintSFunc                 = "print_s"
+	PrintIFunc                 = "print_i"
+	StrlenFunc                 = "strlen"
+	StrcmpFunc                 = "strcmp"
+	StrcatFunc                 = "strcat"
+	AtoiFunc                   = "Atoi"
+    ItoaFunc                   = "Itoa"
+	BigIntSubFunc              =  "BigIntSub"
+	BigIntAddFunc              =  "BigIntAdd"
+	BigIntCmpFunc              =  "BigIntCmp"
+	JsonObjectIndexFunc        = "JsonObjectIndex"
+	JsonCreateObjectFunc       = "JsonCreateObject"
+	JsonGetIntFunc             = "JsonGetInt"
+	JsonGetStringFunc          = "JsonGetString"
+	JsonPutIntFunc             = "JsonPutInt"
+	JsonPutStringFunc          = "JsonPutString"
+	JsonToStringFunc           = "JsonToString"
+	ContractCallFunc           = "ContractCall"
+	ContractDelegateCallFunc   = "ContractDelegateCall"
+	TrigEventFunc              = "TrigEvent"
+	SenderAddrFunc             = "SenderAddr"
+	OwnerAddrFunc              = "OwnerAddr"
+	ChangeContractOwnerFunc    = "ChangeContractOwner"
+	SetBalanceFunc             = "SetBalance"
+	BalanceFunc                = "Balance"
+	SetAllowanceFunc           = "SetAllowance"
+	AllowanceFunc              = "Allowance"
+	CreateCurrencyFunc         = "CreateCurrency"
+	ContractAddrFunc           = "ContractAddr"
+	BuildCurrencyCAddrMapFunc  = "BuildCurrencyCAddrMap"
+	HeightFunc                 = "Height"
+	IsContractNormalFunc       = "IsContractNormal"
+	SuspendContractFunc        = "SuspendContract"
+	UnsuspendContractFunc      = "UnsuspendContract"
 )
 
 func Print_s(proc *exec.Process, strIdx int32) {
@@ -551,6 +556,38 @@ func SenderAddr(proc *exec.Process) uint64 {
 	return pointer
 }
 
+func OwnerAddr(proc *exec.Process) uint64 {
+	addr := ankrcontext.GetBCContext().OwnerAddr()
+	pointer, err := proc.VM().SetBytes([]byte(addr))
+	if err != nil {
+		proc.VM().Logger().Error("OwnerAddr SetBytes", "err", err)
+		return 0
+	}
+
+	return pointer
+}
+
+func ChangeContractOwner(proc *exec.Process, cAddrIndex int32, addrIndex int32) int32 {
+	cAddr, err := proc.ReadString(int64(cAddrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("ChangeContractOwner can't read addr", "err", err)
+		return -1
+	}
+
+	addr, err := proc.ReadString(int64(addrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SetBalance can't read addr", "err", err)
+		return -1
+	}
+
+	err = ankrcontext.GetBCContext().ChangeContractOwner(cAddr, addr)
+	if err != nil {
+		return -1
+	}
+
+	return 0
+}
+
 func SetBalance(proc *exec.Process, addrIndex int32, symbolIndex int32, amountIndex int32) int32 {
 	addr, err := proc.ReadString(int64(addrIndex))
 	if err != nil {
@@ -747,6 +784,52 @@ func Height(proc *exec.Process) int32 {
 	return int32(height)
 }
 
+func IsContractNormal(proc *exec.Process, cAddrIndex int32) int32 {
+	cAddr, err := proc.ReadString(int64(cAddrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("IsContractNormal can't read cAddr", "err", err)
+		return 0
+	}
 
+	isNormal := ankrcontext.GetBCContext().IsContractNormal(cAddr)
+
+	if !isNormal {
+		return 0
+	}
+
+	return 1
+}
+
+func SuspendContract(proc *exec.Process, cAddrIndex int32) int32 {
+	cAddr, err := proc.ReadString(int64(cAddrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SuspendContract can't read cAddr", "err", err)
+		return -1
+	}
+
+	err = ankrcontext.GetBCContext().UpdateContractState(cAddr, ankrcmm.ContractSuspend)
+	if err != nil {
+		proc.VM().Logger().Error("SuspendContract can't UpdateContractState", "err", err)
+		return -1
+	}
+
+	return 0
+}
+
+func UnsuspendContract(proc *exec.Process, cAddrIndex int32) int32 {
+	cAddr, err := proc.ReadString(int64(cAddrIndex))
+	if err != nil {
+		proc.VM().Logger().Error("SuspendContract can't read cAddr", "err", err)
+		return -1
+	}
+
+	err = ankrcontext.GetBCContext().UpdateContractState(cAddr, ankrcmm.ContractNormal)
+	if err != nil {
+		proc.VM().Logger().Error("SuspendContract can't UpdateContractState", "err", err)
+		return -1
+	}
+
+	return  0
+}
 
 

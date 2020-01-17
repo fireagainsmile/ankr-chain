@@ -24,6 +24,9 @@ type ContextAKVM interface {
 	ContractAddr() string
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
 	LoadContract(cAddr string, height int64, prove bool) (*ankrcmm.ContractInfo, string, *iavl.RangeProof, []byte, error)
+	IsContractNormal(cAddr string) bool
+	UpdateContractState(cAddr string, state ankrcmm.ContractState) error
+	ChangeContractOwner(cAddr string, ownerAddr string) error
 	Height() int64
 	Publish(ctx context.Context, msg interface{}) error
 	PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error
@@ -39,7 +42,10 @@ func GetBCContext() ContextAKVM {
 
 type ContractStoreAKVM interface {
 	BuildCurrencyCAddrMap(symbol string, cAddr string) error
+	IsContractNormal(cAddr string) bool
 	LoadContract(cAddr string, height int64, prove bool) (*ankrcmm.ContractInfo, string, *iavl.RangeProof, []byte, error)
+	UpdateContractState(cAddr string, state ankrcmm.ContractState) error
+	ChangeContractOwner(cAddr string, ownerAddr string) error
 }
 
 type ContextAKVMImpl struct {
@@ -49,7 +55,7 @@ type ContextAKVMImpl struct {
 }
 
 func CreateContextAKVM(context ContextContract, appStore appstore.AppStore) ContextAKVM {
-	contAKVM :=  &ContextAKVMImpl{context,appStore, appStore }
+	contAKVM :=  &ContextAKVMImpl{context,appStore, appStore}
 	bcContext = contAKVM
 
 	return contAKVM
