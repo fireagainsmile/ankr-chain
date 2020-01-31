@@ -33,7 +33,7 @@ func NewAnkrCoin(store appstore.AppStore, log log.Logger) *AnkrCoin {
 	conInfo, _, _, _, err := store.LoadContract(string(addr), 0, false)
 	if err == nil && conInfo == nil {
 		store.BuildCurrencyCAddrMap("ANKR", addr)
-		store.SaveContract(string(addr), &ankrcmm.ContractInfo{addr, "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), codePrefixBytes, "", ankrcmm.ContractNormal})
+		store.SaveContract(string(addr), &ankrcmm.ContractInfo{addr, "ANKR", account.AccountManagerInstance().GenesisAccountAddress(), codePrefixBytes, "", ankrcmm.ContractNormal, make(map[string]string)})
 		store.SetBalance(account.AccountManagerInstance().GenesisAccountAddress(), ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, totalSup.Bytes()})
 	}
 

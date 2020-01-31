@@ -65,12 +65,13 @@ type ContractResult struct {
 }
 
 type ContractInfo struct {
-	Addr      string         `json:"addr"`
-	Name      string         `json:"name"`
-	Owner     string         `json:"owneraddr"`
-	Codes     []byte         `json:"codes"`
-	CodesDesc string         `json:"codesdesc"`
-	State     ContractState  `json:"state"`
+	Addr         string             `json:"addr"`
+	Name         string             `json:"name"`
+	Owner        string             `json:"owneraddr"`
+	Codes        []byte             `json:"codes"`
+	CodesDesc    string             `json:"codesdesc"`
+	State        ContractState      `json:"state"`
+	RelatedInfos map[string]string  `json:"relatedinfos"`
 }
 
 func GenerateContractCodePrefix(cType ContractType, cVMType ContractVMType, cPatternType ContractPatternType) []byte {

@@ -32,7 +32,7 @@ func CreateContractAddress(callerAddr string, nonce uint64) string {
 	rawAddr  := crypto.Address(bytesSum).String()
 	rawAddrR := []rune(rawAddr)
 
-	conAddr := append(rawAddrR[:len(rawAddrR)-3], []rune("@ak")...)
+	conAddr := append(rawAddrR[:len(rawAddrR)-3], []rune("@AK")...)
 
 	return  string(conAddr)
 }

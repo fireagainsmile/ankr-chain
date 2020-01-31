@@ -56,6 +56,8 @@ type ContractStore interface {
 	IsContractNormal(cAddr string) bool
 	UpdateContractState(cAddr string, state ankrcmm.ContractState) error
 	ChangeContractOwner(cAddr string, ownerAddr string) error
+	AddContractRelatedObject(cAddr string, key string, jsonObject string) error
+	LoadContractRelatedObject(cAddr string, key string)(jsonObject string, err error)
 }
 
 type PermissionStore interface {

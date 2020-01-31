@@ -27,6 +27,8 @@ type ContextAKVM interface {
 	IsContractNormal(cAddr string) bool
 	UpdateContractState(cAddr string, state ankrcmm.ContractState) error
 	ChangeContractOwner(cAddr string, ownerAddr string) error
+	AddContractRelatedObject(cAddr string, key string, jsonObject string) error
+	LoadContractRelatedObject(cAddr string, key string)(jsonObject string, err error)
 	Height() int64
 	Publish(ctx context.Context, msg interface{}) error
 	PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error
@@ -46,6 +48,8 @@ type ContractStoreAKVM interface {
 	LoadContract(cAddr string, height int64, prove bool) (*ankrcmm.ContractInfo, string, *iavl.RangeProof, []byte, error)
 	UpdateContractState(cAddr string, state ankrcmm.ContractState) error
 	ChangeContractOwner(cAddr string, ownerAddr string) error
+	AddContractRelatedObject(cAddr string, key string, jsonObject string) error
+	LoadContractRelatedObject(cAddr string, key string)(jsonObject string, err error)
 }
 
 type ContextAKVMImpl struct {
