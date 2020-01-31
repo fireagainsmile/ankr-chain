@@ -45,23 +45,23 @@ func TestTxTransferWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-FRIERy",
+		ChID: "test-chain-q3443D",
 		GasLimit: new(big.Int).SetUint64(20000).Bytes(),
 		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
 		Memo: "test transfer",
-		Version: "",
+		Version: "1.0.2",
 	}
 
-	amount, _ := new(big.Int).SetString("6000000000000000000", 10)
+	amount, _ := new(big.Int).SetString("60000000000000000000", 10)
 
-	tfMsg := &token.TransferMsg{FromAddr: "B150DF65F0179C218DFE34E8E450331A8450661D60FCA9",
-		ToAddr:  "C053853FA561AFDC33CF3CC5CB97D655121A99B4982F72",
+	tfMsg := &token.TransferMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
+		ToAddr:  "1E118F5CDD9DA934712597851A8C9AAAEB4784EAC1D@AK",
 		Amounts: []ankrcmm.Amount{ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, amount.Bytes()}},
 	}
 
 	txSerializer := serializer.NewTxSerializerCDC()
 
-	key := crypto.NewSecretKeyEd25519("WawC9+JxxZW5Re731mvYodryGDWk3nQvlu6rN4j+0Vvs04Ms+dGzEPbu145bl0lqoocqep7tZvorggxnXR0oYA==")
+	key := crypto.NewSecretKeyEd25519("wmyZZoMedWlsPUDVCOy+TiVcrIBPcn3WJN8k5cPQgIvC8cbcR10FtdAdzIlqXQJL9hBw1i0RsVjF6Oep/06Ezg==")
 
 	builder := client.NewTxMsgBuilder(msgHeader, tfMsg,  txSerializer, key)
 
@@ -72,14 +72,14 @@ func TestTxTransferWithNode(t *testing.T) {
 	t.Logf("TestTxTransferWithNode sucessful: txHash=%s, cHeight=%d", txHash, cHeight)
 
 	resp := &ankrcmm.BalanceQueryResp{}
-	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"C053853FA561AFDC33CF3CC5CB97D655121A99B4982F72", "ANKR"}, resp)
+	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, resp)
 
-	t.Logf("addr=C053853FA561AFDC33CF3CC5CB97D655121A99B4982F72, bal=%s", resp.Amount)
+	t.Logf("addr=B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67, bal=%s", resp.Amount)
 
 	resp = &ankrcmm.BalanceQueryResp{}
-	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B150DF65F0179C218DFE34E8E450331A8450661D60FCA9", "ANKR"}, resp)
+	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"1E118F5CDD9DA934712597851A8C9AAAEB4784EAC1D@AK", "ANKR"}, resp)
 
-	t.Logf("addr=B150DF65F0179C218DFE34E8E450331A8450661D60FCA9, bal=%s", resp.Amount)
+	t.Logf("addr=1E118F5CDD9DA934712597851A8C9AAAEB4784EAC1D@AK, bal=%s", resp.Amount)
 }
 
 func TestBroadcastTxAsyncWithNode(t *testing.T) {
@@ -451,7 +451,7 @@ func TestQueryAccountInfoWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	resp := &ankrcmm.AccountQueryResp{}
-	c.Query("/store/account", &ankrcmm.AccountQueryReq{"5AEBA6EB8BC51DA277CCF1EF229F0C05D9535FA36CC872"}, resp)
+	c.Query("/store/account", &ankrcmm.AccountQueryReq{"CE446CCF5644A410FF39AA9F4A033F124A524D4F05ED31"}, resp)
 
 	t.Logf("account=%v", new(big.Int).SetBytes(resp.Amounts[0].Value).String())
 }

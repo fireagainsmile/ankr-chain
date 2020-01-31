@@ -80,7 +80,7 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
     	return code.CodeTypeGasNotEnough, fmt.Sprintf("ContractDeployMsg ProcessTx, gas not enough, Got %d", gasUsed), nil
 	}
 
-	cInfo = &ankrcmm.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc, ankrcmm.ContractNormal}
+	cInfo = &ankrcmm.ContractInfo{contractAddr, cd.Name, cd.FromAddr, cd.Codes, cd.CodesDesc, ankrcmm.ContractNormal, make(map[string]string)}
 
 	contractType    := ankrcmm.ContractType(cInfo.Codes[0])
 	contractPatt    := ankrcmm.ContractPatternType(cInfo.Codes[2])

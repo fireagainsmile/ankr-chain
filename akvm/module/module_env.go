@@ -32,7 +32,7 @@ func NewModuleEnv() *ModuleEnv {
 	})
 
 	mEnv.RegisterImportedFunc(StrlenFunc, &wasm.Function{
-		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
 		Body: &wasm.FunctionBody{},
 		Host: reflect.ValueOf(Strlen),
 		Name: StrlenFunc,
@@ -253,6 +253,20 @@ func NewModuleEnv() *ModuleEnv {
 		Body: &wasm.FunctionBody{},
 		Host: reflect.ValueOf(UnsuspendContract),
 		Name: UnsuspendContractFunc,
+	})
+
+	mEnv.RegisterImportedFunc(StoreJsonObjectFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(StoreJsonObject),
+		Name: StoreJsonObjectFunc,
+	})
+
+	mEnv.RegisterImportedFunc(LoadJsonObjectFunc, &wasm.Function{
+		Sig: &wasm.FunctionSig{ParamTypes: []wasm.ValueType{wasm.ValueTypeI32, wasm.ValueTypeI32}, ReturnTypes: []wasm.ValueType{wasm.ValueTypeI32}},
+		Body: &wasm.FunctionBody{},
+		Host: reflect.ValueOf(LoadJsonObject),
+		Name: LoadJsonObjectFunc,
 	})
 
 	return mEnv

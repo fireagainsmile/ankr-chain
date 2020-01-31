@@ -68,6 +68,8 @@ bool IsContractNormal(const char *cAddr);
 int  SuspendContract(const char *cAddr);
 int  UnsuspendContract(const char *cAddr);
 int BuildCurrencyCAddrMap(const char* symbol, const char* cAddr);
+int StoreJsonObject(const char *cAddr, const char *key, const char *jsonObject);
+int LoadJsonObject(const char *cAddr, const char *key);
 int Height();
 
 #ifdef __cplusplus

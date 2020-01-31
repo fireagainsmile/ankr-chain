@@ -796,4 +796,45 @@ func (sp *IavlStoreApp) LoadContractQuery(cAddr string, height int64, prove bool
 	return &ankrcmm.QueryResp{respData, proofVal},  storeKey, proof, nil
 }
 
+func (sp *IavlStoreApp) AddContractRelatedObject(cAddr string, key string, jsonObject string) error{
+	if cAddr == "" {
+		return errors.New("AddContractRelatedObject, blank cAddr")
+	}
+	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
+	if err != nil || len(cInfoBytes) == 0 {
+		sp.storeLog.Error("AddContractRelatedObject can't get the contract", "addr", cAddr)
+		return err
+	}
+
+	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
+
+	if _, ok := cInfo.RelatedInfos[key]; !ok {
+		cInfo.RelatedInfos[key] = jsonObject
+	}
+
+	cInfoBytes = ankrcmm.EncodeContractInfo(sp.cdc, &cInfo)
+	sp.iavlSM.IavlStore(IAvlStoreContractKey).Set([]byte(containContractInfoPrefix(cAddr)), cInfoBytes)
+
+	return nil
+}
+
+func (sp *IavlStoreApp) LoadContractRelatedObject(cAddr string, key string)(jsonObject string, err error) {
+	if cAddr == "" {
+		return "", errors.New("LoadContractRelatedObject, blank cAddr")
+	}
+	cInfoBytes, err := sp.iavlSM.IavlStore(IAvlStoreContractKey).Get([]byte(containContractInfoPrefix(cAddr)))
+	if err != nil || len(cInfoBytes) == 0 {
+		sp.storeLog.Error("LoadContractRelatedObject can't get the contract", "addr", cAddr)
+		return "", err
+	}
+
+	cInfo := ankrcmm.DecodeContractInfo(sp.cdc, cInfoBytes)
+
+	if val, ok := cInfo.RelatedInfos[key]; ok {
+		return val, nil
+	}
+
+	return "",  fmt.Errorf("LoadContractRelatedObject: the contract(%s) hasn't the related key(%s) info", cAddr, key)
+}
+
 
