@@ -47,7 +47,7 @@ func TestTxTransferWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-q3443D",
 		GasLimit: new(big.Int).SetUint64(20000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test transfer",
 		Version: "1.0.2",
 	}
@@ -88,7 +88,7 @@ func TestBroadcastTxAsyncWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-tPbTdZ",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "TestBroadcastTxAsync",
 		Version: "1.0.2",
 	}
@@ -117,7 +117,7 @@ func TestBroadcastTxAsyncParallelWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-NoqWuO",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "TestBroadcastTxAsync",
 		Version: "1.0.2",
 	}
@@ -151,7 +151,7 @@ func TestBroadcastTxSyncWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-NoqWuO",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "TestBroadcastTxSyncWithNode",
 		Version: "1.0.2",
 	}
@@ -180,7 +180,7 @@ func TestBroadcastTxSyncParallelWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-NoqWuO",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "TestBroadcastTxSyncParallelWithNode",
 		Version: "1.0.2",
 	}
@@ -214,7 +214,7 @@ func TestCertMsgWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "Ankr-dev-chain",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test CertMsg",
 		Version: "1.0.2",
 	}
@@ -254,7 +254,7 @@ func TestMeteringWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-50L9ea",
 		GasLimit: new(big.Int).SetUint64(1000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test metering",
 		Version: "1.0.2",
 	}
@@ -294,22 +294,27 @@ func TestContractDeployWithNode(t *testing.T) {
 	c := client.NewClient("localhost:26657")
 
 	msgHeader := client.TxMsgHeader{
-		ChID: "test-chain-dltzyF",
+		ChID: "test-chain-q3443D",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractDeploy",
 		Version: "1.0.2",
 	}
 
-	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/TestContract.wasm")
+	respAcc := &ankrcmm.BalanceQueryResp{}
+	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, respAcc)
+
+	t.Logf("addr=B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67, bal=%s", respAcc.Amount)
+
+	rawBytes, err := ioutil.ReadFile("F:/GoPath/src/github.com/Ankr-network/ankr-chain/contract/example/cpp/ResourceEscrow.wasm")
 	if err != nil {
 		t.Errorf("can't read wasm file: %s", err.Error())
 	}
 
 	cdMsg := &contract.ContractDeployMsg{FromAddr: "B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67",
-		Name:     "TestContract",
+		Name:     "ResourceEscrow",
 		Codes:     rawBytes,
-		CodesDesc: "",
+		CodesDesc: "1.0.2",
 	}
 
 	txSerializer := serializer.NewTxSerializerCDC()
@@ -328,6 +333,11 @@ func TestContractDeployWithNode(t *testing.T) {
 	c.Query("/store/contract", &ankrcmm.ContractQueryReq{contractAddr}, resp)
 
 	t.Logf("conract=%v", resp)
+
+	respAcc = &ankrcmm.BalanceQueryResp{}
+	c.Query("/store/balance", &ankrcmm.BalanceQueryReq{"B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67", "ANKR"}, respAcc)
+
+	t.Logf("addr=B508ED0D54597D516A680E7951F18CAD24C7EC9FCFCD67, bal=%s", respAcc.Amount)
 }
 
 func TestContractInvokeWithNode(t *testing.T) {
@@ -336,7 +346,7 @@ func TestContractInvokeWithNode(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractInvoke",
 		Version: "1.0.2",
 	}
@@ -373,7 +383,7 @@ func TestContractDeployWithNodePattern1(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractDeploy",
 		Version: "1.0.2",
 	}
@@ -414,7 +424,7 @@ func TestContractInvokeWithNodePattern1(t *testing.T) {
 	msgHeader := client.TxMsgHeader{
 		ChID: "test-chain-dltzyF",
 		GasLimit: new(big.Int).SetUint64(10000000).Bytes(),
-		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(100000000000000000).Bytes()},
+		GasPrice: ankrcmm.Amount{ankrcmm.Currency{"ANKR", 18}, new(big.Int).SetUint64(10000000000000).Bytes()},
 		Memo: "test ContractInvoke",
 		Version: "1.0.2",
 	}
