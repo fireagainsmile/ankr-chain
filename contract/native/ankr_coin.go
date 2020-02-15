@@ -117,7 +117,7 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	balSender = new(big.Int).Sub(balSender, value)
 	balTo     = new(big.Int).Add(balTo, value)
 
-	stepGas := gas.GasSlowStep * 2
+	stepGas := uint64(100000 * 2)
 	isSucess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
 	if !isSucess {
 		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr())
@@ -199,7 +199,7 @@ func (ac *AnkrCoin) TransferFrom(fromAddr string, toAddr string, amount string) 
 	balFrom = new(big.Int).Sub(balFrom, value)
 	balTo   = new(big.Int).Add(balTo, value)
 
-	stepGas := uint64(100000 * 2)
+	stepGas := gas.GasSlowStep * 2
 	isSuccess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
 	if !isSuccess {
 		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr(), "stepGas", stepGas)
