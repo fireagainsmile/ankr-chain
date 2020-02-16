@@ -42,7 +42,7 @@ func TxTransferHandler(c *client.Client) http.HandlerFunc {
 
 		minGasPrice, _ := new(big.Int).SetString("10000000000000", 10)
 		if gasPriceBigValWithDecimal.Cmp(minGasPrice) == -1 {
-			WriteErrorResponse(resp, http.StatusBadRequest, "gas price should be greater than 0.1 ANKR")
+			WriteErrorResponse(resp, http.StatusBadRequest, "gas price should be greater than 0.00001 ANKR")
 			return
 		}
 
