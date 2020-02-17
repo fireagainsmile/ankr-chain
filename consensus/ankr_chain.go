@@ -141,6 +141,14 @@ func (app *AnkrChainApplication) PublishWithTags(ctx context.Context, msg interf
 	return app.pubsubServer.PublishWithTags(ctx, msg, tags)
 }
 
+func (app *AnkrChainApplication) LatestHeight() int64 {
+	return app.latestHeight
+}
+
+func (app *AnkrChainApplication) ChainStateInfo() ankrcmm.ChainStateInfo {
+	return app
+}
+
 func (app *AnkrChainApplication) Info(req types.RequestInfo) types.ResponseInfo {
 	return types.ResponseInfo{
 		Data:             app.APPName,

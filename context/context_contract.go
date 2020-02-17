@@ -40,6 +40,7 @@ type ContextContract interface {
 	LoadBoundRoles(address string) ([]string, error)
 	Publish(ctx context.Context, msg interface{}) error
 	PublishWithTags(ctx context.Context, msg interface{}, tags map[string]string) error
+	LatestHeight() int64
 }
 
 type ContextContractImpl struct {
@@ -50,10 +51,11 @@ type ContextContractImpl struct {
 	appstore.AccountStore
 	appstore.PermissionStore
 	vmevent.Publisher
+	ankrcmm.ChainStateInfo
 }
 
-func NewContextContract(curI CurrencyInterface, gasMetric gas.GasMetric, txCallBack TxMsgCallBack, contI ankrcmm.ContractInterface, accStore appstore.AccountStore, permStore appstore.PermissionStore, publisher vmevent.Publisher) ContextContract {
-	return &ContextContractImpl{curI,gasMetric, txCallBack, contI,accStore, permStore, publisher}
+func NewContextContract(curI CurrencyInterface, gasMetric gas.GasMetric, txCallBack TxMsgCallBack, contI ankrcmm.ContractInterface, accStore appstore.AccountStore, permStore appstore.PermissionStore, publisher vmevent.Publisher, chainSInfo ankrcmm.ChainStateInfo) ContextContract {
+	return &ContextContractImpl{curI,gasMetric, txCallBack, contI,accStore, permStore, publisher, chainSInfo}
 }
 
 

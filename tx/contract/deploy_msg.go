@@ -84,7 +84,7 @@ func (cd *ContractDeployMsg) ProcessTx(context tx.ContextTx, metric gas.GasMetri
 
 	contractType    := ankrcmm.ContractType(cInfo.Codes[0])
 	contractPatt    := ankrcmm.ContractPatternType(cInfo.Codes[2])
-	contractContext := ankrcontext.NewContextContract(context.AppStore(), metric, cd, cInfo, context.AppStore(), context.AppStore(), context.Publisher())
+	contractContext := ankrcontext.NewContextContract(context.AppStore(), metric, cd, cInfo, context.AppStore(), context.AppStore(), context.Publisher(), context.ChainStateInfo())
 	rtn, err := context.Contract().Call(contractContext, context.AppStore(), contractType, contractPatt, cInfo.Codes[ankrcmm.CodePrefixLen:], cInfo.Name, "init", nil, "string")
 	if err != nil {
 		return code.CodeTypeCallContractErr, fmt.Sprintf("call contract err: contract=%s, method=init, err=%v", contractAddr, err), nil
