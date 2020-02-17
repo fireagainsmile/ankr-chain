@@ -21,4 +21,5 @@ type ContextTx interface {
 	Contract() contract.Contract
 	Publisher() Publisher
 	Logger() log.Logger
+	ChainStateInfo() ankrcmm.ChainStateInfo
 }

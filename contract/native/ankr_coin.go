@@ -118,6 +118,10 @@ func (ac *AnkrCoin) Transfer(toAddr string, amount string) bool {
 	balTo     = new(big.Int).Add(balTo, value)
 
 	stepGas := uint64(100000 * 2)
+	if ankrcmm.RM == ankrcmm.RunModeProd && ac.context.LatestHeight() < int64(2666829) {
+		stepGas = gas.GasSlowStep * 2
+	}
+
 	isSucess = ac.context.SpendGas(new(big.Int).SetUint64(stepGas))
 	if !isSucess {
 		ac.log.Error("AnkrCoin Transfer gasUsed reach the limit value after gas slow step", "senderAddr", ac.context.SenderAddr())
